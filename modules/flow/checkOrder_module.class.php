@@ -1,0 +1,651 @@
+<?php
+defined('IN_ECJIA') or exit('No permission resources.');
+/**
+ * 购物流检查订单
+ * @author royalwang
+ *
+ */
+class checkOrder_module implements ecjia_interface {
+	
+	public function run(ecjia_api & $api) {
+		EM_Api::authSession();
+		RC_Loader::load_app_func('global','cart');
+		RC_Loader::load_app_func('cart','cart');
+		RC_Loader::load_app_func('order','orders');
+		RC_Loader::load_app_func('bonus','bonus');
+		
+		$rec_id = _POST('rec_id');
+		$_SESSION['cart_id'] = $rec_id;
+		$cart_id = empty($rec_id) ? '' : explode(',', $rec_id);
+
+		$rec_type = _POST('rec_type');
+		/* 取得购物类型 */
+		$flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
+		
+		/* 团购标志 */
+		if ($flow_type == CART_GROUP_BUY_GOODS) {
+			$is_group_buy = 1;
+		} elseif ($flow_type == CART_EXCHANGE_GOODS){
+			/* 积分兑换商品 */
+			$is_exchange_goods = 1;	
+		} else {
+			//正常购物流程  清空其他购物流程情况
+			$_SESSION['flow_order']['extension_code'] = '';
+		}
+		
+		/* 检查购物车中是否有商品 */
+		
+		$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
+		$cart_where = array('parent_id' => 0 , 'is_gift' => 0 , 'rec_type' => $flow_type);
+		if (!empty($cart_id)) {
+			$cart_where = array_merge($cart_where, array('rec_id' => $cart_id));
+		}
+		if ($_SESSION['user_id']) {
+			$cart_where = array_merge($cart_where, array('user_id' => $_SESSION['user_id']));
+			$count = $db_cart->where($cart_where)->count();
+		} else {
+			$cart_where = array_merge($cart_where, array('session_id' => SESS_ID));
+			$count = $db_cart->where($cart_where)->count();
+		}
+		
+		if ($count == 0) {
+			EM_Api::outPut(10002);
+		}
+		
+		/*
+		 * 检查用户是否已经登录
+		* 如果用户已经登录了则检查是否有默认的收货地址
+		* 如果没有登录则跳转到登录和注册页面
+		*/
+		if (empty($_SESSION['direct_shopping']) && $_SESSION['user_id'] == 0) {
+			/* 用户没有登录且没有选定匿名购物，转向到登录页面 */
+			EM_Api::outPut(100);
+			exit;
+		}
+		$address_id = _POST('address_id', '0');
+		if ($address_id == 0) {
+			$consignee = get_consignee($_SESSION['user_id']);
+		} else {
+			$db_user_address = RC_Loader::load_app_model('user_address_model','user');
+			$consignee = $db_user_address->find(array('address_id' => $address_id, 'user_id' => $_SESSION['user_id']));
+		}
+		$consignee['tel'] = empty($consignee['tel']) ? $consignee['mobile'] : $consignee['tel'];
+		
+		/* 检查收货人信息是否完整 */
+		if (!check_consignee_info($consignee, $flow_type)) {
+			/* 如果不完整则转向到收货人信息填写界面 */
+			EM_Api::outPut(10001);
+			exit;
+		}
+		
+// 		$_SESSION['flow_consignee'] = $consignee;
+
+		/* 对商品信息赋值 */
+		$cart_goods = cart_goods($flow_type, $cart_id); // 取得商品列表，计算合计
+
+		
+		/* 对是否允许修改购物车赋值 */
+		if ($flow_type != CART_GENERAL_GOODS || ecjia::config('one_step_buy') == '1') {
+			$allow_edit_cart = 0 ;
+		} else {
+			$allow_edit_cart = 1 ;
+		}
+		
+		/* 取得订单信息*/
+		$order = flow_order_info();
+
+		
+		/* 计算折扣 */
+		if ($flow_type != CART_EXCHANGE_GOODS && $flow_type != CART_GROUP_BUY_GOODS) {
+			$discount = compute_discount($type = 0, $newInfo = array(), $cart_id);
+			$favour_name = empty($discount['name']) ? '' : join(',', $discount['name']);
+			$your_discount = sprintf(__('根据优惠活动<font color=red>%s</font>，您可以享受折扣 %s'), $favour_name, price_format($discount['discount']));
+		}
+		/* 计算订单的费用 */
+		$total = order_fee($order, $cart_goods, $consignee, $cart_id);
+		
+	
+		/* 取得配送列表 */
+		$region            = array($consignee['country'], $consignee['province'], $consignee['city'], $consignee['district']);
+		
+		$shipping_method   = RC_Loader::load_app_class('shipping_method', 'shipping');
+		$shipping_list     = $shipping_method->available_shipping_list($region);
+		
+		$cart_weight_price = cart_weight_price($flow_type, $cart_id);
+		$insure_disabled   = true;
+		$cod_disabled      = true;
+		
+		$shipping_count_where = array('extension_code' => array('neq' => 'package_buy') , 'is_shipping' => 0);
+		if (!empty($cart_id)) {
+			$shipping_count_where = array_merge($shipping_count_where, array('rec_id' => $cart_id));
+		}
+		// 查看购物车中是否全为免运费商品，若是则把运费赋为零
+		if ($_SESSION['user_id']) {
+			$shipping_count_where = array_merge($shipping_count_where, array('user_id' => $_SESSION['user_id']));
+			$shipping_count = $db_cart->where($shipping_count_where)->count();
+		} else {
+			$shipping_count_where = array_merge($shipping_count_where, array('session_id' => SESS_ID));
+			$shipping_count = $db_cart->where($shipping_count_where)->count();
+		}
+		
+		$ck = array();
+		foreach ($shipping_list AS $key => $val) {
+			if (isset($ck[$val['shipping_id']])) {
+				unset($shipping_list[$key]);
+				continue;
+			}
+			$ck[$val['shipping_id']] = $val['shipping_id'];
+		
+			$shipping_cfg = unserialize_config($val['configure']);
+// 			$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : $shipping_method->shipping_fee($val['shipping_code'], unserialize($val['configure']),
+// 					$cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
+			if (ecjia::config('freight_model') == 0) {
+				// 				$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : shipping_fee($val['shipping_code'], unserialize($val['configure']),
+				// 						$cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
+					
+				$shipping_list[$key]['free_money']          = price_format($shipping_cfg['free_money'], false);
+				$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : $shipping_method->shipping_fee($val['shipping_code'], unserialize($val['configure']),
+						$cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
+			} elseif (ecjia::config('freight_model') == 1) {
+					
+				$goods_region = array(
+						'country'	=> $region[0],
+						'province'	=> $region[1],
+						'city'		=> $region[2],
+						'district'	=> $region[3],
+				);
+			
+				$shippingFee = get_goods_order_shipping_fee($cart_goods, $goods_region, $val['shipping_code']);
+				$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 :  $shippingFee['shipping_fee'];
+					
+				$shipping_list[$key]['free_money']          = price_format($shippingFee['free_money'], false);
+			}
+			
+			
+			
+			$shipping_list[$key]['format_shipping_fee'] = price_format($shipping_fee, false);
+			$shipping_list[$key]['shipping_fee']        = $shipping_fee;
+			$shipping_list[$key]['free_money']          = price_format($shipping_cfg['free_money'], false);
+			$shipping_list[$key]['insure_formated']     = strpos($val['insure'], '%') === false ?
+			price_format($val['insure'], false) : $val['insure'];
+		
+			/* 当前的配送方式是否支持保价 */
+			if ($val['shipping_id'] == $order['shipping_id']) {
+				$insure_disabled = ($val['insure'] == 0);
+				$cod_disabled    = ($val['support_cod'] == 0);
+			}
+		}
+		$shipping_list = array_values($shipping_list);
+		
+		/* 取得支付列表 */
+		$cod_fee    = 0;
+		if ($order['shipping_id'] == 0) {
+			$cod        = true;
+			$cod_fee    = 0;
+		} else {
+			$shipping = $shipping_method->shipping_info($order['shipping_id']);
+			$cod = $shipping['support_cod'];
+			if ($cod){
+ 				/* 如果是团购，且保证金大于0，不能使用货到付款 */
+ 				if ($flow_type == CART_GROUP_BUY_GOODS) {
+ 					$group_buy_id = $_SESSION['extension_id'];
+ 					if ($group_buy_id <= 0) {
+ 						EM_Api::outPut(10006);
+ 					}
+ 					RC_Loader::load_app_func('goods', 'goods');
+ 					$group_buy = group_buy_info($group_buy_id);
+ 					if (empty($group_buy)) {
+ 						EM_Api::outPut(101);
+ 					}
+ 					if ($group_buy['deposit'] > 0) {
+ 						$cod = false;
+ 						$cod_fee = 0;
+ 						/* 赋值保证金 */
+						$gb_deposit = $group_buy['deposit'];
+ 					}
+ 				}
+				if ($cod) {
+					$shipping_area_info = $shipping_method->shipping_area_info($order['shipping_id'], $region);
+					$cod_fee = $shipping_area_info['pay_fee'];
+				}
+			}
+		}
+		
+		$payment_method = RC_Loader::load_app_class('payment_method', 'payment');
+		
+		// 给货到付款的手续费加<span id>，以便改变配送的时候动态显示
+		$payment_list = $payment_method->available_payment_list(1, $cod_fee);
+		
+//		if(isset($payment_list)) {
+//			foreach ($payment_list as $key => $payment) {
+//				if ($payment['is_cod'] == '1') {
+//					$payment_list[$key]['format_pay_fee'] = '<span id="ECS_CODFEE">' . $payment['format_pay_fee'] . '</span>';
+//				}
+//		
+//				/**
+//				 * 手机支持的支付方式
+//				 * 货到付款		cod
+//				 * WAP支付宝		alipay_wap
+//				 * 手机支付宝		alipay_mobile
+//				 * 银联手机支付 	upmp
+//				 * 银行转帐		bank
+//				 */
+//				if ($payment['pay_code'] != 'cod' && 	// 货到付款
+//						$payment['pay_code'] != 'alipay_wap' &&  // WAP支付宝
+//						$payment['pay_code'] != 'alipay_mobile' && // 手机支付宝
+//						$payment['pay_code'] != 'bank' &&	// 银行转账
+//						$payment['pay_code'] != 'upmp') {
+//							unset($payment_list[$key]);
+//						}
+//		
+//				/* 如果有易宝神州行支付 如果订单金额大于300 则不显示 */
+//				if ($payment['pay_code'] == 'yeepayszx' && $total['amount'] > 300) {
+//					unset($payment_list[$key]);
+//				}
+//				/* 如果有余额支付 */
+//				if ($payment['pay_code'] == 'balance') {
+//					/* 如果未登录，不显示 */
+//					if ($_SESSION['user_id'] == 0) {
+//						unset($payment_list[$key]);
+//					} else {
+//						if ($_SESSION['flow_order']['pay_id'] == $payment['pay_id']) {
+//							$disable_surplus = 1;
+//						}
+//					}
+//				}
+//			}
+//		}
+
+		$user_info = user_info($_SESSION['user_id']);
+		/* 保存 session */
+		$_SESSION['flow_order'] = $order;
+		
+		$out = array();
+		$out['goods_list'] = $cart_goods;//商品
+		$out['consignee'] = $consignee;//收货地址
+		$out['shipping_list'] = $shipping_list;//快递信息
+		$out['payment_list'] = $payment_list;
+		/* 如果使用积分，取得用户可用积分及本订单最多可以使用的积分 */
+		if ((ecjia::config('use_integral', ecjia::CONFIG_CHECK) || ecjia::config('use_integral') == '1')
+				&& $_SESSION['user_id'] > 0
+				&& $user_info['pay_points'] > 0
+				&& ($flow_type != CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS))
+		{
+			// 能使用积分
+			$allow_use_integral = 1;
+			$order_max_integral = flow_available_points($cart_id);
+		} else {
+			$order_max_integral = 0;
+		}
+		$out['allow_use_integral'] = $allow_use_integral;//积分 是否使用积分
+		$out['order_max_integral'] = $order_max_integral;//订单最大可使用积分
+			/* 如果使用红包，取得用户可以使用的红包及用户选择的红包 */
+		if ((ecjia::config('use_bonus', ecjia::CONFIG_CHECK) || ecjia::config('use_bonus') == '1')
+				&& ($flow_type != CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS))
+		{
+			// 取得用户可用红包
+			$user_bonus = user_bonus($_SESSION['user_id'], $total['goods_price'], $cart_id);
+			if (!empty($user_bonus)) {
+				foreach ($user_bonus AS $key => $val) {
+					$user_bonus[$key]['bonus_money_formated'] = price_format($val['type_money'], false);
+				}
+				$bonus_list = $user_bonus;
+			}
+			// 能使用红包
+			$allow_use_bonus = 1;
+
+		}
+		$out['allow_use_bonus'] = $allow_use_bonus;//是否使用红包
+		$out['bonus'] = $bonus_list;//红包
+		$out['allow_can_invoice'] = ecjia::config('can_invoice');//能否开发票
+		/* 如果能开发票，取得发票内容列表 */
+		if ((ecjia::config('can_invoice', ecjia::CONFIG_CHECK) || ecjia::config('can_invoice') == '1')
+				&&ecjia::config('invoice_content',ecjia::CONFIG_CHECK) 
+				 && $flow_type != CART_EXCHANGE_GOODS)
+		{
+			$inv_content_list = explode("\n", str_replace("\r", '', ecjia::config('invoice_content')));
+			$inv_type_list = array();
+			$invoice_type = ecjia::config('invoice_type');
+// 			by  will.chen 2015/05/18
+			foreach ($invoice_type['type'] as $key => $type) {
+				if (!empty($type)) {
+					$inv_type_list[$type] = array(
+							'label' => $type . ' [' . floatval($invoice_type['rate'][$key]) . '%]',
+							'label_type' => $type,
+							'rate' => floatval($invoice_type['rate'][$key])
+					);
+				}
+			}
+		}
+		$out['inv_content_list'] = empty($inv_content_list) ? null : $inv_content_list;//发票内容项
+		$out['inv_type_list'] = $inv_type_list;//发票类型及税率 
+		$out['your_integral'] = $user_info['pay_points'];//用户可用积分
+		$out['your_discount'] = $your_discount;//用户享受折扣说明
+		$out['discount'] = number_format($discount['discount'], 2, '.', '');//用户享受折扣数
+		$out['discount_formated'] = $total['discount_formated'];
+		
+		if (!empty($out['consignee'])) {
+			$out['consignee']['id'] = $out['consignee']['address_id'];
+			unset($out['consignee']['address_id']);
+			unset($out['consignee']['user_id']);
+			unset($out['consignee']['address_id']);
+			$ids = array($out['consignee']["country"], $out['consignee']["province"], $out['consignee']["city"], $out['consignee']["district"]);
+			$ids = array_filter($ids);
+		
+			$db_region = RC_Loader::load_app_model('region_model','shipping');
+			$data = $db_region->in(array('region_id' => implode(',', $ids)))->select();
+			
+			$a_out = array();
+			foreach ($data as $key => $val) {
+				$a_out[$val['region_id']] = $val['region_name'];
+			}
+		
+			$out['consignee']["country_name"] = isset($a_out[$out['consignee']["country"]]) ? $a_out[$out['consignee']["country"]] : '';
+			$out['consignee']["province_name"] = isset($a_out[$out['consignee']["province"]]) ? $a_out[$out['consignee']["province"]] : '';
+			$out['consignee']["city_name"] = isset($a_out[$out['consignee']["city"]]) ? $a_out[$out['consignee']["city"]] : '';
+			$out['consignee']["district_name"] = isset($a_out[$out['consignee']["district"]]) ? $a_out[$out['consignee']["district"]] : '';
+		
+		}
+		if (!empty($out['inv_content_list'])) {
+			$temp = array();
+			foreach ($out['inv_content_list'] as $key => $value) {
+				$temp[] = array('id'=>$key, 'value'=>$value);
+			}
+			$out['inv_content_list'] = $temp;
+		}
+		if (!empty($out['inv_type_list'])) {
+			$temp = array();
+			$i = 1;
+			foreach ($out['inv_type_list'] as $key => $value) {
+				$temp[] = array(
+						'id'	=> $i, 
+						'value'	=> $value['label'], 
+						'label_value' => $value['label_type'],
+						'rate'	=> $value['rate']);
+				$i++;
+			}
+			$out['inv_type_list'] = $temp;
+		}
+		
+		//去掉系统使用的字段
+		if (!empty($out['shipping_list'])) {
+			foreach ($out['shipping_list'] as $key => $value) {
+				unset($out['shipping_list'][$key]['configure']);
+				unset($out['shipping_list'][$key]['shipping_desc']);
+			}
+		}
+		$device = _POST('device', array());
+		$device_code = $device['code'];
+		if (!empty($out['payment_list'])) {
+			foreach ($out['payment_list'] as $key => $value) {
+				if ($device_code != '8001') {
+					if ($value['pay_code'] == 'pay_koolyun' || $value['pay_code'] == 'pay_cash') {
+						unset($out['payment_list'][$key]);
+						continue;
+					}
+				}
+				unset($out['payment_list'][$key]['pay_config']);
+				unset($out['payment_list'][$key]['pay_desc']);
+				$out['payment_list'][$key]['pay_name'] = strip_tags($value['pay_name']);
+				// cod 货到付款，alipay支付宝，bank银行转账
+				if (in_array($value['pay_code'], array('post', 'balance'))) {
+					unset($out['payment_list'][$key]);
+				}
+				// $out['shipping_list'][$key]['configure'] = unserialize($value['configure']);
+			}
+			$out['payment_list'] = array_values($out['payment_list']);
+		}
+		
+		if (!empty($out['goods_list'])) {
+			foreach ($out['goods_list'] as $key => $value) {
+				if (!empty($value['goods_attr'])) {
+					$goods_attr = explode("\n", $value['goods_attr']);
+					$goods_attr = array_filter($goods_attr);
+					$out['goods_list'][$key]['goods_attr'] = array();
+					foreach ($goods_attr as  $v) {
+						$a = explode(':',$v);
+						if (!empty($a[0]) && !empty($a[1])) {
+							$out['goods_list'][$key]['goods_attr'][] = array('name'=>$a[0], 'value'=>$a[1]);
+						}
+					}
+				}
+			}
+		}
+		
+		
+		/* 取得优惠活动 */
+		$favourable_list = em_favourable_list($_SESSION['user_rank']);
+		usort($favourable_list, 'cmp_favourable');
+		if (!empty($favourable_list)) {
+			$favourable_list_a = array();
+			foreach ($favourable_list as $key => $row) {
+				if (!$row['available']) {
+					unset($favourable_list[$key]);
+				}
+				$favourable_list_a[$key]['act_id'] = $row['act_id'];
+				$favourable_list_a[$key]['act_name'] = $row['act_name'];
+				$favourable_list_a[$key]['start_time'] = $row['start_time'];
+				$favourable_list_a[$key]['end_time'] = $row['end_time'];
+				$favourable_list_a[$key]['act_type'] = $row['act_type'];
+				$favourable_list_a[$key]['act_type_ext'] = $row['act_type_ext'];
+				$favourable_list_a[$key]['gift'] = $row['gift'];
+				$favourable_list_a[$key]['formated_start_time'] = $row['formated_start_time'];
+				$favourable_list_a[$key]['formated_end_time'] = $row['formated_end_time'];
+				$favourable_list_a[$key]['formated_min_amount'] = $row['formated_min_amount'];
+				$favourable_list_a[$key]['formated_max_amount'] = $row['formated_max_amount'];
+			}
+		}
+		$out['favourable_list'] = $favourable_list_a;
+		
+		
+		EM_API::outPut($out);
+
+//		 $out['ecs_session'] = $smarty->_var['ecs_session'];
+//		$out['goods_list'] = $smarty->_var['goods_list'];
+//		$out['consignee'] = $smarty->_var['consignee'];
+//		$out['shipping_list'] = $smarty->_var['shipping_list'];
+//		$out['payment_list'] = $smarty->_var['payment_list'];
+//      $out['pack_list'] = $smarty->_var['pack_list']; //是否有包装
+// 		$out['card_list'] = $smarty->_var['card_list'];//贺卡 <!-- {if $card.card_img} 是否有图片 -->
+// 		$out['allow_use_surplus'] = $smarty->_var['allow_use_surplus'];//余额 是否使用余额
+//		$out['allow_use_integral'] = $smarty->_var['allow_use_integral'];//积分 是否使用积分
+//		$out['order_max_integral'] = $smarty->_var['order_max_integral'];//订单最大可使用积分
+//		$out['allow_use_bonus'] = $smarty->_var['allow_use_bonus'];//是否使用红包
+//		$out['bonus'] = $smarty->_var['bonus_list'];//红包
+//		$out['allow_can_invoice'] = $smarty->_var['allow_can_invoice']; //能否开发票
+//		$out['inv_content_list'] = $smarty->_var['inv_content_list'];//发票内容项
+//		$out['inv_type_list'] = $smarty->_var['inv_type_list'];//发票类型及税率
+//		$out['your_discount'] = $smarty->_var['your_discount']; //用户享受折扣说明
+//		$out['discount'] = $smarty->_var['discount']; //用户享受折扣数		
+// 		$out['how_oos_list'] = $smarty->_var['how_oos_list'];//是否使用缺货处理		
+		
+//		$api->init_smarty();
+//		$api->init_users();
+		
+//		RC_Lang::load('flow/shopping_flow');
+		
+		
+//		global $smarty, $db, $ecs, $_CFG, $_LANG;
+		
+// 		if($_CFG['integrate_code'] == 'ucenter')
+// 		{
+// 			$user = & init_users();
+// 			_dump($api,1);
+// 		}
+		
+// 		require(GZ_PATH . '/Library/log.func.php');
+// 		require(EC_PATH . '/includes/lib_order.php');
+//		RC_Loader::load_sys_func('order');
+//		RC_Loader::load_app_func('flow', 'main');
+		
+		/* 载入语言文件 */
+// 		require_once(EC_PATH . '/languages/' .$_CFG['lang']. '/user.php');
+// 		require_once(EC_PATH . '/languages/' .$_CFG['lang']. '/shopping_flow.php');
+
+//		$api->addLang('user/user');
+//		$api->addLang('flow/shopping_flow');
+// 		$smarty->assign('lang',             $_LANG);
+		
+// 		assign_template();
+//		assign_dynamic('flow');
+//		$position = assign_ur_here(0,       $_LANG['shopping_flow']);
+//		$smarty->assign('page_title',       $position['title']);    // 页面标题
+//		$smarty->assign('ur_here',          $position['ur_here']);  // 当前位置
+//		
+//		$smarty->assign('categories',       get_categories_tree()); // 分类树
+//		$smarty->assign('helps',            get_shop_help());       // 网店帮助
+//		$smarty->assign('show_marketprice', ecjia::config('show_marketprice'));
+//		$smarty->assign('data_dir',         DATA_DIR);       // 数据目录
+		/*------------------------------------------------------ */
+		//-- 订单确认
+		/*------------------------------------------------------ */
+		/* 团购标志 */		
+//			$smarty->assign('is_group_buy', 1);		
+/* 积分兑换商品 */
+//			$smarty->assign('is_exchange_goods', 1);		
+// 		$sql = "SELECT COUNT(*) FROM " . $ecs->table('cart') .
+// 		" WHERE session_id = '" . SESS_ID . "' " .
+// 		"AND parent_id = 0 AND is_gift = 0 AND rec_type = '$flow_type'";
+//		$smarty->assign('consignee', $consignee);
+//		$smarty->assign('goods_list', $cart_goods);
+			/* 对是否允许修改购物车赋值 */
+//		if ($flow_type != CART_GENERAL_GOODS || $_CFG['one_step_buy'] == '1')
+//		{
+//			$smarty->assign('allow_edit_cart', 0);
+//		}
+//		else
+//		{
+//			$smarty->assign('allow_edit_cart', 1);
+//		}
+		/*
+		 * 取得购物流程设置
+		*/
+//		$smarty->assign('config', $_CFG);
+//		$smarty->assign('order', $order);
+		/* 计算折扣 */
+//			$smarty->assign('discount', number_format($discount['discount'], 2, '.', ''));
+//			$smarty->assign('your_discount', sprintf($_LANG['your_discount'], $favour_name, price_format($discount['discount'])));
+//		$smarty->assign('total', $total);
+//		$smarty->assign('shopping_money', sprintf(RC_Lang::lang('shopping_money'), $total['formated_goods_price']));
+//		$smarty->assign('market_price_desc', sprintf(RC_Lang::lang('than_market_price'), $total['formated_market_price'], $total['formated_saving'], $total['save_rate']));
+//	
+// 		$sql = 'SELECT count(*) FROM ' . $ecs->table('cart') . " WHERE `session_id` = '" . SESS_ID. "' AND `extension_code` != 'package_buy' AND `is_shipping` = 0";
+// 		$shipping_count = $db->getOne($sql);
+//		$smarty->assign('shipping_list',   $shipping_list);
+//		$smarty->assign('insure_disabled', $insure_disabled);
+//		$smarty->assign('cod_disabled',    $cod_disabled);
+// 						//$smarty->assign('gb_deposit', $group_buy['deposit']);
+//		$smarty->assign('disable_surplus', 1);	
+//		$smarty->assign('payment_list', $payment_list);
+
+		
+		
+// 			$sql = "SELECT * FROM " . $GLOBALS['ecs']->table('region') .
+// 			" WHERE region_id IN(".implode(',', $ids).')';
+// 			$data = $GLOBALS['db']->getAll($sql);		
+//		$smarty->assign('currency_format', $_CFG['currency_format']);
+//		$smarty->assign('integral_scale',  $_CFG['integral_scale']);
+//		assign_dynamic('shopping_flow');
+//		/* 取得包装与贺卡 */
+//		if ($total['real_goods_count'] > 0) {
+//			/* 只有有实体商品,才要判断包装和贺卡 */	
+//			if (!isset(ecjia::config('use_package')) || ecjia::config('use_package') == '1')
+//			{
+//				/* 如果使用包装，取得包装列表及用户选择的包装 */
+//				$smarty->assign('pack_list', pack_list());
+//			}
+//		
+//			/* 如果使用贺卡，取得贺卡列表及用户选择的贺卡 */
+//			if (!isset(ecjia::config('use_card')) || ecjia::config('use_card') == '1')
+//			{
+//				$smarty->assign('card_list', card_list());
+//			}
+//		}
+		
+		
+		
+		/* 如果使用余额，取得用户余额 */
+//		if ((!isset(ecjia::config('use_surplus')) || ecjia::config('use_surplus') == '1')
+//				&& $_SESSION['user_id'] > 0
+//				&& $user_info['user_money'] > 0)
+//		{
+//			// 能使用余额
+//			$smarty->assign('allow_use_surplus', 1);
+//			$smarty->assign('your_surplus', $user_info['user_money']);
+//		}
+			
+//		$smarty->assign('your_integral',      $user_info['pay_points']); // 用户积分
+		/* 如果使用积分，取得用户可用积分及本订单最多可以使用的积分 */
+//		if ((!isset(ecjia::config('use_integral')) || ecjia::config('use_integral') == '1')
+//				&& $_SESSION['user_id'] > 0
+//				&& $user_info['pay_points'] > 0
+//				&& ($flow_type != CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS))
+//		{
+//			// 能使用积分
+//			$smarty->assign('allow_use_integral', 1);
+//			$smarty->assign('order_max_integral', flow_available_points());  // 可用积分
+//		} else {
+//			$smarty->assign('order_max_integral', 0);  // 可用积分
+//		}
+		
+		/* 如果使用红包，取得用户可以使用的红包及用户选择的红包 */
+//		if ((!isset($_CFG['use_bonus']) || $_CFG['use_bonus'] == '1')
+//				&& ($flow_type != CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS))
+//		{
+//			// 取得用户可用红包
+//			$user_bonus = user_bonus($_SESSION['user_id'], $total['goods_price']);
+//			if (!empty($user_bonus))
+//			{
+//				foreach ($user_bonus AS $key => $val)
+//				{
+//					$user_bonus[$key]['bonus_money_formated'] = price_format($val['type_money'], false);
+//				}
+//				$smarty->assign('bonus_list', $user_bonus);
+//			}
+//		
+//			// 能使用红包
+//			$smarty->assign('allow_use_bonus', 1);
+//		}
+		
+		/* 如果使用缺货处理，取得缺货处理列表 */
+//		if (!isset($_CFG['use_how_oos']) || $_CFG['use_how_oos'] == '1')
+//		{
+//			if (is_array($GLOBALS['_LANG']['oos']) && !empty($GLOBALS['_LANG']['oos']))
+//			{
+//				$smarty->assign('how_oos_list', $GLOBALS['_LANG']['oos']);
+//			}
+//		}
+		
+//		/* 如果能开发票，取得发票内容列表 */
+//		if ((!isset($_CFG['can_invoice']) || $_CFG['can_invoice'] == '1')
+//				&& isset($_CFG['invoice_content'])
+//				&& trim($_CFG['invoice_content']) != '' && $flow_type != CART_EXCHANGE_GOODS)
+//		{
+//			$inv_content_list = explode("\n", str_replace("\r", '', $_CFG['invoice_content']));
+//			$smarty->assign('inv_content_list', $inv_content_list);
+//		
+//			$inv_type_list = array();
+//			foreach ($_CFG['invoice_type']['type'] as $key => $type)
+//			{
+//				if (!empty($type))
+//				{
+//					$inv_type_list[$type] = $type . ' [' . floatval($_CFG['invoice_type']['rate'][$key]) . '%]';
+//				}
+//			}
+//			$smarty->assign('inv_type_list', $inv_type_list);
+//		}
+//		$smarty->assign('allow_can_invoice', $_CFG['can_invoice']);	
+//			$smarty->assign('allow_use_integral', 1);
+//			$smarty->assign('order_max_integral', flow_available_points());  // 可用积分
+//			$smarty->assign('order_max_integral', 0);  // 可用积分.		
+//				$smarty->assign('bonus_list', $user_bonus);
+//			$smarty->assign('allow_use_bonus', 1);
+//			$smarty->assign('inv_content_list', $inv_content_list);
+//					$inv_type_list[$type] = $type . ' [' . floatval($_CFG['invoice_type']['rate'][$key]) . '%]';
+//			$smarty->assign('inv_type_list', $inv_type_list);
+		
+	}
+}
+
+
+// end
