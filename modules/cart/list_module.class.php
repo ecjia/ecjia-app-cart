@@ -11,10 +11,6 @@ class list_module implements ecjia_interface {
 		
 		EM_Api::authSession();
 		$location = _POST('location');
-		$location = array(
-				'latitude'	=> '31.235450744628906',
-				'longitude' => '121.41641998291016',
-		);
 		
 		$cart_result = RC_Api::api('cart', 'cart_list', array('location' => $location));
 // 		_dump($cart_result,1);
