@@ -13,6 +13,9 @@ class list_module implements ecjia_interface {
 		$location = _POST('location');
 		
 		$cart_result = RC_Api::api('cart', 'cart_list', array('location' => $location));
+		if (is_ecjia_error($result)) {
+			return $result;
+		}
 // 		_dump($cart_result,1);
 		$cart_goods = array('cart_list' => array(), 'total' => $cart_result['total']);
 		if (!empty($cart_result['goods_list'])) {
@@ -56,94 +59,7 @@ class list_module implements ecjia_interface {
 			}
 		}
 		$cart_goods['cart_list'] = array_merge($cart_goods['cart_list']);
-		
-// 		"cart_list": [
-// 		{
-// 			"seller_id": "0",
-// 			"seller_name": "ECJia百货商城",
-// 			"id": "0",
-// 			"name": "ECJia百货商城",
-// 			"goods_list": [
-// 			{
-// 				"rec_id": "4135",
-// 				"seller_id": "0",
-// 				"goods_id": "407",
-// 				"goods_sn": "ECS000407",
-// 				"goods_name": "韩国圆顶落地带支架豪华出口蚊帐 浅蓝色 [蓝色] ",
-// 				"goods_price": "300.00",
-// 				"market_price": "359.59",
-// 				"formated_goods_price": "￥300.00",
-// 				"formated_market_price": "￥359.59",
-// 				"goods_number": "1",
-// 				"attr": "颜色:蓝色[2] \n",
-// 			"goods_attr": [
-// 			{
-// 				"name": "颜色",
-// 				"value": "蓝色[2] "
-// 			}
-// 			],
-// 			"goods_attr_id": "2329",
-// 			"subtotal": "￥300.00",
-// 			"img": {
-// 			"thumb": "http://192.168.1.55/ecjia-cityo2o/content/uploads/images/201508/goods_img/407_G_1440539593500.png",
-// 			"url": "http://192.168.1.55/ecjia-cityo2o/content/uploads/images/201508/source_img/407_G_1440539593758.png",
-// 			"small": "http://192.168.1.55/ecjia-cityo2o/content/uploads/images/201508/thumb_img/407_thumb_G_1440539593757.png"
-// 			}
-// 			},
-// 			{
-// 				"rec_id": "4096",
-// 				"seller_id": "0",
-// 				"goods_id": "507",
-// 				"goods_sn": "6920458827421",
-// 				"goods_name": "Dior迪奥香水女士 花漾甜心50mlEDT（此商品仅测试使用，不发货，不退款） [淡香水/香露EDT] ",
-// 				"goods_price": "550.00",
-// 				"market_price": "660.00",
-// 				"formated_goods_price": "￥550.00",
-// 				"formated_market_price": "￥660.00",
-// 				"goods_number": "1",
-// 				"attr": "香型:淡香水/香露EDT \n",
-// 			"goods_attr": [
-// 			{
-// 				"name": "香型",
-// 				"value": "淡香水/香露EDT "
-// 			}
-// 			],
-// 			"goods_attr_id": "2029",
-// 			"subtotal": "￥550.00",
-// 			"img": {
-// 			"thumb": "http://192.168.1.55/ecjia-cityo2o/content/uploads/images/201509/goods_img/507_G_1442346581415.png",
-// 			"url": "http://192.168.1.55/ecjia-cityo2o/content/uploads/images/201509/source_img/507_G_1442346581574.png",
-// 			"small": "http://192.168.1.55/ecjia-cityo2o/content/uploads/images/201509/thumb_img/507_thumb_G_1442346581508.png"
-// 			}
-// 			},
-// 			{
-// 				"rec_id": "4136",
-// 				"seller_id": "0",
-// 				"goods_id": "523",
-// 				"goods_sn": "ECS000523",
-// 				"goods_name": "法国进口银鳕鱼宝宝辅食新鲜冷冻鳕鱼切片500g",
-// 				"goods_price": "99.00",
-// 				"market_price": "181.00",
-// 				"formated_goods_price": "￥99.00",
-// 				"formated_market_price": "￥181.00",
-// 				"goods_number": "2",
-// 				"attr": "",
-// 				"goods_attr": [],
-// 				"goods_attr_id": "",
-// 				"subtotal": "￥198.00",
-// 				"img": {
-// 				"thumb": "http://192.168.1.55/ecjia-cityo2o/content/uploads/images/201510/goods_img/523_G_1444267952315.png",
-// 				"url": "http://192.168.1.55/ecjia-cityo2o/content/uploads/images/201510/source_img/523_G_1444267952520.png",
-// 				"small": "http://192.168.1.55/ecjia-cityo2o/content/uploads/images/201510/thumb_img/523_thumb_G_1444267952160.png"
-// 				}
-// 			}
-// 			]
-// 		}
-// 		],
-		
-		
-		
-		
+				
 		//购物车猜你喜欢  api2.4功能
 		$options = array(
 				'intro'		=> 'hot',

@@ -17,7 +17,7 @@ class cart_cart_list_api extends Component_Event_Api {
 		
 		if (!isset($options['location']) || !isset($options['location']['latitude']) || !isset($options['location']['latitude']))
 		{
-			return new ecjia_error('location_error', '定位失败！');
+			return new ecjia_error('location_error', '请选择有效的收货地址！');
 		}
 		
 		return $this->get_cart_goods($options['cart_id'], $options['location']);
