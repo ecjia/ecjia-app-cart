@@ -11,19 +11,21 @@ class list_module implements ecjia_interface {
 		
 		EM_Api::authSession();
 		$location = _POST('location');
-		
+
 		$cart_result = RC_Api::api('cart', 'cart_list', array('location' => $location));
 		if (is_ecjia_error($result)) {
 			return $result;
 		}
-// 		_dump($cart_result,1);
+
 		$cart_goods = array('cart_list' => array(), 'total' => $cart_result['total']);
 		if (!empty($cart_result['goods_list'])) {
 			foreach ($cart_result['goods_list'] as $row) {
-				$cart_goods['cart_list'][$row['ru_id']] = array(
-						'seller_id'		=> intval($row['ru_id']),
-						'seller_name'	=> $row['seller_name'],
-				);
+				if (!isset($cart_goods['cart_list'][$row['ru_id']])) {
+					$cart_goods['cart_list'][$row['ru_id']] = array(
+							'seller_id'		=> intval($row['ru_id']),
+							'seller_name'	=> $row['seller_name'],
+					);
+				}
 				$goods_attrs = null;
 				/* 查询规格 */
 				if (trim($row['goods_attr']) != '') {
@@ -36,6 +38,7 @@ class list_module implements ecjia_interface {
 						}
 					}
 				}
+				
 				$cart_goods['cart_list'][$row['ru_id']]['goods_list'][] = array(
 						'rec_id'	=> intval($row['rec_id']),
 						'goods_id'	=> intval($row['goods_id']),
@@ -54,7 +57,7 @@ class list_module implements ecjia_interface {
 							'thumb'	=> RC_Upload::upload_url($row['goods_img']),
 							'url'	=> RC_Upload::upload_url($row['original_img']),
 							'small'	=> RC_Upload::upload_url($row['goods_img']),
-						),
+						)
 				);
 			}
 		}
