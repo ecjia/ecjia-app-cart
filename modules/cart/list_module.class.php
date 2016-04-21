@@ -13,8 +13,8 @@ class list_module implements ecjia_interface {
 		$location = _POST('location');
 
 		$cart_result = RC_Api::api('cart', 'cart_list', array('location' => $location));
-		if (is_ecjia_error($result)) {
-			return $result;
+		if (is_ecjia_error($cart_result)) {
+			return $cart_result;
 		}
 
 		$cart_goods = array('cart_list' => array(), 'total' => $cart_result['total']);
@@ -130,113 +130,6 @@ class list_module implements ecjia_interface {
 		}
 		
 		return $cart_goods;
-		
-		
-		
-		
-// 		RC_Loader::load_app_func('cart', 'cart');
-// 		recalculate_price();
-// 		$_SESSION['flow_type'] = CART_GENERAL_GOODS;
-// 		/* 初始化 */
-// 		$total = array(
-// 				'goods_price'  => 0, // 本店售价合计（有格式）
-// 				'market_price' => 0, // 市场售价合计（有格式）
-// 				'saving'       => 0, // 节省金额（有格式）
-// 				'save_rate'    => 0, // 节省百分比
-// 				'goods_amount' => 0, // 本店售价合计（无格式）
-// 		);
-		
-// 		/* 循环、统计 */
-// 		$cart_dbview = RC_Loader::load_app_model('cart_viewmodel', 'seller');
-// 		$db_goods_attr = RC_Loader::load_app_model('goods_attr_model', 'goods');
-// 		RC_Loader::load_app_func('common', 'goods');
-		
-// 		$field = 'c.*, IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, CONCAT(shoprz_brandName,shopNameSuffix) as seller_name';
-// 		$data = $cart_dbview->join(array('goods', 'merchants_shop_information'))
-// 		->field($field)
-// 		->where(array('c.user_id' => $_SESSION['user_id'] , 'rec_type' => CART_GENERAL_GOODS))
-// 		->order(array('ru_id' => 'asc', 'pid' => 'asc', 'parent_id' => 'asc'))
-// 		->select();
-		
-// 		/* 用于统计购物车中实体商品和虚拟商品的个数 */
-// 		$virtual_goods_count = 0;
-// 		$real_goods_count    = 0;
-// 		$cart_list = array();
-		
-// 		foreach ($data as $row) {
-// 			$total['goods_price']  += $row['goods_price'] * $row['goods_number'];
-// 			$total['market_price'] += $row['market_price'] * $row['goods_number'];
-				
-				
-// 			$row['subtotal']     = price_format($row['goods_price'] * $row['goods_number'], false);
-// 			$row['formated_goods_price']  = price_format($row['goods_price'], false);
-// 			$row['formated_market_price'] = price_format($row['market_price'], false);
-		
-// 			/* 统计实体商品和虚拟商品的个数 */
-// 			if ($row['is_real']) {
-// 				$real_goods_count++;
-// 			} else {
-// 				$virtual_goods_count++;
-// 			}
-		
-// 			$goods_attrs = array();
-// 			/* 查询规格 */
-// 			if (trim($row['goods_attr']) != '') {
-// 				$attr_list = $db_goods_attr->field('attr_value')->in(array('goods_attr_id' => $row['goods_attr_id']))->select();
-// 				foreach ($attr_list AS $attr) {
-// 					$row['goods_name'] .= ' [' . $attr['attr_value'] . '] ';
-// 				}
-		
-// 				$goods_attr = explode("\n", $row['goods_attr']);
-// 				$goods_attr = array_filter($goods_attr);
-// 				foreach ($goods_attr as  $v) {
-// 					$a = explode(':',$v);
-// 					if (!empty($a[0]) && !empty($a[1])) {
-// 						$goods_attrs[] = array('name'=>$a[0], 'value'=>$a[1]);
-// 					}
-// 				}
-// 			}
-				
-// 			$goods_list = array(
-// 					'rec_id'		=> $row['rec_id'],
-// 					'seller_id'		=> $row['ru_id'],
-// 					'goods_id'		=> $row['goods_id'],
-// 					'goods_sn'		=> $row['goods_sn'],
-// 					'goods_name'	=> $row['goods_name'],
-// 					'goods_price'	=> $row['goods_price'],
-// 					'market_price'	=> $row['market_price'],
-// 					'formated_goods_price'	=> $row['formated_goods_price'],
-// 					'formated_market_price'	=> $row['formated_market_price'],
-// 					'goods_number'	=> $row['goods_number'],
-// 					'attr'			=> $row['goods_attr'],
-// 					'goods_attr'	=> $goods_attrs,
-// 					'goods_attr_id'	=> $row['goods_attr_id'],
-// 					'subtotal'		=> $row['subtotal'],
-// 					'img' => array(
-// 							'thumb'	=> get_image_path($row['goods_id'], $row['goods_img'], true),
-// 							'url'	=> get_image_path($row['goods_id'], $row['original_img'], true),
-// 							'small'	=> get_image_path($row['goods_id'], $row['goods_thumb'], true)
-// 					),
-// 			);
-		
-// 			$cart_list[$row['ru_id']]['seller_id'] = $row['ru_id'];
-// 			$cart_list[$row['ru_id']]['seller_name'] = empty($row['seller_name']) ? ecjia::config('shop_name') : $row['seller_name'];
-// 			$cart_list[$row['ru_id']]['id'] = $row['ru_id'];  //多商铺1.2废弃
-// 			$cart_list[$row['ru_id']]['name'] = empty($row['seller_name']) ? ecjia::config('shop_name') : $row['seller_name']; //多商铺1.2废弃
-// 			$cart_list[$row['ru_id']]['goods_list'][] = $goods_list;
-		
-// 		}
-// 		$total['goods_amount'] = $total['goods_price'];
-// 		$total['saving'] = price_format($total['market_price'] - $total['goods_price'], false);
-// 		if ($total['market_price'] > 0) {
-// 			$total['save_rate'] = $total['market_price'] ? round(($total['market_price'] - $total['goods_price']) * 100 / $total['market_price']).'%' : 0;
-// 		}
-// 		$total['goods_price']  = price_format($total['goods_price'], false);
-// 		$total['market_price'] = price_format($total['market_price'], false);
-// 		$total['real_goods_count']    = $real_goods_count;
-// 		$total['virtual_goods_count'] = $virtual_goods_count;
-// 		$cart_list = array_merge($cart_list);
-// 		$cart_goods = array('cart_list' => $cart_list, 'total' => $total);
 	}
 }
 

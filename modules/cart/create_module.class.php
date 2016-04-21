@@ -8,37 +8,26 @@ defined('IN_ECJIA') or exit('No permission resources.');
 class create_module implements ecjia_interface {
 	
 	public function run(ecjia_api & $api) {
+		
 	    EM_Api::authSession();
 
-	    $goods_id = _POST('goods_id', 0);
-	    $goods_number = _POST('number', 0);
-	    $area_id = _POST('area_id', 0);
+	    $goods_id		= _POST('goods_id', 0);
+	    $goods_number	= _POST('number', 1);
+	    $location		= _POST('location');
+// 	    		$location = array(
+// 	    				'latitude'	=> '31.235450744628906',
+// 	    				'longitude' => '121.41641998291016',
+// 	    		);
+	    $goods_spec		= _POST('spec', array());
+	    $rec_type		= _POST('rec_type');
 	    
-	    $goods_spec = _POST('spec', array());
-	    $rec_type = _POST('rec_type');
-	    if (!$goods_number || !$goods_id) {
-	        EM_Api::outPut(101);
+	    if (!$goods_id) {
+	    	return new ecjia_error('not_found_goods', '请选择您所需要购买的商品！');
 	    }
+
+	    $result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'location' => $location));
 	    
-	    if ( $area_id > 0 ) {
-	    	$db_region = RC_Loader::load_app_model('region_model', 'shipping');
-	    	$region_result = $db_region->where(array('region_id' => $area_id))->find();
-	    	 
-	    	if ($region_result['region_type'] > 2) {//定位为区县
-	    		$region_result = $db_region->where(array('region_id' => $region_result['parent_id']))->find();
-	    		$area_id = $region_result['parent_id'];
-	    	} elseif ($region_result['region_type'] == 2) { //定位为市
-	    		$area_id = $region_result['parent_id'];
-	    	} else { //定位为省
-	    		$area_id = $region_result['region_id'];
-	    	}
-	    	$warehouse_db = RC_Loader::load_app_model('warehouse_model', 'warehouse');
-	    	$warehouse = $warehouse_db->where(array('regionId' => $area_id))->find();
-	    	$area_id = $warehouse['region_id'];
-	    	$warehouse_id = $warehouse['parent_id'];
-	    }
-	    
-	    RC_Loader::load_app_func('cart','cart');
+	    RC_Loader::load_app_func('cart', 'cart');
 	    if ($rec_type == 'GROUPBUY_GOODS') {
 	    	$object_id = _POST('object_id');
 	    	if ($object_id <= 0) {
