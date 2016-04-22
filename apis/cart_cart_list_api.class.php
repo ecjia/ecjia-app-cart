@@ -15,7 +15,7 @@ class cart_cart_list_api extends Component_Event_Api {
      */
 	public function call(&$options) {	
 		
-		if (!isset($options['location']) || !isset($options['location']['latitude']) || !isset($options['location']['latitude']))
+		if ((!isset($options['location']) || empty($options['location'])) && (!isset($options['cart_id']) || empty($options['cart_id'])))
 		{
 			return new ecjia_error('location_error', '请选择有效的收货地址！');
 		}
@@ -32,7 +32,7 @@ class cart_cart_list_api extends Component_Event_Api {
 	 */
 	private function get_cart_goods($cart_id = array(), $location = array()) {
 // 		RC_Loader::load_app_func('common','goods');
-		$dbview_cart 		= RC_Loader::load_app_model('cart_viewmodel', 'cart');
+		$dbview_cart 	= RC_Loader::load_app_model('cart_viewmodel', 'cart');
 		$db_goods_attr 	= RC_Loader::load_app_model('goods_attr_model','goods');
 		$db_goods 		= RC_Loader::load_app_model('goods_model','goods');
 	
@@ -123,11 +123,11 @@ class cart_cart_list_api extends Component_Event_Api {
 				$total['market_price'] += $row['market_price'] * $row['goods_number'];
 				$row['subtotal']     	= price_format($row['goods_price'] * $row['goods_number'], false);
 				/* 返回未格式化价格*/
-				$row['unformatted_goods_price'] = $row['goods_price'];
-				$row['unformatted_market_price'] = $row['market_price'];
+				$row['goods_price']		= $row['goods_price'];
+				$row['market_price']	= $row['market_price'];
 				
-				$row['goods_price']  	= price_format($row['goods_price'], false);
-				$row['market_price'] 	= price_format($row['market_price'], false);
+				$row['formatted_goods_price']  	= price_format($row['goods_price'], false);
+				$row['formatted_market_price'] 	= price_format($row['market_price'], false);
 	
 				/* 统计实体商品和虚拟商品的个数 */
 				if ($row['is_real']) {

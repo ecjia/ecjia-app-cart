@@ -11,7 +11,7 @@ class list_module implements ecjia_interface {
 		
 		EM_Api::authSession();
 		$location = _POST('location');
-
+		
 		$cart_result = RC_Api::api('cart', 'cart_list', array('location' => $location));
 		if (is_ecjia_error($cart_result)) {
 			return $cart_result;
@@ -44,10 +44,10 @@ class list_module implements ecjia_interface {
 						'goods_id'	=> intval($row['goods_id']),
 						'goods_sn'	=> $row['goods_sn'],
 						'goods_name'	=> $row['goods_name'],
-						'goods_price'	=> $row['unformatted_goods_price'],
-						'market_price'	=> $row['unformatted_market_price'],
-						'formated_goods_price'	=> $row['goods_price'],
-						'formated_market_price' => $row['market_price'],
+						'goods_price'	=> $row['goods_price'],
+						'market_price'	=> $row['market_price'],
+						'formated_goods_price'	=> $row['formatted_goods_price'],
+						'formated_market_price' => $row['formatted_market_price'],
 						'goods_number'	=> intval($row['goods_number']),
 						'subtotal'		=> $row['subtotal'],
 						'goods_attr_id' => $row['goods_attr_id'],
