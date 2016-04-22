@@ -490,6 +490,21 @@ class cart_flow_done_api extends Component_Event_Api {
 				)
 		);
 		
+		RC_Model::model('orders/order_status_log_model')->insert(array(
+			'order_status'	=> '订单提交成功',
+			'order_id'		=> $order['order_id'],
+			'message'		=> '下单成功，订单号：'.$order['order_sn'],
+			'add_time'		=> RC_Time::gmtime(),
+		));
+		if (!$payment_info['is_cod']) {
+			RC_Model::model('orders/order_status_log_model')->insert(array(
+				'order_status'	=> '待付款',
+				'order_id'		=> $order['order_id'],
+				'message'		=> '请尽快支付该订单，超时将会自动取消订单',
+				'add_time'		=> RC_Time::gmtime(),
+			));
+		}
+		
 		return $order_info;
 	}
 	
