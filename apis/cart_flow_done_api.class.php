@@ -53,7 +53,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		}
 		
 		/* 获取附近的商家，判断购买商品是否在附近*/
-		$seller_list = RC_Api::api('seller', 'seller_list', array('location' => array('longitude' => $consignee['longitude'], 'latitude' => $consignee['latitude'])));
+		$seller_list = RC_Api::api('seller', 'seller_list', array('location' => array('longitude' => $consignee['longitude'], 'latitude' => $consignee['latitude']), 'limit' => 'all'));
 		if (!empty($seller_list['seller_list'])) {
 			foreach ($seller_list['seller_list'] as $val) {
 				$seller_group[] = $val['id'];
