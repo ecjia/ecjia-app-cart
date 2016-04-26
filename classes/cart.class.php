@@ -8,6 +8,254 @@
 class cart {
     
 	/**
+	 * 更新购物车中的商品数量
+	 *
+	 * @access  public
+	 * @param   array   $arr
+	 * @return  void
+	 */
+	public static function flow_update_cart($arr) {
+		$db_cart	= RC_Model::model('cart/cart_model');
+		$dbview		= RC_Model::model('goods/goods_cart_viewmodel');
+		
+		$db_cart_view = RC_Model::model('cart/cart_cart_viewmodel');
+		$db_products = RC_Model::model('goods/products_model');
+		
+		RC_Loader::load_app_func('order', 'orders');
+		RC_Loader::load_app_func('common', 'goods');
+		/* 处理 */
+		foreach ($arr AS $key => $val) {
+			$val = intval(make_semiangle($val));
+			if ($val <= 0 || !is_numeric($key)) {
+				continue;
+			}
+	
+			//查询：
+			$cart_w = array('rec_id' => $key , 'user_id' => $_SESSION['user_id']);
+// 			if (defined('SESS_ID')) {
+// 				$cart_w['session_id'] = SESS_ID;
+// 			}
+			$goods = $db_cart->field(array('goods_id', 'goods_attr_id', 'product_id', 'extension_code'))->find($cart_w);
+			
+	
+			$row   = $dbview->join('cart')->find(array('c.rec_id' => $key));
+			//查询：系统启用了库存，检查输入的商品数量是否有效
+			if (intval(ecjia::config('use_storage')) > 0 && $goods['extension_code'] != 'package_buy') {
+				if ($row['goods_number'] < $val) {
+					return new ecjia_error('low_stocks', __('库存不足'));
+				}
+				/* 是货品 */
+				$goods['product_id'] = trim($goods['product_id']);
+				if (!empty($goods['product_id'])) {
+					$product_number = $db_products->where(array('goods_id' => $goods['goods_id'] , 'product_id' => $goods['product_id']))->get_field('product_number');
+					if ($product_number < $val) {
+						return new ecjia_error('low_stocks', __('库存不足'));
+					}
+				}
+			}  elseif (intval(ecjia::config('use_storage')) > 0 && $goods['extension_code'] == 'package_buy') {
+				if (self::judge_package_stock($goods['goods_id'], $val)) {
+					return new ecjia_error('low_stocks', __('库存不足'));
+				}
+			}
+	
+			/* 查询：检查该项是否为基本件 以及是否存在配件 */
+			/* 此处配件是指添加商品时附加的并且是设置了优惠价格的配件 此类配件都有parent_id goods_number为1 */
+			$offer_w = array(
+					'a.rec_id'	=> $key,
+					'a.user_id'	=> $_SESSION['user_id'],
+					'a.extension_code' => array('neq' => 'package_buy'), 
+					'b.user_id' => $_SESSION['user_id'],
+			);
+			
+// 			if (defined('SESS_ID')) {
+// 				$offer_w['session_id'] = SESS_ID;
+// 			}
+			
+			$offers_accessories_res = $db_cart_view->join('cart')->where($offer_w)->select();
+			
+	
+			//订货数量大于0
+			if ($val > 0) {
+				/* 判断是否为超出数量的优惠价格的配件 删除*/
+				$row_num = 1;
+				if (!empty($offers_accessories_res)) {
+					foreach ($offers_accessories_res as $offers_accessories_row) {
+						if ($row_num > $val) {
+							$db_cart->where(array('user_id' => $_SESSION['user_id'] , 'rec_id' => $offers_accessories_row['rec_id']))->delete();
+						}
+						$row_num ++;
+					}
+				}
+	
+				/* 处理超值礼包 */
+				if ($goods['extension_code'] == 'package_buy') {
+					//更新购物车中的商品数量
+					$db_cart->where(array('rec_id' => $key , 'user_id' => $_SESSION['user_id'] ))->update(array('goods_number' => $val));
+					
+				}  else {
+					/* 处理普通商品或非优惠的配件 */
+					$attr_id    = empty($goods['goods_attr_id']) ? array() : explode(',', $goods['goods_attr_id']);
+					$goods_price = self::get_final_price($goods['goods_id'], $val, true, $attr_id);
+					
+					$db_cart->where(array('rec_id' => $key , 'user_id' => $_SESSION['user_id'] ))->update(array('goods_number' => $val , 'goods_price' => $goods_price));
+					
+				}
+			} else {
+				//订货数量等于0
+				/* 如果是基本件并且有优惠价格的配件则删除优惠价格的配件 */
+				if (!empty($offers_accessories_res)) {
+					foreach ($offers_accessories_res as $offers_accessories_row) {
+						$db_cart->where(array('user_id' => $_SESSION['user_id'] , 'rec_id' => $offers_accessories_row['rec_id']))->delete();
+					}
+				}
+	
+				$db_cart->where(array('rec_id' => $key , 'user_id' => $_SESSION['user_id']))->delete();
+			}
+		}
+	
+		/* 删除所有赠品 */
+		$db_cart->where(array('user_id' => $_SESSION['user_id'] , 'is_gift' => array('neq' => 0)))->delete();
+		return true;
+	}
+	
+	/**
+	 * 删除购物车中的商品
+	 *
+	 * @access  public
+	 * @param   integer $id
+	 * @return  void
+	 */
+	public static function flow_drop_cart_goods($id) {
+		$db_cart = RC_Model::model('cart/cart_model');
+		$dbview  = RC_Model::model('cart/cart_group_goods_goods_viewmodel');
+	
+		/* 取得商品id */
+		$row = $db_cart->find(array('rec_id' => $id));
+		if ($row) {
+			//如果是超值礼包
+			if ($row['extension_code'] == 'package_buy') {
+				$where = array('user_id' => $_SESSION['user_id'] , 'rec_id' => $id);
+				
+// 				if (defined('SESS_ID')) {
+// 					$where['session_id'] = SESS_ID;
+// 				}
+				
+				$db_cart->where($where)->delete();
+				
+			} elseif ($row['parent_id'] == 0 && $row['is_gift'] == 0) {
+				//如果是普通商品，同时删除所有赠品及其配件
+				/* 检查购物车中该普通商品的不可单独销售的配件并删除 */
+				$data = $dbview->join(array('group_goods','goods'))->field('c.rec_id')->where(array('gg.parent_id' => $row['goods_id'] , 'c.parent_id' => $row['goods_id'] , 'c.extension_code' => array('neq' => 'package_buy') , 'g.is_alone_sale' => 0))->select();
+	
+				$_del_str = $id . ',';
+				if (!empty($data)) {
+					foreach ($data as $id_alone_sale_goods) {
+						$_del_str .= $id_alone_sale_goods['rec_id'] . ',';
+					}
+				}
+	
+				$_del_str = trim($_del_str, ',');
+				$where = array('user_id' => $_SESSION['user_id']);
+				$where[] = "(rec_id IN ($_del_str) OR parent_id = ".$row['goods_id']." OR is_gift <> 0)";
+				
+// 				if (defined('SESS_ID')) {
+// 					$where['session_id'] = SESS_ID;
+// 				}
+				$db_cart->where($where)->delete();
+			} else {
+				//如果不是普通商品，只删除该商品即可
+				$where = array('user_id' => $_SESSION['user_id'] , 'rec_id' => $id);
+				
+// 				if (defined('SESS_ID')) {
+// 					$where['session_id'] = SESS_ID;
+// 				}
+				
+				$db_cart->where($where)->delete();
+			}
+	
+		}
+	
+		self::flow_clear_cart_alone();
+	}
+	
+	/**
+	 * 删除购物车中不能单独销售的商品
+	 *
+	 * @access  public
+	 * @return  void
+	 */
+	public static function flow_clear_cart_alone() {
+		/* 查询：购物车中所有不可以单独销售的配件 */
+		$db_cart = RC_Model::model('cart/cart_model');
+		$dbview  = RC_Model::model('cart/cart_group_goods_goods_viewmodel');
+		
+		$where = array(
+				'c.user_id'			=> $_SESSION['user_id'],
+				'c.extension_code'	=> array('neq' => 'package_buy'),
+				'gg.parent_id'		=> array('gt' => 0) , 
+				'g.is_alone_sale'	=> 0
+		);
+		
+// 		if (defined('SESS_ID')) {
+// 			$where['session_id'] = SESS_ID;
+// 		}		
+		
+		$data = $dbview->join(array('group_goods','goods'))->where($where)->select();
+		
+		$rec_id = array();
+		if (!empty($data)) {
+			foreach ($data as $row) {
+				$rec_id[$row['rec_id']][] = $row['parent_id'];
+			}
+		}
+	
+		if (empty($rec_id)) {
+			return;
+		}
+	
+		/* 查询：购物车中所有商品 */
+		$cart_w = array('user_id' => $_SESSION['user_id'] , 'extension_code' => array('neq' => 'package_buy'));
+// 		if (defined('SESS_ID')) {
+// 			$cart_w['session_id'] = SESS_ID;
+// 		}		
+		$res = $db_cart->field('DISTINCT goods_id')->where($cart_w)->select();
+	
+		$cart_good = array();
+		if (!empty($res)) {
+			foreach ($res as $row) {
+				$cart_good[] = $row['goods_id'];
+			}
+		}
+	
+		if (empty($cart_good)) {
+			return;
+		}
+	
+		/* 如果购物车中不可以单独销售配件的基本件不存在则删除该配件 */
+		$del_rec_id = '';
+		foreach ($rec_id as $key => $value) {
+			foreach ($value as $v) {
+				if (in_array($v, $cart_good)) {
+					continue 2;
+				}
+			}
+			$del_rec_id = $key . ',';
+		}
+		$del_rec_id = trim($del_rec_id, ',');
+	
+		if ($del_rec_id == '') {
+			return;
+		}
+		
+		/* 删除 */
+		$del_w = array('user_id' => $_SESSION['user_id']);
+// 		if (defined('SESS_ID')) {
+// 			$del_w['session_id'] = SESS_ID;
+// 		}
+		$db_cart->where($del_w)->in(array('rec_id' => $del_rec_id))->delete();
+	}
+	
+	/**
 	 * 取得收货人信息
 	 * @param   int	 $user_id	用户编号
 	 * @return  array
@@ -921,6 +1169,197 @@ class cart {
 		/* 选择一个随机的方案 */
 		mt_srand((double) microtime() * 1000000);
 		return date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
+	}
+	
+	/**
+	 * 取得商品最终使用价格
+	 *
+	 * @param string $goods_id
+	 *        	商品编号
+	 * @param string $goods_num
+	 *        	购买数量
+	 * @param boolean $is_spec_price
+	 *        	是否加入规格价格
+	 * @param mix $spec
+	 *        	规格ID的数组或者逗号分隔的字符串
+	 *
+	 * @return 商品最终购买价格
+	 */
+	public static function get_final_price($goods_id, $goods_num = '1', $is_spec_price = false, $spec = array())
+	{
+		$dbview = RC_Loader::load_app_model ( 'sys_goods_member_viewmodel', 'goods' );
+		
+		$final_price = '0'; // 商品最终购买价格
+		$volume_price = '0'; // 商品优惠价格
+		$promote_price = '0'; // 商品促销价格
+		$user_price = '0'; // 商品会员价格
+	
+		// 取得商品优惠价格列表
+		$price_list = self::get_volume_price_list ( $goods_id, '1' );
+	
+		if (! empty ( $price_list )) {
+			foreach ( $price_list as $value ) {
+				if ($goods_num >= $value ['number']) {
+					$volume_price = $value ['price'];
+				}
+			}
+		}
+		$field = "wg.w_id, g.goods_name, g.goods_sn, g.is_on_sale, g.is_real, g.user_id as ru_id, g.model_inventory, g.model_attr, ".
+				"wg.warehouse_price, wg.warehouse_promote_price, wg.region_number as wg_number, wag.region_price, wag.region_promote_price, wag.region_number as wag_number, g.model_price, g.model_attr, ".
+				"g.market_price, IF(g.model_price < 1, g.shop_price, IF(g.model_price < 2, wg.warehouse_price, wag.region_price)) AS org_price, ".
+				"IF(g.model_price < 1, g.promote_price, IF(g.model_price < 2, wg.warehouse_promote_price, wag.region_promote_price)) as promote_price, ".
+				" g.promote_start_date, g.promote_end_date, g.goods_weight, g.integral, g.extension_code, g.goods_number, g.is_alone_sale, g.is_shipping, ".
+				"IFNULL(mp.user_price, IF(g.model_price < 1, g.shop_price, IF(g.model_price < 2, wg.warehouse_price, wag.region_price)) * '$_SESSION[discount]') AS shop_price ";
+		/* 取得商品信息 */
+		$dbview->view = array(
+				'warehouse_goods' => array(
+						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
+						'alias' => 'wg',
+						'on'   	=> "g.goods_id = wg.goods_id and wg.region_id = '$warehouse_id'"
+				),
+				'warehouse_area_goods' => array(
+						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
+						'alias' => 'wag',
+						'on'   	=> "g.goods_id = wag.goods_id and wag.region_id = '$area_id'"
+				),
+				'member_price' => array(
+						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
+						'alias' => 'mp',
+						'on'   	=> "mp.goods_id = g.goods_id AND mp.user_rank = '$_SESSION[user_rank]'"
+				)
+		);
+		// 取得商品促销价格列表
+		$goods = $dbview->field($field)->join (array('warehouse_goods', 'warehouse_area_goods', 'member_price'))->find (array('g.goods_id' => $goods_id, 'g.is_delete' => 0));
+		/* 计算商品的促销价格 */
+		if ($goods ['promote_price'] > 0) {
+			$promote_price = self::bargain_price ( $goods['promote_price'], $goods['promote_start_date'], $goods['promote_end_date'] );
+		} else {
+			$promote_price = 0;
+		}
+	
+		// 取得商品会员价格列表
+		$user_price = $goods ['shop_price'];
+	
+		// 比较商品的促销价格，会员价格，优惠价格
+		if (empty ( $volume_price ) && empty ( $promote_price )) {
+			// 如果优惠价格，促销价格都为空则取会员价格
+			$final_price = $user_price;
+		} elseif (! empty ( $volume_price ) && empty ( $promote_price )) {
+			// 如果优惠价格为空时不参加这个比较。
+			$final_price = min ( $volume_price, $user_price );
+		} elseif (empty ( $volume_price ) && ! empty ( $promote_price )) {
+			// 如果促销价格为空时不参加这个比较。
+			$final_price = min ( $promote_price, $user_price );
+		} elseif (! empty ( $volume_price ) && ! empty ( $promote_price )) {
+			// 取促销价格，会员价格，优惠价格最小值
+			$final_price = min ( $volume_price, $promote_price, $user_price );
+		} else {
+			$final_price = $user_price;
+		}
+		/* 手机专享*/
+		$mobilebuy_db = RC_Loader::load_app_model('goods_activity_model', 'goods');
+		$mobilebuy_ext_info = array();
+		$mobilebuy = $mobilebuy_db->find(array(
+				'goods_id'	 => $goods_id,
+				'start_time' => array('elt' => RC_Time::gmtime()),
+				'end_time'	 => array('egt' => RC_Time::gmtime()),
+				'act_type'	 => GAT_MOBILE_BUY,
+		));
+		if (!empty($mobilebuy)) {
+			$mobilebuy_ext_info = unserialize($mobilebuy['ext_info']);
+		}
+		$final_price =  ($final_price > $mobilebuy_ext_info['price'] && !empty($mobilebuy_ext_info['price'])) ? $mobilebuy_ext_info['price'] : $final_price;
+	
+		// 如果需要加入规格价格
+		if ($is_spec_price) {
+			if (! empty ( $spec )) {
+				$spec_price = self::spec_price ( $spec , $goods_id);
+				$final_price += $spec_price;
+			}
+		}
+	
+		// 返回商品最终购买价格
+		return $final_price;
+	}
+	
+	/**
+	 * 取得商品优惠价格列表
+	 *
+	 * @param string $goods_id
+	 *        	商品编号
+	 * @param string $price_type
+	 *        	价格类别(0为全店优惠比率，1为商品优惠价格，2为分类优惠比率)
+	 *
+	 * @return 优惠价格列表
+	 */
+	public static function get_volume_price_list($goods_id, $price_type = '1') {
+		$db = RC_Loader::load_app_model ( 'volume_price_model', 'goods' );
+		$volume_price = array ();
+		$temp_index = '0';
+	
+		$res = $db->field ('`volume_number` , `volume_price`')->where(array('goods_id' => $goods_id, 'price_type' => $price_type))->order ('`volume_number` asc')->select();
+		if (! empty ( $res )) {
+			foreach ( $res as $k => $v ) {
+				$volume_price [$temp_index] = array ();
+				$volume_price [$temp_index] ['number'] = $v ['volume_number'];
+				$volume_price [$temp_index] ['price'] = $v ['volume_price'];
+				$volume_price [$temp_index] ['format_price'] = price_format ( $v ['volume_price'] );
+				$temp_index ++;
+			}
+		}
+		return $volume_price;
+	}
+	
+	/**
+	 * 判断某个商品是否正在特价促销期
+	 *
+	 * @access public
+	 * @param float $price
+	 *        	促销价格
+	 * @param string $start
+	 *        	促销开始日期
+	 * @param string $end
+	 *        	促销结束日期
+	 * @return float 如果还在促销期则返回促销价，否则返回0
+	 */
+	private function bargain_price($price, $start, $end) {
+		if ($price == 0) {
+			return 0;
+		} else {
+			$time = RC_Time::gmtime ();
+			if ($time >= $start && $time <= $end) {
+				return $price;
+			} else {
+				return 0;
+			}
+		}
+	}
+	
+	/**
+	 * 获得指定的规格的价格
+	 *
+	 * @access public
+	 * @param mix $spec
+	 *        	规格ID的数组或者逗号分隔的字符串
+	 * @return void
+	 */
+	public static function spec_price($spec) {
+		$db = RC_Loader::load_app_model ('goods_attr_model', 'goods');
+		if (! empty ( $spec )) {
+			if (is_array ( $spec )) {
+				foreach ( $spec as $key => $val ) {
+					$spec [$key] = addslashes ( $val );
+				}
+			} else {
+				$spec = addslashes ( $spec );
+			}
+	
+			$price = $db->in(array('goods_attr_id' => $spec))->sum('`attr_price`|attr_price');
+		} else {
+			$price = 0;
+		}
+	
+		return $price;
 	}
 }
 

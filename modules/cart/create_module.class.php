@@ -25,7 +25,7 @@ class create_module implements ecjia_interface {
 	    	return new ecjia_error('not_found_goods', '请选择您所需要购买的商品！');
 	    }
 
-	    $result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'location' => $location));
+// 	    $result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'location' => $location));
 	    
 	    RC_Loader::load_app_func('cart', 'cart');
 	    if ($rec_type == 'GROUPBUY_GOODS') {
@@ -36,7 +36,8 @@ class create_module implements ecjia_interface {
 	    	$result = addto_cart_groupbuy($object_id, $goods_number, $goods_spec, 0, $warehouse_id, $area_id);
 	    	unset($_SESSION['cart_id']);
 	    } else {
-	    	$result = addto_cart($goods_id, $goods_number, $goods_spec, 0, $warehouse_id, $area_id);
+	    	$result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'location' => $location));
+// 	    	$result = addto_cart($goods_id, $goods_number, $goods_spec, 0, $warehouse_id, $area_id);
 	    }
 	    
 	    

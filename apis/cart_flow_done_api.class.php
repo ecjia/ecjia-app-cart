@@ -347,7 +347,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			ecjia::$view_object->assign('shop_name', ecjia::config('shop_name'));
 			ecjia::$view_object->assign('send_date', date(ecjia::config('time_format')));
 		
-			$content = ecjia::$view_object->fetch_string($tpl['template_content']);
+			$content = ecjia::$controller->fetch_string($tpl['template_content']);
 			RC_Mail::send_mail(ecjia::config('shop_name'), ecjia::config('service_email'), $tpl['template_subject'], $content, $tpl['is_html']);
 		}
 		
@@ -363,7 +363,7 @@ class cart_flow_done_api extends Component_Event_Api {
 					ecjia::$view_object->assign('consignee', $order['consignee']);
 					ecjia::$view_object->assign('mobile', $order['mobile']);
 		
-					$content = ecjia::$view_object->fetch_string($tpl['template_content']);
+					$content = ecjia::$controller->fetch_string($tpl['template_content']);
 					$msg = $order['pay_status'] == PS_UNPAYED ? $content : $content.__('已付款');
 					$options = array(
 							'mobile' 		=> ecjia::config('sms_shop_mobile'),
@@ -447,7 +447,7 @@ class cart_flow_done_api extends Component_Event_Api {
 					ecjia::$view_object->assign('consignee', $order['consignee']);
 					ecjia::$view_object->assign('order_sn', $order['order_sn']);
 					ecjia::$view_object->assign('order_goods', $order_goods);
-					$content = ecjia::$view_object->fetch_string($tpl['template_content']);
+					$content = ecjia::$controller->fetch_string($tpl['template_content']);
 					$options = array(
 							'mobile' 		=> $order['mobile'],
 							'msg'			=> $content,
