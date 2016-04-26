@@ -139,7 +139,7 @@ class cart_flow_done_api extends Component_Event_Api {
 // 		}
 		
 		/* 检查商品总额是否达到最低限购金额 */
-		if ($flow_type == CART_GENERAL_GOODS && cart::cart_amount(true, CART_GENERAL_GOODS, $options['cart_id']) < ecjia::config('min_goods_amount')) {
+		if ($options['flow_type'] == CART_GENERAL_GOODS && cart::cart_amount(true, CART_GENERAL_GOODS, $options['cart_id']) < ecjia::config('min_goods_amount')) {
 // 			EM_Api::outPut(10003);
 			return new ecjia_error('bug_error', '您的商品金额未达到最低限购金额！');
 		}
@@ -245,7 +245,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		$order['referer'] = 'mobile';
 		
 		/* 记录扩展信息 */
-		if ($flow_type != CART_GENERAL_GOODS) {
+		if ($options['flow_type'] != CART_GENERAL_GOODS) {
 			$order['extension_code'] = $_SESSION['extension_code'];
 			$order['extension_id'] = $_SESSION['extension_id'];
 		}
@@ -265,37 +265,38 @@ class cart_flow_done_api extends Component_Event_Api {
 		$db_goods_activity = RC_Loader::load_app_model('goods_activity_model','goods');
 		
 		
-		$field = 'goods_id, goods_name, goods_sn, product_id, goods_number, market_price,goods_price, goods_attr, is_real, extension_code, parent_id, is_gift, goods_attr_id';
+		$field = 'goods_id, goods_name, goods_sn, product_id, goods_number, market_price,goods_price, goods_attr, is_real, extension_code, parent_id, is_gift, goods_attr_id, ru_id';
 
 		$cart_w = array(
 				'user_id'	=> $_SESSION['user_id'],
-				'rec_type'	=> $flow_type,
-				'rec_id'	=> $cart_id,
+				'rec_type'	=> $options['flow_type'],
+				'rec_id'	=> $options['cart_id'],
 		);
 		
 // 		if (defined('SESS_ID')) {
 // 			$cart_w['session_id'] = SESS_ID;
 // 		}
-			
+		
 		$data_row = RC_Model::model('cart/cart_model')->field($field)->where($cart_w)->select();
+		
 		if (!empty($data_row)) {
 			foreach ($data_row as $row) {
 				$arr = array(
-						'order_id' => $new_order_id,
-						'goods_id' => $row['goods_id'],
-						'goods_name' => $row['goods_name'],
-						'goods_sn' => $row['goods_sn'],
-						'product_id' => $row['product_id'],
-						'goods_number' => $row['goods_number'],
-						'market_price' => $row['market_price'],
-						'goods_price' => $row['goods_price'],
-						'goods_attr' => $row['goods_attr'],
-						'is_real' => $row['is_real'],
+						'order_id'		=> $new_order_id,
+						'goods_id'		=> $row['goods_id'],
+						'goods_name'	=> $row['goods_name'],
+						'goods_sn'		=> $row['goods_sn'],
+						'product_id'	=> $row['product_id'],
+						'goods_number'	=> $row['goods_number'],
+						'market_price'	=> $row['market_price'],
+						'goods_price'	=> $row['goods_price'],
+						'goods_attr'	=> $row['goods_attr'],
+						'is_real'		=> $row['is_real'],
 						'extension_code' => $row['extension_code'],
-						'parent_id' => $row['parent_id'],
-						'is_gift' => $row['is_gift'],
+						'parent_id'		=> $row['parent_id'],
+						'is_gift'		=> $row['is_gift'],
 						'goods_attr_id' => $row['goods_attr_id'],
-		
+						'ru_id'			=> $row['ru_id'],
 				);
 				$db_order_goods->insert($arr);
 			}
@@ -380,7 +381,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		}
 		/* 如果订单金额为0 处理虚拟卡 */
 		if ($order['order_amount'] <= 0) {
-			$cart_w = array('is_real' => 0, 'extension_code' => 'virtual_card', 'rec_type' => $flow_type);
+			$cart_w = array('is_real' => 0, 'extension_code' => 'virtual_card', 'rec_type' => $options['flow_type']);
 			if (!empty($cart_id)) {
 				$cart_w = array_merge($cart_w, array('rec_id' => $cart_id));
 			}
@@ -399,7 +400,7 @@ class cart_flow_done_api extends Component_Event_Api {
 				);
 			}
 		
-			if ($virtual_goods and $flow_type != CART_GROUP_BUY_GOODS) {
+			if ($virtual_goods and $options['flow_type'] != CART_GROUP_BUY_GOODS) {
 				/* 虚拟卡发货 */
 				if (virtual_goods_ship($virtual_goods, $msg, $order['order_sn'], true)) {
 					/* 如果没有实体商品，修改发货状态，送积分和红包 */
@@ -461,7 +462,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		}
 		
 		/* 清空购物车 */
-		cart::clear_cart($flow_type, $cart_id);
+		cart::clear_cart($options['flow_type'], $cart_id);
 		
 		/* 插入支付日志 */
 		$order['log_id'] = $payment_method->insert_pay_log($new_order_id, $order['order_amount'], PAY_ORDER);
