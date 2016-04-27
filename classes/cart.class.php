@@ -1361,6 +1361,171 @@ class cart {
 	
 		return $price;
 	}
+	
+	/**
+	 * 改变订单中商品库存
+	 * @param   int	 $order_id   订单号
+	 * @param   bool	$is_dec	 是否减少库存
+	 * @param   bool	$storage	 减库存的时机，1，下订单时；0，发货时；
+	 */
+	public static function change_order_goods_storage($order_id, $is_dec = true, $storage = 0) {
+		$db			= RC_Model::model('orders/order_goods_model');
+		$db_package	= RC_Model::model('goods/package_goods_model');
+		$db_goods	= RC_Model::model('goods/goods_model');
+		/* 查询订单商品信息  */
+		switch ($storage) {
+			case 0 :
+				$data = $db->field('goods_id, SUM(send_number) as num, MAX(extension_code) as extension_code, product_id')->where(array('order_id' => $order_id , 'is_real' => 1))->group(array('goods_id' , 'product_id'))->select();
+				break;
+	
+			case 1 :
+				$data = $db->field('goods_id, SUM(goods_number) as num, MAX(extension_code) as extension_code, product_id')->where(array('order_id' => $order_id , 'is_real' => 1))->group(array('goods_id', 'product_id'))->select();
+				break;
+		}
+	
+		if (!empty($data)) {
+			foreach ($data as $row) {
+				if ($row['extension_code'] != "package_buy") {
+					if ($is_dec) {
+						$result = self::change_goods_storage($row['goods_id'], $row['product_id'], - $row['num']);
+					} else {
+						$result = self::change_goods_storage($row['goods_id'], $row['product_id'], $row['num']);
+					}
+				} else {
+					$data = $db_package->field('goods_id, goods_number')->where('package_id = "' . $row['goods_id'] . '"')->select();
+					if (!empty($data)) {
+						foreach ($data as $row_goods) {
+							$is_goods = $db_goods->field('is_real')->find('goods_id = "'. $row_goods['goods_id'] .'"');
+	
+							if ($is_dec) {
+								$result = self::change_goods_storage($row_goods['goods_id'], $row['product_id'], - ($row['num'] * $row_goods['goods_number']));
+							} elseif ($is_goods['is_real']) {
+								$result = self::change_goods_storage($row_goods['goods_id'], $row['product_id'], ($row['num'] * $row_goods['goods_number']));
+							}
+						}
+					}
+				}
+			}
+		}
+		return $result;
+	}
+	
+	/**
+	 * 商品库存增与减 货品库存增与减
+	 *
+	 * @param   int	$good_id		 商品ID
+	 * @param   int	$product_id	  货品ID
+	 * @param   int	$number		  增减数量，默认0；
+	 *
+	 * @return  bool			   true，成功；false，失败；
+	 */
+	public static function change_goods_storage($goods_id, $product_id, $number = 0) {
+		$db_goods		= RC_Model::model('goods/goods_model');
+		$db_products	= RC_Model::model('goods/products_model');
+		if ($number == 0) {
+			return true; // 值为0即不做、增减操作，返回true
+		}
+		if (empty($goods_id) || empty($number)) {
+			return false;
+		}
+		/* 处理货品库存 */
+		$products_query = true;
+		if (!empty($product_id)) {
+			/* by will.chen start*/
+			$product_number = $db_products->where(array('goods_id' => $goods_id, 'product_id' => $product_id))->get_field('product_number');
+			if ($product_number < $number) {
+				return new ecjia_error('low_stocks', __('库存不足'));
+			}
+			/* end*/
+			$products_query = $db_products->inc('product_number', 'goods_id='.$goods_id.' and product_id='.$product_id, $number);
+		}
+	
+		/* by will.chen start*/
+		$goods_number = $db_goods->where(array('goods_id' => $goods_id))->get_field('goods_number');
+		if ($goods_number < $number) {
+			return new ecjia_error('low_stocks', __('库存不足'));
+		}
+		/* end*/
+		/* 处理商品库存 */
+		$query = $db_goods->inc('goods_number', 'goods_id='.$goods_id, $number);
+		if ($query && $products_query) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	/**
+	 * 获得订单信息
+	 *
+	 * @access  private
+	 * @return  array
+	 */
+	public static function flow_order_info() {
+		$order = isset($_SESSION['flow_order']) ? $_SESSION['flow_order'] : array();
+	
+		/* 初始化配送和支付方式 */
+		if (!isset($order['shipping_id']) || !isset($order['pay_id'])) {
+			/* 如果还没有设置配送和支付 */
+			if ($_SESSION['user_id'] > 0) {
+				/* 用户已经登录了，则获得上次使用的配送和支付 */
+				$arr = self::last_shipping_and_payment();
+	
+				if (!isset($order['shipping_id'])) {
+					$order['shipping_id'] = $arr['shipping_id'];
+				}
+				if (!isset($order['pay_id'])) {
+					$order['pay_id'] = $arr['pay_id'];
+				}
+			} else {
+				if (!isset($order['shipping_id'])) {
+					$order['shipping_id'] = 0;
+				}
+				if (!isset($order['pay_id'])) {
+					$order['pay_id'] = 0;
+				}
+			}
+		}
+	
+		if (!isset($order['pack_id'])) {
+			$order['pack_id'] = 0;  // 初始化包装
+		}
+		if (!isset($order['card_id'])) {
+			$order['card_id'] = 0;  // 初始化贺卡
+		}
+		if (!isset($order['bonus'])) {
+			$order['bonus'] = 0;    // 初始化红包
+		}
+		if (!isset($order['integral'])) {
+			$order['integral'] = 0; // 初始化积分
+		}
+		if (!isset($order['surplus'])) {
+			$order['surplus'] = 0;  // 初始化余额
+		}
+	
+		/* 扩展信息 */
+		if (isset($_SESSION['flow_type']) && intval($_SESSION['flow_type']) != CART_GENERAL_GOODS) {
+			$order['extension_code'] 	= $_SESSION['extension_code'];
+			$order['extension_id'] 		= $_SESSION['extension_id'];
+		}
+		return $order;
+	}
+	
+	/**
+	 * 获得上一次用户采用的支付和配送方式
+	 *
+	 * @access  public
+	 * @return  void
+	 */
+	public static function last_shipping_and_payment() {
+		$db_order = RC_Model::model('orders/order_info_model');
+		$row = $db_order->field('shipping_id, pay_id')->order(array('order_id' => 'DESC'))->find(array('user_id' => $_SESSION['user_id']));
+		if (empty($row)) {
+			/* 如果获得是一个空数组，则返回默认值 */
+			$row = array('shipping_id' => 0, 'pay_id' => 0);
+		}
+		return $row;
+	}
 }
 
 // end

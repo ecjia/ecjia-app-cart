@@ -30,8 +30,8 @@ class done_module implements ecjia_interface {
     		$cart_id = explode(',', $rec_id);
     	}
     	
-    	RC_Loader::load_app_func('cart','cart');
-    	RC_Loader::load_app_func('order','orders');
+//     	RC_Loader::load_app_func('cart','cart');
+//     	RC_Loader::load_app_func('order','orders');
     	
     	/* 取得购物类型 */
     	$flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;

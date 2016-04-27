@@ -20,7 +20,7 @@ class cart_cart_list_api extends Component_Event_Api {
 			return new ecjia_error('location_error', '请选择有效的收货地址！');
 		}
 		
-		return $this->get_cart_goods($options['cart_id'], $options['location']);
+		return $this->get_cart_goods($options['cart_id'], $options['flow_type'], $options['location']);
 	}
 	
 	
@@ -30,7 +30,7 @@ class cart_cart_list_api extends Component_Event_Api {
 	 * @access  public
 	 * @return  array
 	 */
-	private function get_cart_goods($cart_id = array(), $location = array()) {
+	private function get_cart_goods($cart_id = array(), $flow_type = CART_GENERAL_GOODS, $location = array()) {
 // 		RC_Loader::load_app_func('common','goods');
 		$dbview_cart 	= RC_Loader::load_app_model('cart_viewmodel', 'cart');
 		$db_goods_attr 	= RC_Loader::load_app_model('goods_attr_model','goods');
@@ -121,7 +121,8 @@ class cart_cart_list_api extends Component_Event_Api {
 			foreach ($data as $row) {
 				$total['goods_price']  += $row['goods_price'] * $row['goods_number'];
 				$total['market_price'] += $row['market_price'] * $row['goods_number'];
-				$row['subtotal']     	= price_format($row['goods_price'] * $row['goods_number'], false);
+				$row['subtotal']     	= $row['goods_price'] * $row['goods_number'];
+				$row['formatted_subtotal']     	= price_format($row['goods_price'] * $row['goods_number'], false);
 				/* 返回未格式化价格*/
 				$row['goods_price']		= $row['goods_price'];
 				$row['market_price']	= $row['market_price'];

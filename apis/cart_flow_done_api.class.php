@@ -304,12 +304,12 @@ class cart_flow_done_api extends Component_Event_Api {
 		
 		/* 如果使用库存，且下订单时减库存，则减少库存 */
 		if (ecjia::config('use_storage') == '1' && ecjia::config('stock_dec_time') == SDT_PLACE) {
-			$result = change_order_goods_storage($order['order_id'], true, SDT_PLACE);
+			$result = cart::change_order_goods_storage($order['order_id'], true, SDT_PLACE);
 			if (is_ecjia_error($result)) {
 				/* 库存不足删除已生成的订单（并发处理） will.chen*/
 				$db_order_info->where(array('order_id' => $order['order_id']))->delete();
 				$db_order_goods->where(array('order_id' => $order['order_id']))->delete();
-				return new ecjia_error('low_stocks', __('库存不足'));
+				return $result;
 			}
 		}
 		
@@ -462,7 +462,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		}
 		
 		/* 清空购物车 */
-		cart::clear_cart($options['flow_type'], $cart_id);
+		cart::clear_cart($options['flow_type'], $options['cart_id']);
 		
 		/* 插入支付日志 */
 		$order['log_id'] = $payment_method->insert_pay_log($new_order_id, $order['order_amount'], PAY_ORDER);
