@@ -23,12 +23,10 @@ class done_module implements ecjia_interface {
     	if (isset($_SESSION['cart_id'])) {
     		$rec_id = empty($rec_id) ? $_SESSION['cart_id'] : $rec_id;
     	}
-    	
-    	if (empty($rec_id)) {
-    		return new ecjia_error('not_found_goods', '请选择您所需要购买的商品！');
-    	} else {
+    	$cart_id = array();
+    	if (!empty($rec_id)) {
     		$cart_id = explode(',', $rec_id);
-    	}
+    	} 
     	
 //     	RC_Loader::load_app_func('cart','cart');
 //     	RC_Loader::load_app_func('order','orders');

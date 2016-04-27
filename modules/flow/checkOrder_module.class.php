@@ -42,6 +42,7 @@ class checkOrder_module implements ecjia_interface {
 		}
 		$db_cart = RC_Model::model('cart/cart_model');
 		/* 检查购物车中是否有商品 */
+		
 		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $cart_id, 'flow_type' => $flow_type));
 		
 		if (count($get_cart_goods['goods_list']) == 0) {
@@ -49,20 +50,22 @@ class checkOrder_module implements ecjia_interface {
 		}
 		
 		/* 获取用户收货地址*/
-		if ($options['address_id'] == 0) {
+		$address_id = _POST('address_id', '0');
+		if ($address_id == 0) {
 			$consignee = cart::get_consignee($_SESSION['user_id']);
 		} else {
-			$consignee = RC_Model::model('user/user_address_model')->find(array('address_id' => $options['address_id'], 'user_id' => $_SESSION['user_id']));
+			$consignee = RC_Model::model('user/user_address_model')->find(array('address_id' => $address_id, 'user_id' => $_SESSION['user_id']));
 		}
 		
 		/* 检查收货人信息是否完整 */
-		if (! cart::check_consignee_info($consignee, $options['flow_type'])) {
+		if (! cart::check_consignee_info($consignee, $flow_type)) {
 			/* 如果不完整则转向到收货人信息填写界面 */
 			return new ecjia_error('pls_fill_in_consinee_info_', '请完善收货人信息！');
 		}
 		
 		/* 获取附近的商家，判断购买商品是否在附近*/
 		$seller_list = RC_Api::api('seller', 'seller_list', array('location' => array('longitude' => $consignee['longitude'], 'latitude' => $consignee['latitude']), 'limit' => 'all'));
+		
 		if (!empty($seller_list['seller_list'])) {
 			foreach ($seller_list['seller_list'] as $val) {
 				$seller_group[] = $val['id'];
@@ -133,27 +136,27 @@ class checkOrder_module implements ecjia_interface {
 			$shipping_cfg = $shipping_method->unserialize_config($val['configure']);
 // 			$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : $shipping_method->shipping_fee($val['shipping_code'], unserialize($val['configure']),
 // 					$cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
-			if (ecjia::config('freight_model') == 0) {
+// 			if (ecjia::config('freight_model') == 0) {
 				// 				$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : shipping_fee($val['shipping_code'], unserialize($val['configure']),
 				// 						$cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
 					
 				$shipping_list[$key]['free_money']          = price_format($shipping_cfg['free_money'], false);
 				$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : $shipping_method->shipping_fee($val['shipping_code'], unserialize($val['configure']),
 						$cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
-			} elseif (ecjia::config('freight_model') == 1) {
+// 			} elseif (ecjia::config('freight_model') == 1) {
 					
-				$goods_region = array(
-						'country'	=> $region[0],
-						'province'	=> $region[1],
-						'city'		=> $region[2],
-						'district'	=> isset($region[3]) ? $region[3] : '',
-				);
+// 				$goods_region = array(
+// 						'country'	=> $region[0],
+// 						'province'	=> $region[1],
+// 						'city'		=> $region[2],
+// 						'district'	=> isset($region[3]) ? $region[3] : '',
+// 				);
 // 				TODO:赞不用
 // 				$shippingFee = get_goods_order_shipping_fee($cart_goods, $goods_region, $val['shipping_code']);
-				$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 :  $shippingFee['shipping_fee'];
+// 				$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 :  $shippingFee['shipping_fee'];
 					
-				$shipping_list[$key]['free_money']          = price_format($shippingFee['free_money'], false);
-			}
+// 				$shipping_list[$key]['free_money']          = price_format($shippingFee['free_money'], false);
+// 			}
 			
 			
 			
@@ -219,6 +222,7 @@ class checkOrder_module implements ecjia_interface {
 		$out['consignee']		= $consignee;//收货地址
 		$out['shipping_list']	= $shipping_list;//快递信息
 		$out['payment_list']	= $payment_list;
+		
 		/* 如果使用积分，取得用户可用积分及本订单最多可以使用的积分 */
 		if ((ecjia::config('use_integral', ecjia::CONFIG_EXISTS) || ecjia::config('use_integral') == '1')
 				&& $_SESSION['user_id'] > 0
@@ -229,6 +233,7 @@ class checkOrder_module implements ecjia_interface {
 			$allow_use_integral = 1;
 			$order_max_integral = cart::flow_available_points($cart_id);
 		} else {
+			$allow_use_integral = 0;
 			$order_max_integral = 0;
 		}
 		$out['allow_use_integral'] = $allow_use_integral;//积分 是否使用积分
@@ -248,7 +253,8 @@ class checkOrder_module implements ecjia_interface {
 			}
 			// 能使用红包
 			$allow_use_bonus = 1;
-
+		} else {
+			$allow_use_bonus = 0;
 		}
 		$out['allow_use_bonus']		= $allow_use_bonus;//是否使用红包
 		$out['bonus']				= $bonus_list;//红包

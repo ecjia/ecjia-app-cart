@@ -15,7 +15,7 @@ class cart_cart_list_api extends Component_Event_Api {
      */
 	public function call(&$options) {	
 		
-		if ((!isset($options['location']) || empty($options['location'])) && (!isset($options['cart_id']) || empty($options['cart_id'])))
+		if ((!isset($options['location']) || empty($options['location'])) && (!isset($options['cart_id']) || empty($options['cart_id'])) && $options['flow_type'] == CART_GENERAL_GOODS)
 		{
 			return new ecjia_error('location_error', '请选择有效的收货地址！');
 		}
@@ -47,7 +47,7 @@ class cart_cart_list_api extends Component_Event_Api {
 		);
 		
 		/* 循环、统计 */
-		$cart_where = array('rec_type' => CART_GENERAL_GOODS);
+		$cart_where = array('rec_type' => $flow_type);
 		
 		/* 根据经纬度查询附近店铺*/
 		if (is_array($location) && isset($location['latitude']) && isset($location['longitude'])) {

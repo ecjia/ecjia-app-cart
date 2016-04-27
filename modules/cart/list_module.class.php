@@ -12,7 +12,7 @@ class list_module implements ecjia_interface {
 		EM_Api::authSession();
 		$location = _POST('location');
 		
-		$cart_result = RC_Api::api('cart', 'cart_list', array('location' => $location));
+		$cart_result = RC_Api::api('cart', 'cart_list', array('location' => $location, 'flow_type' => CART_GENERAL_GOODS));
 		if (is_ecjia_error($cart_result)) {
 			return $cart_result;
 		}

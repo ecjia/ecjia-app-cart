@@ -15,10 +15,6 @@ class cart_flow_done_api extends Component_Event_Api {
      */
 	public function call(&$options) {	
 		
-		/* 判断有无选择购物车商品*/
-		if (!isset($options['cart_id']) || empty($options['cart_id'])) {
-			return new ecjia_error('not_found_goods', '请选择您所需要的商品！');
-		}
 		RC_Loader::load_app_class('cart', 'cart', false);
 		
 		$order = $options['order'];
@@ -33,7 +29,7 @@ class cart_flow_done_api extends Component_Event_Api {
 // 			$cart_where['session_id'] = SESS_ID;
 // 		}
 // 		$cart_result = RC_Model::model('cart/cart_model')->where($cart_where)->select();
-		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $options['cart_id']));
+		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $options['cart_id'], 'flow_type' => $options['flow_type']));
 		
 		if (count($get_cart_goods['goods_list']) == 0) {
 			return new ecjia_error('not_found_cart_goods', '购物车中没有您选择的商品');
@@ -382,8 +378,8 @@ class cart_flow_done_api extends Component_Event_Api {
 		/* 如果订单金额为0 处理虚拟卡 */
 		if ($order['order_amount'] <= 0) {
 			$cart_w = array('is_real' => 0, 'extension_code' => 'virtual_card', 'rec_type' => $options['flow_type']);
-			if (!empty($cart_id)) {
-				$cart_w = array_merge($cart_w, array('rec_id' => $cart_id));
+			if (!empty($options['cart_id'])) {
+				$cart_w = array_merge($cart_w, array('rec_id' => $options['cart_id']));
 			}
 			if ($_SESSION['user_id']) {
 				$cart_w = array_merge($cart_w, array('user_id' => $_SESSION['user_id']));
