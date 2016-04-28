@@ -16,7 +16,7 @@ class list_module implements ecjia_interface {
 		if (is_ecjia_error($cart_result)) {
 			return $cart_result;
 		}
-
+		unset($_SESSION['flow_type']);
 		$cart_goods = array('cart_list' => array(), 'total' => $cart_result['total']);
 		if (!empty($cart_result['goods_list'])) {
 			foreach ($cart_result['goods_list'] as $row) {

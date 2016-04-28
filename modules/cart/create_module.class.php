@@ -33,6 +33,7 @@ class create_module implements ecjia_interface {
 	    	$result = addto_cart_groupbuy($object_id, $goods_number, $goods_spec);
 	    	unset($_SESSION['cart_id']);
 	    } else {
+	    	unset($_SESSION['flow_type']);
 	    	if (!$goods_id) {
 	    		return new ecjia_error('not_found_goods', '请选择您所需要购买的商品！');
 	    	}
