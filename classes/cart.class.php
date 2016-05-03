@@ -298,8 +298,9 @@ class cart {
 					$city = RC_Model::model('shipping/region_model')->get_regions(2, $consignee['province']);
 					$res = empty($city);
 				} elseif (empty($consignee['district'])) {
-					$dist = RC_Model::model('shipping/region_model')->get_regions(3, $consignee['city']);
-					$res = empty($dist);
+// 					$dist = RC_Model::model('shipping/region_model')->get_regions(3, $consignee['city']);
+// 					$res = empty($dist);
+					$res = true;
 				}
 			}
 			return $res;
