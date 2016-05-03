@@ -158,18 +158,50 @@ class checkOrder_module implements ecjia_interface {
 // 				$shipping_list[$key]['free_money']          = price_format($shippingFee['free_money'], false);
 // 			}
 			
-			
-			
 			$shipping_list[$key]['format_shipping_fee'] = price_format($shipping_fee, false);
 			$shipping_list[$key]['shipping_fee']        = $shipping_fee;
 			$shipping_list[$key]['free_money']          = price_format($shipping_cfg['free_money'], false);
-			$shipping_list[$key]['insure_formated']     = strpos($val['insure'], '%') === false ?
-			price_format($val['insure'], false) : $val['insure'];
+			$shipping_list[$key]['insure_formated']     = strpos($val['insure'], '%') === false ? price_format($val['insure'], false) : $val['insure'];
 		
 			/* 当前的配送方式是否支持保价 */
 			if ($val['shipping_id'] == $order['shipping_id']) {
 				$insure_disabled = ($val['insure'] == 0);
 				$cod_disabled    = ($val['support_cod'] == 0);
+			}
+			
+			/* o2o*/
+			if ($val['shipping_code'] == 'ship_o2o_express') {
+// 				$time = RC_Time::gmtime();
+				/* 获取最后可送的时间*/
+				$time = RC_Time::local_date('H:i', RC_Time::gmtime());
+// 				+ $shipping_cfg['last_order_time'] * 60
+// 				_dump($shipping_cfg);
+				if (empty($shipping_cfg['ship_time'])) {
+					unset($shipping_list[$key]);
+					continue;
+				}
+				$shipping_list[$key]['shipping_date'] = array();
+				$ship_date = 0;
+				$shipping_cfg['ship_days'] = 7;
+				while ($shipping_cfg['ship_days']) {
+					foreach ($shipping_cfg['ship_time'] as $k => $v) {
+						if ($v['end'] > $time || $ship_date > 0) {
+							$shipping_list[$key]['shipping_date'][$ship_date]['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$ship_date.' day'));
+							$shipping_list[$key]['shipping_date'][$ship_date]['time'][] = array(
+									'start_time' 	=> $v['start'],
+									'end_time'		=> $v['end'],
+							);	
+						}
+					}
+					
+					$ship_date ++;
+					
+					if (count($shipping_list[$key]['shipping_date']) >= $shipping_cfg['ship_days']) {
+						break;
+					}
+				}
+				$shipping_list[$key]['shipping_date'] = array_merge($shipping_list[$key]['shipping_date']);
+
 			}
 		}
 		$shipping_list = array_values($shipping_list);

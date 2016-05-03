@@ -72,6 +72,7 @@ class done_module implements ecjia_interface {
 //     					$consignee['district']
 //     			))
     			'agency_id'		=> 0,
+    			'expect_shipping_time' => $_POST['expect_shipping_time'],
     	);
     	
     	$result = RC_Api::api('cart', 'flow_done', array('cart_id' => $cart_id, 'order' => $order, 'address_id' => $address_id, 'flow_type' => $flow_type, 'bonus_sn' => $_POST['bonus_sn']));
