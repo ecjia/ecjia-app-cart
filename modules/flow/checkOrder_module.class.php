@@ -50,11 +50,16 @@ class checkOrder_module implements ecjia_interface {
 		}
 		
 		/* 获取用户收货地址*/
-		$address_id = _POST('address_id', '0');
-		if ($address_id == 0) {
-			$consignee = cart::get_consignee($_SESSION['user_id']);
-		} else {
+		$address_id = _POST('address_id', 0);
+		if ($address_id > 0) {
 			$consignee = RC_Model::model('user/user_address_model')->find(array('address_id' => $address_id, 'user_id' => $_SESSION['user_id']));
+			$_SESSION['address_id'] = $address_id;
+		} else {
+			if (isset($_SESSION['address_id'])) {
+				$consignee = RC_Model::model('user/user_address_model')->find(array('address_id' => $_SESSION['address_id'], 'user_id' => $_SESSION['user_id']));
+			} else {
+				$consignee = get_consignee($_SESSION['user_id']);
+			}
 		}
 		
 		/* 检查收货人信息是否完整 */
@@ -98,7 +103,31 @@ class checkOrder_module implements ecjia_interface {
 			$favour_name = empty($discount['name']) ? '' : join(',', $discount['name']);
 			$your_discount = sprintf(__('根据优惠活动<font color=red>%s</font>，您可以享受折扣 %s'), $favour_name, price_format($discount['discount']));
 		}
-		$cart_goods = $get_cart_goods['goods_list'];
+		$cart_goods = array();
+		foreach ($get_cart_goods['goods_list'] as $row) {
+			$cart_goods[] = array(
+					'seller_id'		=> intval($row['ru_id']),
+					'seller_name'	=> $row['seller_name'],
+					'rec_id'	=> intval($row['rec_id']),
+					'goods_id'	=> intval($row['goods_id']),
+					'goods_sn'	=> $row['goods_sn'],
+					'goods_name'	=> $row['goods_name'],
+					'goods_price'	=> $row['goods_price'],
+					'market_price'	=> $row['market_price'],
+					'formated_goods_price'	=> $row['formatted_goods_price'],
+					'formated_market_price' => $row['formatted_market_price'],
+					'goods_number'	=> intval($row['goods_number']),
+					'subtotal'		=> $row['subtotal'],
+					'goods_attr_id' => $row['goods_attr_id'],
+					'attr'			=> $row['goods_attr'],
+					'goods_attr'	=> $goods_attrs,
+					'img' => array(
+							'thumb'	=> RC_Upload::upload_url($row['goods_img']),
+							'url'	=> RC_Upload::upload_url($row['original_img']),
+							'small'	=> RC_Upload::upload_url($row['goods_img']),
+					)
+			);
+		}
 		/* 计算订单的费用 */
 		$total = cart::order_fee($order, $cart_goods, $consignee, $cart_id);
 	

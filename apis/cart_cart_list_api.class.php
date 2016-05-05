@@ -84,12 +84,12 @@ class cart_cart_list_api extends Component_Event_Api {
 
 		/* 选择购买 */
 		if (!empty($cart_id)) {
-			$cart_where = array_merge($cart_where, array('rec_id' => $cart_id));
+			$cart_where['rec_id'] = $cart_id;
 		}
 		if ($_SESSION['user_id']) {
-			$cart_where = array_merge($cart_where, array('c.user_id' => $_SESSION['user_id']));
+			$cart_where['c.user_id'] = $_SESSION['user_id'];
 		} else {
-			$cart_where = array_merge($cart_where, array('session_id' => SESS_ID));
+			$cart_where['session_id'] = SESS_ID;
 		}
 // 		$data = $db_cart->field('*, IF(parent_id, parent_id, goods_id)|pid')->where($cart_where)->order(array('pid'=>'asc', 'parent_id'=>'asc'))->select();
 		
