@@ -76,10 +76,9 @@ class cart_cart_list_api extends Component_Event_Api {
 				$merchants_shop_information_db = RC_Loader::load_app_model('merchants_shop_information_model', 'seller');
 				$merchants_shop_information_db->where(array('user_id' => $ru_id))->select();
 				$cart_where['c.ru_id'] = $ru_id;
-			} 
-// 			else {
-// 				$cart_where['c.ru_id'] = 0;
-// 			}
+			} else {
+				$cart_where['c.ru_id'] = '';
+			}
 		}
 
 		/* 选择购买 */
