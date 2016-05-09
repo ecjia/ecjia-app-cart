@@ -1922,7 +1922,7 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 	$goods_price = $group_buy['deposit'] > 0 ? $group_buy['deposit'] : $group_buy['cur_price'];
 	$cart = array(
 			'user_id'        => $_SESSION['user_id'],
-			'session_id'     => SESS_ID,
+// 			'session_id'     => SESS_ID,
 			'goods_id'       => $group_buy['goods_id'],
 			'product_id'     => $product_info['product_id'],
 			'goods_sn'       => addslashes($goods['goods_sn']),
