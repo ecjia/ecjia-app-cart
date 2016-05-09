@@ -474,7 +474,8 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
 	RC_Loader::load_app_func('goods', 'goods');
 	RC_Loader::load_app_func('common', 'goods');
 	
-	$field = "wg.w_id, g.goods_name, g.goods_sn, g.is_on_sale, g.is_real, g.user_id as ru_id, g.model_inventory, g.model_attr, ".
+	$field = "g.goods_id, wg.w_id, g.goods_name, g.goods_sn, g.is_on_sale, g.is_real, g.user_id as ru_id, g.model_inventory, g.model_attr, ".
+			"g.is_xiangou, g.xiangou_start_date, g.xiangou_end_date, g.xiangou_num, ".
 			"wg.warehouse_price, wg.warehouse_promote_price, wg.region_number as wg_number, wag.region_price, wag.region_promote_price, wag.region_number as wag_number, g.model_price, g.model_attr, ".
 			"g.market_price, IF(g.model_price < 1, g.shop_price, IF(g.model_price < 2, wg.warehouse_price, wag.region_price)) AS org_price, ".
 			"IF(g.model_price < 1, g.promote_price, IF(g.model_price < 2, wg.warehouse_promote_price, wag.region_promote_price)) as promote_price, ".
@@ -537,6 +538,8 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
     if (empty($parent) && $goods['is_alone_sale'] == 0) {
 		return new ecjia_error('addcart_error', __('购买失败'));
     }
+    
+   
     
 //     $sql = "SELECT * FROM " .$GLOBALS['ecs']->table($table_products). " WHERE goods_id = '$goods_id'" .$type_files. " LIMIT 0, 1";
 //     $prod = $GLOBALS['db']->getRow($sql);
@@ -695,6 +698,28 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
     		$row = $db_cart->field('rec_id, goods_number')->find('user_id = "' .$_SESSION['user_id']. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.CART_GENERAL_GOODS.'" ');
     	} else {
     		$row = $db_cart->field('rec_id, goods_number')->find('session_id = "' .SESS_ID. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.CART_GENERAL_GOODS.'" ');
+    	}
+    	
+    	/* 限购判断*/
+    	if ($goods['is_xiangou'] > 0) {
+    		$order_info_viewdb = RC_Loader::load_app_model('order_info_viewmodel', 'orders');
+    		$order_info_viewdb->view = array(
+    				'order_goods' => array(
+    						'type'     => Component_Model_View::TYPE_LEFT_JOIN,
+    						'alias' => 'g',
+    						'on'     => 'oi.order_id = g.order_id '
+    				)
+    		);
+    		$xiangou = array(
+    				'oi.add_time >=' . $goods['xiangou_start_date'] . ' and oi.add_time <=' .$goods['xiangou_end_date'],
+    				'g.goods_id'	=> $goods['goods_id'],
+    				'oi.user_id'	=> $_SESSION['user_id'],
+    		);
+    		$xiangou_info = $order_info_viewdb->join(array('order_goods'))->field(array('sum(goods_number) as number'))->where($xiangou)->find();
+    		
+    		if ($xiangou_info['number'] + $row['goods_number'] >= $goods['xiangou_num']) {
+    			return new ecjia_error('xiangou_error', __('该商品已限购'));
+    		}
     	}
     	
         if($row) {
@@ -1147,8 +1172,32 @@ function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
 	}
 
 	$db_goods_attr = RC_Loader::load_app_model('goods_attr_model', 'goods');
+	$db_goods = RC_Loader::load_app_model('goods_model', 'goods');
+	$order_info_viewdb = RC_Loader::load_app_model('order_info_viewmodel', 'orders');
+	$order_info_viewdb->view = array(
+			'order_goods' => array(
+					'type'     => Component_Model_View::TYPE_LEFT_JOIN,
+					'alias' => 'g',
+					'on'     => 'oi.order_id = g.order_id '
+			)
+	);
 	/* 格式化价格及礼包商品 */
 	foreach ($arr as $key => $value) {
+		$goods = $db_goods->field(array('is_xiangou', 'xiangou_start_date', 'xiangou_end_date', 'xiangou_num'))->find(array('goods_id' => $value['goods_id']));
+		/* 限购判断*/
+		if ($goods['is_xiangou'] > 0) {
+			$xiangou = array(
+					'oi.add_time >=' . $goods['xiangou_start_date'] . ' and oi.add_time <=' .$goods['xiangou_end_date'],
+					'g.goods_id'	=> $value['goods_id'],
+					'oi.user_id'	=> $_SESSION['user_id'],
+			);
+			$xiangou_info = $order_info_viewdb->join(array('order_goods'))->field(array('sum(goods_number) as number'))->where($xiangou)->find();
+		
+			if ($xiangou_info['number'] + $value['goods_number'] > $goods['xiangou_num']) {
+				return new ecjia_error('xiangou_error', __('该商品已限购'));
+			}
+		}
+		
 		$arr[$key]['formated_market_price'] = price_format($value['market_price'], false);
 		$arr[$key]['formated_goods_price']  = $value['goods_price'] > 0 ? price_format($value['goods_price'], false) : __('免费');
 		$arr[$key]['formated_subtotal']     = price_format($value['subtotal'], false);
@@ -1421,8 +1470,9 @@ function flow_order_info() {
 /**
  * 计算折扣：根据购物车和优惠活动
  * @return  float   折扣
+ * 
  */
-function compute_discount($type = 0, $newInfo = array(), $cart_id = array()) {
+function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $user_type = 0) {
 	$db 			= RC_Loader::load_app_model('favourable_activity_model', 'favourable');
 	$db_cartview 	= RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
 
@@ -1481,11 +1531,19 @@ function compute_discount($type = 0, $newInfo = array(), $cart_id = array()) {
 		$total_amount = 0;
 		if ($favourable['act_range'] == FAR_ALL) {
 			foreach ($goods_list as $goods) {
-				//will.chen start
-				if($favourable['user_id'] == $goods['ru_id']){
-					$total_amount += $goods['subtotal'];
+				if ($use_type == 1) {
+					if($favourable['user_id'] == $goods['ru_id']){
+						$total_amount += $goods['subtotal'];
+					}
+				} else {
+					if (isset($favourable['userFav_type']) && $favourable['userFav_type'] == 1) {
+						$total_amount += $goods['subtotal'];
+					} else {
+						if($favourable['user_id'] == $goods['ru_id']){
+							$total_amount += $goods['subtotal'];
+						}
+					}
 				}
-				//will.chen end
 			}
 		} elseif ($favourable['act_range'] == FAR_CATEGORY) {
 			/* 找出分类id的子分类id */
@@ -1498,31 +1556,56 @@ function compute_discount($type = 0, $newInfo = array(), $cart_id = array()) {
 
 			foreach ($goods_list as $goods) {
 				if (strpos(',' . $ids . ',', ',' . $goods['cat_id'] . ',') !== false) {
-					//will.chen start
-					if($favourable['user_id'] == $goods['ru_id']){
-						$total_amount += $goods['subtotal'];
+					if ($use_type == 1) {
+						if ($favourable['user_id'] == $goods['ru_id'] && $favourable['userFav_type'] == 0) {
+							$total_amount += $goods['subtotal'];
+						}
+					} else {
+						if (isset($favourable['userFav_type']) && $favourable['userFav_type'] == 1) {
+							$total_amount += $goods['subtotal'];
+						} else {
+							if ($favourable['user_id'] == $goods['ru_id']) {
+								$total_amount += $goods['subtotal'];
+							}
+						}
 					}
-					//will.chen end
 				}
 			}
 		} elseif ($favourable['act_range'] == FAR_BRAND) {
 			foreach ($goods_list as $goods) {
 				if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['brand_id'] . ',') !== false) {
-					//will.chen start
-					if($favourable['user_id'] == $goods['ru_id']){
-						$total_amount += $goods['subtotal'];
+					if ($use_type == 1) {
+						if ($favourable['user_id'] == $goods['ru_id']) {
+							$total_amount += $goods['subtotal'];
+						}
+					} else {
+						if (isset($favourable['userFav_type']) && $favourable['userFav_type'] == 1) {
+							$total_amount += $goods['subtotal'];
+						} else {
+							if ($favourable['user_id'] == $goods['ru_id']) {
+								$total_amount += $goods['subtotal'];
+							}
+						}
 					}
-					//will.chen end
+					
 				}
 			}
 		} elseif ($favourable['act_range'] == FAR_GOODS) {
 			foreach ($goods_list as $goods) {
 				if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
-					//will.chen start
-					if($favourable['user_id'] == $goods['ru_id']){
-						$total_amount += $goods['subtotal'];
+					if ($use_type == 1) {
+						if ($favourable['user_id'] == $goods['ru_id']) {
+							$total_amount += $goods['subtotal'];
+						}
+					} else {
+						if (isset($favourable['userFav_type']) && $favourable['userFav_type'] == 1) {
+							$total_amount += $goods['subtotal'];
+						} else {
+							if ($favourable['user_id'] == $goods['ru_id']) {
+								$total_amount += $goods['subtotal'];
+							}
+						}
 					}
-					//will.chen end
 				}
 			}
 		} else {
@@ -1744,6 +1827,47 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 		return new ecjia_error('gb_error_goods_lacking', __('对不起，商品库存不足，请您修改数量！'));
 	}
 	
+// 	//ecmoban模板堂 --zhuo start 限购
+// 	$xiangouInfo = get_purchasing_goods_info($group_buy['goods_id']);
+// 	if($xiangouInfo['is_xiangou'] == 1){
+// 		$user_id = !empty($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
+	
+// 		$start_date = $xiangouInfo['xiangou_start_date'];
+// 		$end_date = $xiangouInfo['xiangou_end_date'];
+// 		$orderGoods = get_for_purchasing_goods($start_date, $end_date, $group_buy['goods_id'], $user_id, 1);
+	
+// 		$nowTime = gmtime();
+// 		if($nowTime > $start_date && $nowTime < $end_date){
+// 			if($orderGoods['goods_number'] >= $xiangouInfo['xiangou_num']){
+// 				show_message("您已买过该商品，无法在购买了", '', '', 'error');
+// 				exit;
+// 			}else{
+// 				if($xiangouInfo['xiangou_num'] > 0){
+// 					if($orderGoods['goods_number'] + $number > $xiangouInfo['xiangou_num']){
+// 						$max_num = $xiangouInfo['xiangou_num'] - $orderGoods['goods_number'];
+// 						show_message("该商品已经累计超过限购数量，您最多只能购买{$max_num}件", '', '', 'error');
+// 						exit;
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+// 	//ecmoban模板堂 --zhuo end 限购
+	
+	/* 查询：取得规格 */
+// 	$specs = '';
+// 	foreach ($_POST as $key => $value) {
+// 		if (strpos($key, 'spec_') !== false) {
+// 			$specs .= ',' . intval($value);
+// 		}
+// 	}
+// 	$specs = trim($specs, ',');
+	
+	/* 查询：如果商品有规格则取规格商品信息 配件除外 */
+// 	if ($specs) {
+// 		$_specs = explode(',', $specs);
+// 		$product_info = get_products_info($goods['goods_id'], $_specs);
+// 	}
 	if (!empty($spec)) {
 // 		$_specs = explode(',', $specs);
 		$product_info = get_products_info($goods['goods_id'], $spec, $warehouse_id, $area_id);
@@ -1757,6 +1881,19 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 // 		show_message($_LANG['gb_error_goods_lacking'], '', '', 'error');
 	}
 	
+	/* 查询：查询规格名称和值，不考虑价格 */
+// 	$attr_list = array();
+// 	$sql = "SELECT a.attr_name, g.attr_value " .
+// 			"FROM " . $ecs->table('goods_attr') . " AS g, " .
+// 			$ecs->table('attribute') . " AS a " .
+// 			"WHERE g.attr_id = a.attr_id " .
+// 			"AND g.goods_attr_id " . db_create_in($specs);
+// 	$res = $db->query($sql);
+// 	while ($row = $db->fetchRow($res))
+// 	{
+// 		$attr_list[] = $row['attr_name'] . ': ' . $row['attr_value'];
+// 	}
+// 	$goods_attr = join(chr(13) . chr(10), $attr_list);
 	
 	
 	$goods_attr = get_goods_attr_info($spec, 'pice', $warehouse_id, $area_id);
@@ -1765,13 +1902,27 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 	
 	clear_cart(CART_GROUP_BUY_GOODS);
 	
+	//ecmoban模板堂 --zhuo start
 	
+// 	$area_info = get_area_info($province_id);
+// 	$area_id = $area_info['region_id'];
+	
+// 	$where = "regionId = '$province_id'";
+// 	$date = array('parent_id');
+// 	$region_id = get_table_date('region_warehouse', $where, $date, 2);
+	
+// 	if(!empty($_SESSION['user_id'])){
+// 		$sess = "";
+// 	}else{
+// 		$sess = real_cart_mac_ip();
+// 	}
+	//ecmoban模板堂 --zhuo end
 	
 	/* 更新：加入购物车 */
 	$goods_price = $group_buy['deposit'] > 0 ? $group_buy['deposit'] : $group_buy['cur_price'];
 	$cart = array(
 			'user_id'        => $_SESSION['user_id'],
-// 			'session_id'     => SESS_ID,
+			'session_id'     => SESS_ID,
 			'goods_id'       => $group_buy['goods_id'],
 			'product_id'     => $product_info['product_id'],
 			'goods_sn'       => addslashes($goods['goods_sn']),
