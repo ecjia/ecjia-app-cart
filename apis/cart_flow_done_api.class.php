@@ -106,7 +106,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			$order['surplus'] = 0;
 			$order['integral'] = 0;
 		}
-		$order['bonus_id'] =1;
+		
 		/* 检查红包是否存在 */
 		if ($order['bonus_id'] > 0) {
 			$bonus = RC_Api::api('bonus', 'bonus_info', array('bonus_id' => $order['bonus_id']));
