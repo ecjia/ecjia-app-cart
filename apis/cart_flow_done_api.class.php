@@ -386,7 +386,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			} else {
 				$cart_w = array_merge($cart_w, array('session_id' => SESS_ID));
 			}
-			$res = $db_cart->field('goods_id, goods_name, goods_number AS num')->where($cart_w)->select();
+			$res = RC_Model::model('cart/cart_model')->field('goods_id, goods_name, goods_number AS num')->where($cart_w)->select();
 			$virtual_goods = array();
 			foreach ($res as $row) {
 				$virtual_goods['virtual_card'][] = array(
