@@ -916,7 +916,7 @@ class cart {
 				'goods' => array(
 						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
 						'alias' => 'g',
-						'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id",
+						'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.user_id",
 						'on'   	=> 'c.goods_id = g.goods_id'
 				)
 		);
@@ -947,52 +947,62 @@ class cart {
 		$favourable_name = array();
 		RC_Loader::load_app_class('goods_category', 'goods', false);
 		/* 循环计算每个优惠活动的折扣 */
-		foreach ($favourable_list as $favourable) {
-			$total_amount = 0;
-			if ($favourable['act_range'] == FAR_ALL) {
-				foreach ($goods_list as $goods) {
-					$total_amount += $goods['subtotal'];
-				}
-			} elseif ($favourable['act_range'] == FAR_CATEGORY) {
-				/* 找出分类id的子分类id */
-				$id_list = array();
-				$raw_id_list = explode(',', $favourable['act_range_ext']);
-				foreach ($raw_id_list as $id) {
-					$id_list = array_merge($id_list, array_keys(goods_category::cat_list($id, 0, false)));
-				}
-				$ids = join(',', array_unique($id_list));
-	
-				foreach ($goods_list as $goods) {
-					if (strpos(',' . $ids . ',', ',' . $goods['cat_id'] . ',') !== false) {
-						$total_amount += $goods['subtotal'];
+		if (!empty($favourable_list)) {
+			foreach ($favourable_list as $favourable) {
+				$total_amount = 0;
+				if ($favourable['act_range'] == FAR_ALL) {
+					foreach ($goods_list as $goods) {
+						if ($favourable['user_id'] == $goods['user_id']) {
+							$total_amount += $goods['subtotal'];
+						}
 					}
-				}
-			} elseif ($favourable['act_range'] == FAR_BRAND) {
-				foreach ($goods_list as $goods) {
-					if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['brand_id'] . ',') !== false) {
-						$total_amount += $goods['subtotal'];
+				} elseif ($favourable['act_range'] == FAR_CATEGORY) {
+					/* 找出分类id的子分类id */
+					$id_list = array();
+					$raw_id_list = explode(',', $favourable['act_range_ext']);
+					foreach ($raw_id_list as $id) {
+						$id_list = array_merge($id_list, array_keys(goods_category::cat_list($id, 0, false)));
 					}
-				}
-			} elseif ($favourable['act_range'] == FAR_GOODS) {
-				foreach ($goods_list as $goods) {
-					if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
-						$total_amount += $goods['subtotal'];
+					$ids = join(',', array_unique($id_list));
+		
+					foreach ($goods_list as $goods) {
+						if ($favourable['user_id'] == $goods['user_id']) {
+							if (strpos(',' . $ids . ',', ',' . $goods['cat_id'] . ',') !== false) {
+								$total_amount += $goods['subtotal'];
+							}
+						}
 					}
+				} elseif ($favourable['act_range'] == FAR_BRAND) {
+					foreach ($goods_list as $goods) {
+						if ($favourable['user_id'] == $goods['user_id']) {
+							if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['brand_id'] . ',') !== false) {
+								$total_amount += $goods['subtotal'];
+							}
+						}
+					}
+				} elseif ($favourable['act_range'] == FAR_GOODS) {
+					foreach ($goods_list as $goods) {
+						if($favourable['user_id'] == $goods['user_id']){
+							if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
+								$total_amount += $goods['subtotal'];
+							}
+						}
+					}
+				} else {
+					continue;
 				}
-			} else {
-				continue;
-			}
-	
-			/* 如果金额满足条件，累计折扣 */
-			if ($total_amount > 0 && $total_amount >= $favourable['min_amount'] &&
-			($total_amount <= $favourable['max_amount'] || $favourable['max_amount'] == 0)) {
-				if ($favourable['act_type'] == FAT_DISCOUNT) {
-					$discount += $total_amount * (1 - $favourable['act_type_ext'] / 100);
-	
-					$favourable_name[] = $favourable['act_name'];
-				} elseif ($favourable['act_type'] == FAT_PRICE) {
-					$discount += $favourable['act_type_ext'];
-					$favourable_name[] = $favourable['act_name'];
+		
+				/* 如果金额满足条件，累计折扣 */
+				if ($total_amount > 0 && $total_amount >= $favourable['min_amount'] &&
+				($total_amount <= $favourable['max_amount'] || $favourable['max_amount'] == 0)) {
+					if ($favourable['act_type'] == FAT_DISCOUNT) {
+						$discount += $total_amount * (1 - $favourable['act_type_ext'] / 100);
+		
+						$favourable_name[] = $favourable['act_name'];
+					} elseif ($favourable['act_type'] == FAT_PRICE) {
+						$discount += $favourable['act_type_ext'];
+						$favourable_name[] = $favourable['act_name'];
+					}
 				}
 			}
 		}
@@ -1020,7 +1030,7 @@ class cart {
 				'goods' => array(
 						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
 						'alias' => 'g',
-						'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id",
+						'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.user_id",
 						'on'    => 'c.goods_id = g.goods_id'
 				)
 		);
@@ -1046,11 +1056,14 @@ class cart {
 		$favourable_name = array();
 	
 		/* 循环计算每个优惠活动的折扣 */
+		
 		foreach ($favourable_list as $favourable) {
 			$total_amount = 0;
 			if ($favourable['act_range'] == FAR_ALL) {
 				foreach ($goods_list as $goods) {
-					$total_amount += $goods['subtotal'];
+					if ($favourable['user_id'] == $goods['user_id']) {
+						$total_amount += $goods['subtotal'];
+					}
 				}
 			} elseif ($favourable['act_range'] == FAR_CATEGORY) {
 				/* 找出分类id的子分类id */
@@ -1062,20 +1075,26 @@ class cart {
 				$ids = join(',', array_unique($id_list));
 	
 				foreach ($goods_list as $goods) {
-					if (strpos(',' . $ids . ',', ',' . $goods['cat_id'] . ',') !== false) {
-						$total_amount += $goods['subtotal'];
+					if ($favourable['user_id'] == $goods['user_id']) {
+						if (strpos(',' . $ids . ',', ',' . $goods['cat_id'] . ',') !== false) {
+							$total_amount += $goods['subtotal'];
+						}
 					}
 				}
 			} elseif ($favourable['act_range'] == FAR_BRAND) {
 				foreach ($goods_list as $goods) {
-					if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['brand_id'] . ',') !== false) {
-						$total_amount += $goods['subtotal'];
+					if ($favourable['user_id'] == $goods['user_id']) {
+						if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['brand_id'] . ',') !== false) {
+							$total_amount += $goods['subtotal'];
+						}
 					}
 				}
 			} elseif ($favourable['act_range'] == FAR_GOODS) {
 				foreach ($goods_list as $goods) {
-					if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
-						$total_amount += $goods['subtotal'];
+					if ($favourable['user_id'] == $goods['user_id']) {
+						if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
+							$total_amount += $goods['subtotal'];
+						}
 					}
 				}
 			} else {
