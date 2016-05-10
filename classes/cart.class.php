@@ -928,6 +928,10 @@ class cart {
 				'rec_type' 		=> CART_GENERAL_GOODS
 		);
 		
+		if (!empty($cart_id)) {
+			$where['rec_id'] = $cart_id;
+		}
+		
 // 		if (defined('SESS_ID')) {
 // 			$where['c.session_id'] = SESS_ID;
 // 		}
