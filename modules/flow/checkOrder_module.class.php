@@ -200,18 +200,16 @@ class checkOrder_module implements ecjia_interface {
 			
 			/* o2o*/
 			if ($val['shipping_code'] == 'ship_o2o_express') {
-// 				$time = RC_Time::gmtime();
 				/* 获取最后可送的时间*/
 				$time = RC_Time::local_date('H:i', RC_Time::gmtime());
-// 				+ $shipping_cfg['last_order_time'] * 60
-// 				_dump($shipping_cfg);
+
 				if (empty($shipping_cfg['ship_time'])) {
 					unset($shipping_list[$key]);
 					continue;
 				}
 				$shipping_list[$key]['shipping_date'] = array();
 				$ship_date = 0;
-				$shipping_cfg['ship_days'] = 7;
+				
 				while ($shipping_cfg['ship_days']) {
 					foreach ($shipping_cfg['ship_time'] as $k => $v) {
 						if ($v['end'] > $time || $ship_date > 0) {
