@@ -493,7 +493,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			'message'		=> '下单成功，订单号：'.$order['order_sn'],
 			'add_time'		=> RC_Time::gmtime(),
 		));
-		if (!$payment_info['is_cod']) {
+		if (!$payment_info['is_cod'] && $order['order_amount'] > 0) {
 			RC_Model::model('orders/order_status_log_model')->insert(array(
 				'order_status'	=> '待付款',
 				'order_id'		=> $order['order_id'],
