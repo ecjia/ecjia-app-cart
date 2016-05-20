@@ -2,7 +2,7 @@
 defined('IN_ECJIA') or exit('No permission resources.');
 /**
  * ## 添加购物流		返回参数与前台checkorder保持一致
- * @author luchongchong
+ * @author will.chen
  *
  */
 class checkOrder_module implements ecjia_interface {
@@ -18,22 +18,18 @@ class checkOrder_module implements ecjia_interface {
 		$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
 		define('SESS_ID', RC_Session::session()->get_session_id());
 		
-		
-// 		define('SESS_ID', '686f82a243574d025f3ccea05d07c299');
-		
 		//从移动端接收数据
-		$addgoods		= _POST('addgoods');	//添加
-		$updategoods	= _POST('updategoods');	//编辑
-		$deletegoods	= _POST('deletegoods');	//删除
+		$addgoods		= _POST('addgoods');	//添加商品
+		$updategoods	= _POST('updategoods');	//更新商品数量
+		$deletegoods	= _POST('deletegoods');	//删除商铺
 		$user			= _POST('user');		//选择用户
 		
 		//选择用户
 		if (!empty($user)) {
 			$user_id = (empty($user['user_id']) || !isset($user['user_id'])) ? 0 : $user['user_id'];
 			if ($user_id > 0) {
-// 				RC_Session::set('user_id', $user_id);
-				$_SESSION['temp_user_id'] = $user_id;
-				$_SESSION['user_id'] = $user_id;
+				$_SESSION['temp_user_id']	= $user_id;
+				$_SESSION['user_id']		= $user_id;
 				$db_cart->where(array('session_id' => SESS_ID))->update(array('user_id' => $user_id));
 			}
 		}
@@ -44,9 +40,9 @@ class checkOrder_module implements ecjia_interface {
 		/* 判断是否是会员 */
 		$consignee = array();
 		if ($_SESSION['user_id']) {
-			$db_user_model = RC_Loader::load_app_model('users_model','user');
+			$db_user_model = RC_Model::model('user/users_model');
 			$user_info = $db_user_model->field('user_name, mobile_phone, email')
-									->where(array('user_id'=>$_SESSION['user_id']))
+									->where(array('user_id' => $_SESSION['user_id']))
 									->find();
 			$consignee = array(
 					'consignee'		=> $user_info['user_name'],
@@ -54,7 +50,7 @@ class checkOrder_module implements ecjia_interface {
 					'tel'			=> $user_info['mobile_phone'],
 					'email'			=> $user_info['email'],
 			);
-		} else {//匿名用户
+		} else {
 			$consignee = array(
 					'consignee'	=> '匿名用户',
 					'mobile'	=> '',
@@ -66,7 +62,7 @@ class checkOrder_module implements ecjia_interface {
 		
 		/* 获取商家或平台的地址 作为收货地址 */
 		$region = RC_Loader::load_app_model('region_model','shipping');
-		if ($_SESSION['ru_id'] > 0){
+		if ($_SESSION['ru_id'] > 0) {
 			$msi_dbview = RC_Loader::load_app_model('merchants_shop_information_viewmodel', 'seller');
 			$where = array();
 			$where['ssi.status'] = 1;
@@ -80,9 +76,6 @@ class checkOrder_module implements ecjia_interface {
 					'country'			=> $info['country'],
 					'province'			=> $info['province'],
 					'city'				=> $info['city'],
-// 					'country_name'		=> $region->where(array('region_id'=>$info['country']))->get_field('region_name'),
-// 					'province_name'		=> $region->where(array('region_id'=>$info['province']))->get_field('region_name'),
-// 					'city_name'			=> $region->where(array('region_id'=>$info['city']))->get_field('region_name'),
 					'address'			=> $info['shop_address'],
 			);
 			$consignee = array_merge($consignee, $region_info);
@@ -91,20 +84,22 @@ class checkOrder_module implements ecjia_interface {
 					'country'			=> ecjia::config('shop_country'),
 					'province'			=> ecjia::config('shop_province'),
 					'city'				=> ecjia::config('shop_city'),
-// 					'country_name'		=> $region->where(array('region_id' => ecjia::config('shop_country')))->get_field('region_name'),
-// 					'province_name'		=> $region->where(array('region_id' => ecjia::config('shop_province')))->get_field('region_name'),
-// 					'city_name'			=> $region->where(array('region_id' => ecjia::config('shop_city')))->get_field('region_name'),
 					'address'			=> ecjia::config('shop_address'),
 			);
 			$consignee = array_merge($consignee, $region_info);
 		}
 		
 		if (!empty($addgoods)) {
-			$warehouse_db = RC_Loader::load_app_model('warehouse_model', 'warehouse');
-			$warehouse = $warehouse_db->where(array('regionId' => $region_info['province']))->find();
-			$area_id = $warehouse['region_id'];
-			$warehouse_id = $warehouse['parent_id'];
-			
+			$shop_type = RC_Config::load_config('site', 'SHOP_TYPE');
+			if ($shop_type == 'b2b2c') {
+				$warehouse_db	= RC_Loader::load_app_model('warehouse_model', 'warehouse');
+				$warehouse		= $warehouse_db->where(array('regionId' => $region_info['province']))->find();
+				$area_id		= $warehouse['region_id'];
+				$warehouse_id	= $warehouse['parent_id'];
+			} else {
+				$area_id		= 0;
+				$warehouse_id	= 0;
+			}
 			
 			$products_db = RC_Loader::load_app_model('products_model', 'goods');
 			$goods_db = RC_Loader::load_app_model('goods_model', 'goods');
@@ -128,7 +123,7 @@ class checkOrder_module implements ecjia_interface {
 			if (empty($goods)) {
 				return new ecjia_error('addgoods_error', '该商品不存在或已下架');
 			}
-// 			$result = add_cart($addgoods);		//添加购物车商品
+
 			addto_cart($goods['goods_id'], $addgoods['number'], $goods_spec, 0, $warehouse_id, $area_id);
 				
 		}
@@ -162,9 +157,7 @@ class checkOrder_module implements ecjia_interface {
 		$total = cashdesk_order_fee($order, $cart_goods, $consignee);
 	
 		/* 取得配送列表 */
-// 		$region            = array($consignee['province'], $consignee['city']);//取得省市 
-// 		$shipping_method   = RC_Loader::load_app_class('shipping_method', 'shipping');
-// 		$shipping_list     = $shipping_method->available_shipping_list($region);
+
 	
 		$cart_weight_price = cart_weight_price($flow_type);
 		$insure_disabled   = true;
@@ -173,38 +166,7 @@ class checkOrder_module implements ecjia_interface {
 		$shipping_list = array();
 		
 //		TODO://暂不考虑配送方式		
-		/* 查看购物车中是否全为免运费商品，若是则把运费赋为零 */
-// 		$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
-// 		if ($_SESSION['user_id']) {
-// 			$shipping_count = $db_cart->where(array('user_id' => $_SESSION['user_id'] , 'extension_code' => array('neq' => 'package_buy') , 'is_shipping' => 0))->count();
-// 		} else {
-// 			$shipping_count = $db_cart->where(array('session_id' => SESS_ID , 'extension_code' => array('neq' => 'package_buy') , 'is_shipping' => 0))->count();
-// 		}
-		
-// 		$ck = array();
-// 		foreach ($shipping_list AS $key => $val) {
-// 			if (isset($ck[$val['shipping_id']])) {
-// 				unset($shipping_list[$key]);
-// 				continue;
-// 			}
-// 			$ck[$val['shipping_id']] = $val['shipping_id'];
-		
-// 			$shipping_cfg = unserialize_config($val['configure']);
-// 			$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : $shipping_method->shipping_fee($val['shipping_code'], unserialize($val['configure']),
-// 					$cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
-				
-// 			$shipping_list[$key]['format_shipping_fee'] = price_format($shipping_fee, false);
-// 			$shipping_list[$key]['shipping_fee']        = $shipping_fee;
-// 			$shipping_list[$key]['free_money']          = price_format($shipping_cfg['free_money'], false);
-// 			$shipping_list[$key]['insure_formated']     = strpos($val['insure'], '%') === false ?
-// 			price_format($val['insure'], false) : $val['insure'];
-		
-// 			/* 当前的配送方式是否支持保价 */
-// 			if ($val['shipping_id'] == $order['shipping_id']) {
-// 				$insure_disabled = ($val['insure'] == 0);
-// 				$cod_disabled    = ($val['support_cod'] == 0);
-// 			}
-// 		}
+
 		
 		/* 取得支付列表 */
 		$cod_fee    = 0;
@@ -212,32 +174,7 @@ class checkOrder_module implements ecjia_interface {
 			$cod        = true;
 			$cod_fee    = 0;
 		} else {
-//			TODO://暂不考虑配送方式
-// 			$shipping = $shipping_method->shipping_info($order['shipping_id']);
-// 			$cod = $shipping['support_cod'];
-// 			if ($cod){
-// 				/* 如果是团购，且保证金大于0，不能使用货到付款 */
-// 				if ($flow_type == CART_GROUP_BUY_GOODS) {
-// 					$group_buy_id = $_SESSION['extension_id'];
-// 					if ($group_buy_id <= 0) {
-// 						EM_Api::outPut(10006);
-// 					}
-// 					$group_buy = group_buy_info($group_buy_id);
-// 					if (empty($group_buy)) {
-// 						EM_Api::outPut(101);
-// 					}
-// 					if ($group_buy['deposit'] > 0) {
-// 						$cod = false;
-// 						$cod_fee = 0;
-// 						/* 赋值保证金 */
-// 						$gb_deposit = $group_buy['deposit'];
-// 					}
-// 				}
-// 				if ($cod) {
-// 					$shipping_area_info = $shipping_method->shipping_area_info($order['shipping_id'], $region);
-// 					$cod_fee = $shipping_area_info['pay_fee'];
-// 				}
-// 			}
+
 		}
 		
 		$payment_method = RC_Loader::load_app_class('payment_method', 'payment');
@@ -295,7 +232,6 @@ class checkOrder_module implements ecjia_interface {
 			$inv_content_list = explode("\n", str_replace("\r", '', ecjia::config('invoice_content')));
 			
 			$invoice_type = ecjia::config('invoice_type');
-			/* by  will.chen 2015/05/18 */
 			foreach ($invoice_type['type'] as $key => $type) {
 				if (!empty($type)) {
 					$inv_type_list[$type] = array(
@@ -311,7 +247,6 @@ class checkOrder_module implements ecjia_interface {
 		$out['inv_type_list'] = $inv_type_list;//发票类型及税率
 		$out['your_integral'] = $user_info['pay_points'];//用户可用积分
 		
-// 		$out['your_discount'] = $your_discount;//用户享受折扣说明
 		$out['discount'] = number_format($discount['discount'], 2, '.', '');//用户享受折扣数
 		$out['discount_formated'] = $total['discount_formated'];
 					
@@ -330,10 +265,10 @@ class checkOrder_module implements ecjia_interface {
 				$a_out[$val['region_id']] = $val['region_name'];
 			}
 		
-			$out['consignee']["country_name"] = isset($a_out[$out['consignee']["country"]]) ? $a_out[$out['consignee']["country"]] : '';
-			$out['consignee']["province_name"] = isset($a_out[$out['consignee']["province"]]) ? $a_out[$out['consignee']["province"]] : '';
-			$out['consignee']["city_name"] = isset($a_out[$out['consignee']["city"]]) ? $a_out[$out['consignee']["city"]] : '';
-			$out['consignee']["district_name"] = isset($a_out[$out['consignee']["district"]]) ? $a_out[$out['consignee']["district"]] : '';
+			$out['consignee']["country_name"]	= isset($a_out[$out['consignee']["country"]]) ? $a_out[$out['consignee']["country"]] : '';
+			$out['consignee']["province_name"]	= isset($a_out[$out['consignee']["province"]]) ? $a_out[$out['consignee']["province"]] : '';
+			$out['consignee']["city_name"]		= isset($a_out[$out['consignee']["city"]]) ? $a_out[$out['consignee']["city"]] : '';
+			$out['consignee']["district_name"]	= isset($a_out[$out['consignee']["district"]]) ? $a_out[$out['consignee']["district"]] : '';
 		
 		}
 				
@@ -344,6 +279,7 @@ class checkOrder_module implements ecjia_interface {
 			}
 			$out['inv_content_list'] = $temp;
 		}
+		
 		if (!empty($out['inv_type_list'])) {
 			$temp = array();
 			$i = 1;
@@ -367,7 +303,6 @@ class checkOrder_module implements ecjia_interface {
 		}
 				
 		if (!empty($out['payment_list'])) {
-
 			foreach ($out['payment_list'] as $key => $value) {
 				unset($out['payment_list'][$key]['pay_config']);
 				unset($out['payment_list'][$key]['pay_desc']);
@@ -376,7 +311,6 @@ class checkOrder_module implements ecjia_interface {
 				if (in_array($value['pay_code'], array('post', 'balance'))) {
 					unset($out['payment_list'][$key]);
 				}
-				// $out['shipping_list'][$key]['configure'] = unserialize($value['configure']);
 			}
 			$out['payment_list'] = array_values($out['payment_list']);
 		}
@@ -485,22 +419,14 @@ function add_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehouse_
 		return new ecjia_error('addcart_error', __('购买失败'));
 	}
 
-	//     $sql = "SELECT * FROM " .$GLOBALS['ecs']->table($table_products). " WHERE goods_id = '$goods_id'" .$type_files. " LIMIT 0, 1";
-	//     $prod = $GLOBALS['db']->getRow($sql);
 	/* 如果商品有规格则取规格商品信息 配件除外 */
 	if ($goods['model_attr'] == 1) {
 		$db = RC_Loader::load_app_model('products_warehouse_model', 'warehouse');
 		$prod = $db->where(array('goods_id' => $goods_id, 'warehouse_id' => $warehouse_id))->find();
-		//     	$table_products = "products_warehouse";
-		//     	$type_files = " and warehouse_id = '$warehouse_id'";
 	} elseif($goods['model_attr'] == 2) {
 		$db = RC_Loader::load_app_model('products_area_model', 'warehouse');
 		$prod = $db->where(array('goods_id' => $goods_id, 'area_id' => $area_id))->find();
-		//     	$table_products = "products_area";
-		//     	$type_files = " and area_id = '$area_id'";
 	} else {
-		//     	$table_products = "products";
-		//     	$type_files = "";
 		$prod = $db_products->find(array('goods_id' => $goods_id));
 	}
 
@@ -887,16 +813,10 @@ function addcart($addgoods){
 				if ($addgoods['number'] > 0) {
 					/* 检查该商品是否已经存在在购物车中 */
 					if ($_SESSION['user_id']) {
-					//	_dump(1,1);
-						//_dump(get_goods_attr_info($addgoods['number']),1);
-						//$row = $db_cart->field('goods_number')->find('user_id = "' .$_SESSION['user_id']. '" AND goods_sn = '.$addgoods['goods_sn'].' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($addgoods['number']).'" AND extension_code <> "package_buy" AND rec_type = "'.CART_GENERAL_GOODS.'" ');
-					//	_dump($addgoods['goods_sn'],1);
-						$row= $db_cart->field('goods_number')->where(array('user_id'=>$_SESSION['user_id'],'goods_sn'=>$addgoods['goods_sn']))->find();
+						$row= $db_cart->field('goods_number')->where(array('user_id' => $_SESSION['user_id'],'goods_sn'=>$addgoods['goods_sn']))->find();
 					} else {
-						//$row = $db_cart->field('goods_number')->find('session_id = "' .SESS_ID. '" AND goods_sn = '.$addgoods['goods_sn'].' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($addgoods['number']).'" AND extension_code <> "package_buy" AND rec_type = "'.CART_GENERAL_GOODS.'" ');
-						$row= $db_cart->field('goods_number')->where(array('user_id'=>SESS_ID,'goods_sn'=>$addgoods['goods_sn']))->find();
+						$row= $db_cart->field('goods_number')->where(array('user_id' => SESS_ID,'goods_sn'=>$addgoods['goods_sn']))->find();
 					}
-				  //   _dump($row,1);
 					if($row) {
 						//如果购物车已经有此物品，则更新
 						$addgoods['number'] += $row['goods_number'];
@@ -914,18 +834,15 @@ function addcart($addgoods){
 									'goods_price'  => $goods_price
 							);
 							if ($_SESSION['user_id']) {
-								//$db_cart->where('user_id = "' .$_SESSION['user_id']. '" AND goods_sn = '.$addgoods['goods_sn'].' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($addgoods['number']).'" AND extension_code <> "package_buy" AND rec_type = "'.CART_GENERAL_GOODS.'" ')->update($data);
-								$row= $db_cart->field('goods_number')->where(array('user_id'=>$_SESSION['user_id'],'goods_sn'=>$addgoods['goods_sn']))->update($data);
+								$row= $db_cart->field('goods_number')->where(array('user_id' => $_SESSION['user_id'], 'goods_sn' => $addgoods['goods_sn']))->update($data);
 							} else {
-								//$db_cart->where('session_id = "' .SESS_ID. '" AND goods_sn = '.$addgoods['goods_sn'].' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($addgoods['number']).'" AND extension_code <> "package_buy" AND rec_type = "'.CART_GENERAL_GOODS.'" ')->update($data);
-								$row= $db_cart->field('goods_number')->where(array('user_id'=>SESS_ID,'goods_sn'=>$addgoods['goods_sn']))->update($data);
+								$row= $db_cart->field('goods_number')->where(array('user_id' => SESS_ID,'goods_sn' => $addgoods['goods_sn']))->update($data);
 							}
 						} else {
 							return new ecjia_error('low_stocks', __('库存不足'));
 						}
 					} else {
 						//购物车没有此物品，则插入
-					//	_dump($parent,1);
 						$goods_price = get_final_price($addgoods['goods_sn'], $addgoods['number'], true, $prod['goods_attr']);//goods_id改成$product_sn-----
 						$parent['goods_price']  = max($goods_price, 0);
 						$parent['goods_number'] = $addgoods['number'];
@@ -940,7 +857,6 @@ function addcart($addgoods){
 				} else {
 					$db_cart->where(array('session_id' => SESS_ID , 'is_gift' => array('neq' => 0)))->delete();
 				}
-				//	_dump(1,1);
 				return true;
 			
 }
@@ -952,10 +868,8 @@ function addcart($addgoods){
  * @param array $spec_goods_attr_id
  * @return array
  */
-function get_products_info_new($product_sn, $spec_goods_attr_id) {//$goods_id改成$product_sn
-	//_dump($spec_goods_attr_id,1);
-//	$spec_goods_attr_id=explode("|",$spec_goods_attr_id);
-	//_dump($spec_goods_attr_id,1);
+function get_products_info_new($product_sn, $spec_goods_attr_id) {
+
 	$db = RC_Loader::load_app_model ('products_model','goods');
 	$return_array = array ();
 	if (empty ( $spec_goods_attr_id ) || ! is_array ( $spec_goods_attr_id ) || empty ( $product_sn )) {
@@ -971,23 +885,23 @@ function get_products_info_new($product_sn, $spec_goods_attr_id) {//$goods_id改
 
 //存在，更新(编辑)到购物车
 function updatecart($updategoods){
-		$db_carts = RC_Loader::load_app_model('cart_viewmodel','cart');
-		//定义视图选项
-		$db_carts->view = array(
-				'goods' => array(
-						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
-						'alias' => 'g',
-						'on'    => 'c.goods_id = g.goods_id'
-				),
-		);
+	$db_carts = RC_Loader::load_app_model('cart_viewmodel','cart');
+	//定义视图选项
+	$db_carts->view = array(
+			'goods' => array(
+					'type'  => Component_Model_View::TYPE_LEFT_JOIN,
+					'alias' => 'g',
+					'on'    => 'c.goods_id = g.goods_id'
+			),
+	);
 
-		$data	= array(
-				'goods_number'=>	$updategoods['number']
-		);
-		$count = $db_carts->where(array('rec_id'=>$updategoods['rec_id']))->update($data);
-		if($count>0){
-			return true;
-		}
+	$data	= array(
+			'goods_number'=>	$updategoods['number']
+	);
+	$count = $db_carts->where(array('rec_id'=>$updategoods['rec_id']))->update($data);
+	if($count>0){
+		return true;
+	}
 }
 //删除购物车商品(购物车可以批量删除)
 function deletecart($deletegoods){
@@ -1008,9 +922,6 @@ function deletecart($deletegoods){
  * @return  array
  */
 function cashdesk_order_fee($order, $goods, $consignee) {
-	// 	$sql = 'SELECT count(*) FROM ' . $GLOBALS['ecs']->table('cart') . " WHERE  `session_id` = '" . SESS_ID. "' AND `extension_code` != 'package_buy' AND `is_shipping` = 0";
-	// 	$shipping_count = $GLOBALS['db']->getOne($sql);
-
 	RC_Loader::load_app_func('common','goods');
 	RC_Loader::load_app_func('cart','cart');
 	$db 	= RC_Loader::load_app_model('cart_model', 'cart');
@@ -1046,7 +957,7 @@ function cashdesk_order_fee($order, $goods, $consignee) {
 
 	);
 	$weight = 0;
-
+	$shop_type = RC_Config::load_config('site', 'SHOP_TYPE');
 	/* 商品总价 */
 	foreach ($goods AS $key => $val) {
 		/* 统计实体商品的个数 */
@@ -1058,17 +969,16 @@ function cashdesk_order_fee($order, $goods, $consignee) {
 		$total['market_price'] += $val['market_price'] * $val['goods_number'];
 		$area_id = $consignee['province'];
 		//多店铺开启库存管理以及地区后才会去判断
-		if ( $area_id > 0 ) {
-			//         	$db_goods = RC_Loader::load_app_model('goods_model', 'goods');
-			//         	$goods_model_inventory = $db_goods->where(array('goods_id' => $val['goods_id']))->get_field('model_inventory');
-			//         	if ($goods_model_inventory > 0 ) {
+		if ( $area_id > 0 && $shop_type == 'b2b2c') {
 			$warehouse_db = RC_Loader::load_app_model('warehouse_model', 'warehouse');
 			$warehouse = $warehouse_db->where(array('regionId' => $area_id))->find();
-			//         		$area = $warehouse['region_id'];
+
 			$warehouse_id = $warehouse['parent_id'];
 			$goods[$key]['warehouse_id'] = $warehouse_id;
 			$goods[$key]['area_id'] = $area_id;
-			//         	}
+		} else {
+			$goods[$key]['warehouse_id'] = 0;
+			$goods[$key]['area_id'] 	 = 0;
 		}
 	}
 
@@ -1275,13 +1185,6 @@ function cashdesk_order_fee($order, $goods, $consignee) {
 	$total['formated_saving']       = price_format($total['saving'], false);
 
 	if ($order['extension_code'] == 'exchange_goods') {
-		//         $sql = 'SELECT SUM(eg.exchange_integral) '.
-		//                'FROM ' . $GLOBALS['ecs']->table('cart') . ' AS c,' . $GLOBALS['ecs']->table('exchange_goods') . 'AS eg '.
-		//                "WHERE c.goods_id = eg.goods_id AND c.session_id= '" . SESS_ID . "' " .
-		//                "  AND c.rec_type = '" . CART_EXCHANGE_GOODS . "' " .
-		//                '  AND c.is_gift = 0 AND c.goods_id > 0 ' .
-		//                'GROUP BY eg.goods_id';
-		//         $exchange_integral = $GLOBALS['db']->getOne($sql);
 		if ($_SESSION['user_id']) {
 			$exchange_integral = $dbview->join('exchange_goods')->where(array('c.user_id' => $_SESSION['user_id'] , 'c.rec_type' => CART_EXCHANGE_GOODS , 'c.is_gift' => 0 ,'c.goods_id' => array('gt' => 0)))->group('eg.goods_id')->sum('eg.exchange_integral');
 		} else {
