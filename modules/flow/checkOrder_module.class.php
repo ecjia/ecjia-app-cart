@@ -58,7 +58,7 @@ class checkOrder_module implements ecjia_interface {
 			if (isset($_SESSION['address_id'])) {
 				$consignee = RC_Model::model('user/user_address_model')->find(array('address_id' => $_SESSION['address_id'], 'user_id' => $_SESSION['user_id']));
 			} else {
-				$consignee = get_consignee($_SESSION['user_id']);
+				$consignee = cart::get_consignee($_SESSION['user_id']);
 			}
 		}
 		
