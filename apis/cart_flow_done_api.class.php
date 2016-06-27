@@ -55,7 +55,9 @@ class cart_flow_done_api extends Component_Event_Api {
 				$seller_group[] = $val['id'];
 			}
 			foreach ($get_cart_goods['goods_list'] as $val) {
-				$goods_group[] = $val['ru_id'];
+				$order['seller_id']		= $val['seller_id'];
+// 				$goods_group[] = $val['ru_id'];
+				$goods_group[] = $val['seller_id'];
 			}
 			$goods_diff = array_diff($goods_group, $seller_group);
 			if (!empty($goods_diff)) {
@@ -68,7 +70,6 @@ class cart_flow_done_api extends Component_Event_Api {
 		/* 检查商品库存 */
 		/* 如果使用库存，且下订单时减库存，则减少库存 */
 		if (ecjia::config('use_storage') == '1' && ecjia::config('stock_dec_time') == SDT_PLACE) {
-		
 			$cart_goods_stock = $get_cart_goods['goods_list'];
 			$_cart_goods_stock = array();
 			foreach ($cart_goods_stock['goods_list'] as $value) {
@@ -126,17 +127,9 @@ class cart_flow_done_api extends Component_Event_Api {
 				$order['bonus_sn'] = $bonus_sn;
 			}
 		}
-// 		RC_Loader::load_app_func('cart','cart');
-		/* 订单中的商品 */
-// 		$cart_goods = cart_goods($flow_type, $options['cart_id']);
-// 		_dump($get_cart_goods['goods_list']);_dump($cart_goods,1);
-// 		if (empty($cart_goods)) {
-// 			EM_Api::outPut(10002);
-// 		}
 		
 		/* 检查商品总额是否达到最低限购金额 */
 		if ($options['flow_type'] == CART_GENERAL_GOODS && cart::cart_amount(true, CART_GENERAL_GOODS, $options['cart_id']) < ecjia::config('min_goods_amount')) {
-// 			EM_Api::outPut(10003);
 			return new ecjia_error('bug_error', '您的商品金额未达到最低限购金额！');
 		}
 		
@@ -160,9 +153,6 @@ class cart_flow_done_api extends Component_Event_Api {
 				return new ecjia_error('shipping_error', '请选择一个配送方式！');
 			}
 		}
-		
-		
-		
 		
 		/* 订单中的总额 */
 		$total = cart::order_fee($order, $cart_goods, $consignee, $options['cart_id']);
@@ -292,7 +282,7 @@ class cart_flow_done_api extends Component_Event_Api {
 						'parent_id'		=> $row['parent_id'],
 						'is_gift'		=> $row['is_gift'],
 						'goods_attr_id' => $row['goods_attr_id'],
-						'ru_id'			=> $row['ru_id'],
+// 						'ru_id'			=> $row['ru_id'],
 				);
 				$db_order_goods->insert($arr);
 			}
@@ -326,12 +316,10 @@ class cart_flow_done_api extends Component_Event_Api {
 				return new ecjia_error('integral_error', '积分使用失败！');
 			}
 		}
+		
 		if ($order['bonus_id'] > 0 && $temp_amout > 0) {
 			RC_Api::api('bonus', 'use_bonus', array('bonus_id' => $order['bonus_id'], 'order_id' => $new_order_id));
-// 			use_bonus($order['bonus_id'], $new_order_id);
 		}
-		
-		
 		
 		/* 给商家发邮件 */
 		/* 增加是否给客服发送邮件选项 */
@@ -369,10 +357,6 @@ class cart_flow_done_api extends Component_Event_Api {
 					);
 					$response = RC_Api::api('sms', 'sms_send', $options);
 				}
-				//            include_once ('includes/cls_sms.php');
-				//            $sms = new sms();
-				//            $msg = $order['pay_status'] == PS_UNPAYED ? RC_Lang::lang('order_placed_sms') : RC_Lang::lang('order_placed_sms') . '[' . RC_Lang::lang('sms_paid') . ']';
-				//            $sms->send(ecjia::config('sms_shop_mobile'), sprintf($msg, $order['consignee'], $order['tel']), '', 13, 1);
 			}
 		}
 		/* 如果订单金额为0 处理虚拟卡 */
@@ -453,8 +437,6 @@ class cart_flow_done_api extends Component_Event_Api {
 					$response = RC_Api::api('sms', 'sms_send', $options);
 				}
 			}
-		
-		
 		}
 		
 		/* 清空购物车 */

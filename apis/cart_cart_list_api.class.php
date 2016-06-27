@@ -31,7 +31,6 @@ class cart_cart_list_api extends Component_Event_Api {
 	 * @return  array
 	 */
 	private function get_cart_goods($cart_id = array(), $flow_type = CART_GENERAL_GOODS, $location = array()) {
-// 		RC_Loader::load_app_func('common','goods');
 		$dbview_cart 	= RC_Loader::load_app_model('cart_viewmodel', 'cart');
 		$db_goods_attr 	= RC_Loader::load_app_model('goods_attr_model','goods');
 		$db_goods 		= RC_Loader::load_app_model('goods_model','goods');
@@ -52,33 +51,33 @@ class cart_cart_list_api extends Component_Event_Api {
 		/* 根据经纬度查询附近店铺*/
 		if (is_array($location) && isset($location['latitude']) && isset($location['longitude'])) {
 			$geohash = RC_Loader::load_app_class('geohash', 'shipping');
-			$where_geohash = $geohash->encode($location['latitude'] , $location['longitude']);
-			$where_geohash = substr($where_geohash, 0, 5);
+			$geohash_code = $geohash->encode($location['latitude'] , $location['longitude']);
+			$geohash_code = substr($geohash_code, 0, 5);
+			
+			$cart_where['geohash'] = array('like' => "%$geohash_code%");
+// 			$msi_dbview = RC_Loader::load_app_model('merchants_shop_information_viewmodel', 'seller');
+// 			$ru_id_info = $msi_dbview->join(array('merchants_shop_information', 'seller_shopinfo'))
+// 									 ->field(array('msi.user_id', 'msi.shopNameSuffix', 'msi.shoprz_brandName'))
+// 									 ->where(array(
+// 												'geohash'		=> array('like' => "%$where_geohash%"),
+// 												'ssi.status'	=> 1,
+// 												'msi.merchants_audit' => 1,))
+// 									 ->select();
 		
-			$msi_dbview = RC_Loader::load_app_model('merchants_shop_information_viewmodel', 'seller');
-			$ru_id_info = $msi_dbview->join(array('merchants_shop_information', 'seller_shopinfo'))
-									 ->field(array('msi.user_id', 'msi.shopNameSuffix', 'msi.shoprz_brandName'))
-									 ->where(array(
-												'geohash'		=> array('like' => "%$where_geohash%"),
-												'ssi.status'	=> 1,
-												'msi.merchants_audit' => 1,))
-									 ->select();
+// 			if (!empty($ru_id_info)) {
+// 				$ru_id = array();
+// 				foreach ($ru_id_info as $val) {
+// 					$ru_id[] = $val['user_id'];
+// 					$seller_info[$val['user_id']]['seller_id'] = $val['user_id'];
+// 					$seller_info[$val['user_id']]['seller_name'] = (!empty($val['shoprz_brandName']) && !empty($val['shopNameSuffix'])) ? $val['shoprz_brandName'].$val['shopNameSuffix'] : '';
 		
-			if (!empty($ru_id_info)) {
-// 				$ru_id = array(0);
-				$ru_id = array();
-				foreach ($ru_id_info as $val) {
-					$ru_id[] = $val['user_id'];
-					$seller_info[$val['user_id']]['seller_id'] = $val['user_id'];
-					$seller_info[$val['user_id']]['seller_name'] = (!empty($val['shoprz_brandName']) && !empty($val['shopNameSuffix'])) ? $val['shoprz_brandName'].$val['shopNameSuffix'] : '';
-		
-				}
-				$merchants_shop_information_db = RC_Loader::load_app_model('merchants_shop_information_model', 'seller');
-				$merchants_shop_information_db->where(array('user_id' => $ru_id))->select();
-				$cart_where['c.ru_id'] = $ru_id;
-			} else {
-				$cart_where['c.ru_id'] = '';
-			}
+// 				}
+// 				$merchants_shop_information_db = RC_Loader::load_app_model('merchants_shop_information_model', 'seller');
+// 				$merchants_shop_information_db->where(array('user_id' => $ru_id))->select();
+// 				$cart_where['c.ru_id'] = $ru_id;
+// 			} else {
+// 				$cart_where['c.ru_id'] = '';
+// 			}
 		}
 
 		/* 选择购买 */
@@ -98,15 +97,20 @@ class cart_cart_list_api extends Component_Event_Api {
 						'alias' => 'g',
 						'on' 	=> 'c.goods_id = g.goods_id'
 				),
-				'merchants_shop_information' => array(
+				'seller_shopinfo' => array(
 						'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
-						'alias' => 'msi',
-						'on' 	=> 'msi.user_id = c.ru_id'
+						'alias' => 'ssi',
+						'on' 	=> 'ssi.id = c.seller_id'
 				),
+// 				'merchants_shop_information' => array(
+// 						'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
+// 						'alias' => 'msi',
+// 						'on' 	=> 'msi.user_id = c.ru_id'
+// 				),
 		);
 		
-		$field = 'c.*, IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, CONCAT(shoprz_brandName,shopNameSuffix) as seller_name';
-		$data = $dbview_cart->join(array('goods', 'merchants_shop_information'))
+		$field = 'c.*, IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, ssi.shop_name as seller_name';
+		$data = $dbview_cart->join(array('goods', 'seller_shopinfo'))
 							->field($field)
 							->where($cart_where)
 							->order(array('ru_id' => 'asc', 'pid' => 'asc', 'parent_id' => 'asc'))
