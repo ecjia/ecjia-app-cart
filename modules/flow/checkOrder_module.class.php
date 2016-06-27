@@ -76,7 +76,7 @@ class checkOrder_module implements ecjia_interface {
 				$seller_group[] = $val['id'];
 			}
 			foreach ($get_cart_goods['goods_list'] as $val) {
-				$goods_group[] = $val['ru_id'];
+				$goods_group[] = $val['seller_id'];
 			}
 			$goods_diff = array_diff($goods_group, $seller_group);
 			if (!empty($goods_diff)) {
@@ -106,11 +106,11 @@ class checkOrder_module implements ecjia_interface {
 		$cart_goods = array();
 		foreach ($get_cart_goods['goods_list'] as $row) {
 			$cart_goods[] = array(
-					'seller_id'		=> intval($row['ru_id']),
+					'seller_id'		=> intval($row['seller_id']),
 					'seller_name'	=> $row['seller_name'],
-					'rec_id'	=> intval($row['rec_id']),
-					'goods_id'	=> intval($row['goods_id']),
-					'goods_sn'	=> $row['goods_sn'],
+					'rec_id'		=> intval($row['rec_id']),
+					'goods_id'		=> intval($row['goods_id']),
+					'goods_sn'		=> $row['goods_sn'],
 					'goods_name'	=> $row['goods_name'],
 					'goods_price'	=> $row['goods_price'],
 					'market_price'	=> $row['market_price'],
@@ -326,7 +326,6 @@ class checkOrder_module implements ecjia_interface {
 			$inv_content_list = explode("\n", str_replace("\r", '', ecjia::config('invoice_content')));
 			$inv_type_list = array();
 			$invoice_type = ecjia::config('invoice_type');
-// 			by  will.chen 2015/05/18
 			foreach ($invoice_type['type'] as $key => $type) {
 				if (!empty($type)) {
 					$inv_type_list[$type] = array(
@@ -349,7 +348,7 @@ class checkOrder_module implements ecjia_interface {
 			unset($out['consignee']['address_id']);
 			unset($out['consignee']['user_id']);
 			unset($out['consignee']['address_id']);
-			$ids = array($out['consignee']["country"], $out['consignee']["province"], $out['consignee']["city"], $out['consignee']["district"]);
+			$ids = array($out['consignee']['country'], $out['consignee']['province'], $out['consignee']['city'], $out['consignee']['district']);
 			$ids = array_filter($ids);
 		
 			$db_region = RC_Loader::load_app_model('region_model','shipping');
@@ -360,10 +359,10 @@ class checkOrder_module implements ecjia_interface {
 				$a_out[$val['region_id']] = $val['region_name'];
 			}
 		
-			$out['consignee']["country_name"]	= isset($a_out[$out['consignee']["country"]]) ? $a_out[$out['consignee']["country"]] : '';
-			$out['consignee']["province_name"]	= isset($a_out[$out['consignee']["province"]]) ? $a_out[$out['consignee']["province"]] : '';
-			$out['consignee']["city_name"]		= isset($a_out[$out['consignee']["city"]]) ? $a_out[$out['consignee']["city"]] : '';
-			$out['consignee']["district_name"]	= isset($a_out[$out['consignee']["district"]]) ? $a_out[$out['consignee']["district"]] : '';
+			$out['consignee']['country_name']	= isset($a_out[$out['consignee']['country']]) ? $a_out[$out['consignee']['country']] : '';
+			$out['consignee']['province_name']	= isset($a_out[$out['consignee']['province']]) ? $a_out[$out['consignee']['province']] : '';
+			$out['consignee']['city_name']		= isset($a_out[$out['consignee']['city']]) ? $a_out[$out['consignee']['city']] : '';
+			$out['consignee']['district_name']	= isset($a_out[$out['consignee']['district']]) ? $a_out[$out['consignee']['district']] : '';
 		
 		}
 		if (!empty($out['inv_content_list'])) {

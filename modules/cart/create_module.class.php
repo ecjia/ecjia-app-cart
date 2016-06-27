@@ -108,9 +108,9 @@ class create_module implements ecjia_interface {
 							'goods_attr_id'	=> $row['goods_attr_id'],
 							'subtotal'		=> $row['subtotal'],
 							'img' => array(
-									'thumb'	=> get_image_path($row['goods_id'], $row['goods_img'], true),
-									'url'	=> get_image_path($row['goods_id'], $row['original_img'], true),
-									'small'	=> get_image_path($row['goods_id'], $row['goods_thumb'], true)
+									'thumb'	=> !empty($row['goods_img']) ? RC_Upload::upload_url($row['goods_img']) : RC_Uri::admin_url('statics/images/nopic.png'),
+									'url'	=> !empty($row['original_img']) ? RC_Upload::upload_url($row['original_img']) : RC_Uri::admin_url('statics/images/nopic.png'),
+									'small'	=> !empty($row['goods_thumb']) ? RC_Upload::upload_url($row['goods_thumb']) : RC_Uri::admin_url('statics/images/nopic.png'),
 							),
 					);
 				}

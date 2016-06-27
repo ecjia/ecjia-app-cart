@@ -20,9 +20,9 @@ class list_module implements ecjia_interface {
 		$cart_goods = array('cart_list' => array(), 'total' => $cart_result['total']);
 		if (!empty($cart_result['goods_list'])) {
 			foreach ($cart_result['goods_list'] as $row) {
-				if (!isset($cart_goods['cart_list'][$row['ru_id']])) {
-					$cart_goods['cart_list'][$row['ru_id']] = array(
-							'seller_id'		=> intval($row['ru_id']),
+				if (!isset($cart_goods['cart_list'][$row['seller_id']])) {
+					$cart_goods['cart_list'][$row['seller_id']] = array(
+							'seller_id'		=> intval($row['seller_id']),
 							'seller_name'	=> $row['seller_name'],
 					);
 				}
@@ -39,7 +39,7 @@ class list_module implements ecjia_interface {
 					}
 				}
 				
-				$cart_goods['cart_list'][$row['ru_id']]['goods_list'][] = array(
+				$cart_goods['cart_list'][$row['seller_id']]['goods_list'][] = array(
 						'rec_id'	=> intval($row['rec_id']),
 						'goods_id'	=> intval($row['goods_id']),
 						'goods_sn'	=> $row['goods_sn'],

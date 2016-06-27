@@ -575,17 +575,6 @@ function em_favourable_list($user_rank)
     }
 
     return $favourable_list;
-    
-    //     $sql = "SELECT * " .
-    //             "FROM " . $GLOBALS['ecs']->table('favourable_activity') .
-    //             " WHERE CONCAT(',', user_rank, ',') LIKE '%" . $user_rank . "%'" .
-    //             " AND start_time <= '$now' AND end_time >= '$now'" .
-    //             " AND act_type = '" . FAT_GOODS . "'" .
-    //             " ORDER BY sort_order";
-    //     $res = $GLOBALS['db']->query($sql);
-    //     while ($favourable = $GLOBALS['db']->fetchRow($res))
-    //             $sql = "SELECT COUNT(*) FROM " . $GLOBALS['ecs']->table('goods') . " WHERE is_on_sale = 1 AND goods_id = ".$value['id'];
-    //             $is_sale = $GLOBALS['db']->getOne($sql);   
 }
 
 /**
