@@ -113,7 +113,7 @@ class cart_cart_list_api extends Component_Event_Api {
 		$data = $dbview_cart->join(array('goods', 'seller_shopinfo'))
 							->field($field)
 							->where($cart_where)
-							->order(array('ru_id' => 'asc', 'pid' => 'asc', 'parent_id' => 'asc'))
+							->order(array('seller_id' => 'asc', 'pid' => 'asc', 'parent_id' => 'asc'))
 							->select();
 		
 		/* 用于统计购物车中实体商品和虚拟商品的个数 */

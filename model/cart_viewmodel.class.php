@@ -36,7 +36,12 @@ class cart_viewmodel extends Component_Model_View {
 				'type'     => Component_Model_View::TYPE_LEFT_JOIN,
 				'alias'    => 'bt',
 				'on'       => 'g.bonus_type_id = bt.type_id'
-			)
+			),
+			'seller_shopinfo'	=> array(
+					'type'     => Component_Model_View::TYPE_LEFT_JOIN,
+					'alias'    => 'ssi',
+					'on'       => 'ssi.id = c.seller_id'
+			),	
 		);
 		parent::__construct();
 	}

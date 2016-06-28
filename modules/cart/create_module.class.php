@@ -46,11 +46,11 @@ class create_module implements ecjia_interface {
 	    // 更新：添加到购物车
 	    if (!is_ecjia_error($result)){
 			/* 循环、统计 */
-			$cart_dbview = RC_Loader::load_app_model('cart_viewmodel', 'seller');
+			$cart_dbview = RC_Loader::load_app_model('cart_viewmodel', 'cart');
 			$db_goods_attr = RC_Loader::load_app_model('goods_attr_model', 'goods');
 			RC_Loader::load_app_func('common', 'goods');
 			
-			$field = 'c.*, IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, CONCAT(shoprz_brandName,shopNameSuffix) as seller_name';
+			$field = 'c.*, IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, shop_name as seller_name';
 			$data = $cart_dbview->join(array('goods', 'merchants_shop_information'))
 							->field($field)
 							->where(array('c.user_id' => $_SESSION['user_id'] , 'rec_type' => CART_GENERAL_GOODS, 'rec_id' => $result))
@@ -93,7 +93,7 @@ class create_module implements ecjia_interface {
 							
 					$goods_list = array(
 							'rec_id'		=> $row['rec_id'],
-							'seller_id'		=> $row['ru_id'],
+							'seller_id'		=> $row['seller_id'],
 							'seller_name'	=> empty($row['seller_name']) ? ecjia::config('shop_name') : $row['seller_name'],
 							'goods_id'		=> $row['goods_id'],
 							'goods_sn'		=> $row['goods_sn'],

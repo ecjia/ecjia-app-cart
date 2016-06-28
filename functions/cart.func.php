@@ -1786,13 +1786,7 @@ function get_give_integral() {
 	} else {
 		return  intval($db_cartview->where(array('c.session_id' => SESS_ID , 'c.goods_id' => array('gt' => 0) ,'c.parent_id' => 0 ,'c.rec_type' => 0 , 'c.is_gift' => 0))->sum('c.goods_number * IF(g.give_integral > -1, g.give_integral, c.goods_price)'));
 	}
-	//         $sql = "SELECT SUM(c.goods_number * IF(g.give_integral > -1, g.give_integral, c.goods_price))" .
-	//                 "FROM " . $GLOBALS['ecs']->table('cart') . " AS c, " . $GLOBALS['ecs']->table('goods') . " AS g " .
-	//                 "WHERE c.goods_id = g.goods_id " ."AND c.session_id = '" . SESS_ID . "' " .
-	//                 "AND c.goods_id > 0 " ."AND c.parent_id = 0 " . "AND c.rec_type = 0 " ."AND c.is_gift = 0";
-	//         return intval($GLOBALS['db']->getOne($sql));
 
-	//	$db_cartview = RC_Loader::load_app_model('cart_good_member_viewmodel','flow');
 }
 
 function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0, $warehouse_id = 0, $area_id = 0)
@@ -1810,66 +1804,20 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 	/* 查询：检查团购活动是否是进行中 */
 	if ($group_buy['status'] != GBS_UNDER_WAY) {
 		return new ecjia_error('gb_error_status', __('对不起，该团购活动已经结束或尚未开始，现在不能参加！'));
-// 		show_message($_LANG['gb_error_status'], '', '', 'error');
 	}
 	
 	/* 查询：取得团购商品信息 */
 	$goods = get_goods_info($group_buy['goods_id'], $warehouse_id, $area_id);
 	if (empty($goods)) {
 		return new ecjia_error('goods_error', __('对不起，团购商品不存在！'));
-// 		ecs_header("Location: ./\n");
-// 		exit;
 	}
 	
 	/* 查询：判断数量是否足够 */
 	if (($group_buy['restrict_amount'] > 0 && $number > ($group_buy['restrict_amount'] - $group_buy['valid_goods'])) || $number > $goods['goods_number']) {
-// 		show_message($_LANG['gb_error_goods_lacking'], '', '', 'error');
 		return new ecjia_error('gb_error_goods_lacking', __('对不起，商品库存不足，请您修改数量！'));
 	}
-	
-// 	//ecmoban模板堂 --zhuo start 限购
-// 	$xiangouInfo = get_purchasing_goods_info($group_buy['goods_id']);
-// 	if($xiangouInfo['is_xiangou'] == 1){
-// 		$user_id = !empty($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
-	
-// 		$start_date = $xiangouInfo['xiangou_start_date'];
-// 		$end_date = $xiangouInfo['xiangou_end_date'];
-// 		$orderGoods = get_for_purchasing_goods($start_date, $end_date, $group_buy['goods_id'], $user_id, 1);
-	
-// 		$nowTime = gmtime();
-// 		if($nowTime > $start_date && $nowTime < $end_date){
-// 			if($orderGoods['goods_number'] >= $xiangouInfo['xiangou_num']){
-// 				show_message("您已买过该商品，无法在购买了", '', '', 'error');
-// 				exit;
-// 			}else{
-// 				if($xiangouInfo['xiangou_num'] > 0){
-// 					if($orderGoods['goods_number'] + $number > $xiangouInfo['xiangou_num']){
-// 						$max_num = $xiangouInfo['xiangou_num'] - $orderGoods['goods_number'];
-// 						show_message("该商品已经累计超过限购数量，您最多只能购买{$max_num}件", '', '', 'error');
-// 						exit;
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-// 	//ecmoban模板堂 --zhuo end 限购
-	
-	/* 查询：取得规格 */
-// 	$specs = '';
-// 	foreach ($_POST as $key => $value) {
-// 		if (strpos($key, 'spec_') !== false) {
-// 			$specs .= ',' . intval($value);
-// 		}
-// 	}
-// 	$specs = trim($specs, ',');
-	
-	/* 查询：如果商品有规格则取规格商品信息 配件除外 */
-// 	if ($specs) {
-// 		$_specs = explode(',', $specs);
-// 		$product_info = get_products_info($goods['goods_id'], $_specs);
-// 	}
+
 	if (!empty($spec)) {
-// 		$_specs = explode(',', $specs);
 		$product_info = get_products_info($goods['goods_id'], $spec, $warehouse_id, $area_id);
 	}
 	
@@ -1878,22 +1826,8 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 	/* 查询：判断指定规格的货品数量是否足够 */
 	if (!empty($spec) && $number > $product_info['product_number']) {
 		return new ecjia_error('gb_error_goods_lacking', __('对不起，商品库存不足，请您修改数量！'));
-// 		show_message($_LANG['gb_error_goods_lacking'], '', '', 'error');
 	}
-	
-	/* 查询：查询规格名称和值，不考虑价格 */
-// 	$attr_list = array();
-// 	$sql = "SELECT a.attr_name, g.attr_value " .
-// 			"FROM " . $ecs->table('goods_attr') . " AS g, " .
-// 			$ecs->table('attribute') . " AS a " .
-// 			"WHERE g.attr_id = a.attr_id " .
-// 			"AND g.goods_attr_id " . db_create_in($specs);
-// 	$res = $db->query($sql);
-// 	while ($row = $db->fetchRow($res))
-// 	{
-// 		$attr_list[] = $row['attr_name'] . ': ' . $row['attr_value'];
-// 	}
-// 	$goods_attr = join(chr(13) . chr(10), $attr_list);
+
 	
 	
 	$goods_attr = get_goods_attr_info($spec, 'pice', $warehouse_id, $area_id);
@@ -1901,22 +1835,7 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 	/* 更新：清空购物车中所有团购商品 */
 	
 	clear_cart(CART_GROUP_BUY_GOODS);
-	
-	//ecmoban模板堂 --zhuo start
-	
-// 	$area_info = get_area_info($province_id);
-// 	$area_id = $area_info['region_id'];
-	
-// 	$where = "regionId = '$province_id'";
-// 	$date = array('parent_id');
-// 	$region_id = get_table_date('region_warehouse', $where, $date, 2);
-	
-// 	if(!empty($_SESSION['user_id'])){
-// 		$sess = "";
-// 	}else{
-// 		$sess = real_cart_mac_ip();
-// 	}
-	//ecmoban模板堂 --zhuo end
+
 	
 	/* 更新：加入购物车 */
 	$goods_price = $group_buy['deposit'] > 0 ? $group_buy['deposit'] : $group_buy['cur_price'];
@@ -1934,7 +1853,8 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 // 			'goods_attr_id'  => $specs,
 			'goods_attr_id'  => $goods_attr_id,
 			//ecmoban模板堂 --zhuo start
-			'ru_id'			 => $goods['user_id'],
+// 			'ru_id'			 => $goods['user_id'],
+			'seller_id'		 => $goods['seller_id'],
 			'warehouse_id'   => $warehouse_id,
 			'area_id'  		 => $area_id,
 			//ecmoban模板堂 --zhuo end
@@ -1950,7 +1870,6 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 	$_SESSION['flow_type'] = CART_GROUP_BUY_GOODS;
 	$_SESSION['extension_code'] = 'group_buy';
 	$_SESSION['extension_id'] = $act_id;
-// 	$db->autoExecute($ecs->table('cart'), $cart, 'INSERT');
 }
 
 //	TODO:以下func，api中暂未用到
