@@ -51,7 +51,7 @@ class create_module implements ecjia_interface {
 			RC_Loader::load_app_func('common', 'goods');
 			
 			$field = 'c.*, IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, ssi.shop_name as seller_name';
-			$data = $cart_dbview->join(array('goods', 'merchants_shop_information', 'seller_shopinfo'))
+			$data = $cart_dbview->join(array('goods', 'seller_shopinfo'))
 							->field($field)
 							->where(array('c.user_id' => $_SESSION['user_id'] , 'rec_type' => CART_GENERAL_GOODS, 'rec_id' => $result))
 							->select();
