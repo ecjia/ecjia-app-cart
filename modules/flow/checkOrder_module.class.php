@@ -68,22 +68,23 @@ class checkOrder_module implements ecjia_interface {
 			return new ecjia_error('pls_fill_in_consinee_info_', '请完善收货人信息！');
 		}
 		
-		/* 获取附近的商家，判断购买商品是否在附近*/
-		$seller_list = RC_Api::api('seller', 'seller_list', array('location' => array('longitude' => $consignee['longitude'], 'latitude' => $consignee['latitude']), 'limit' => 'all'));
-		
-		if (!empty($seller_list['seller_list'])) {
-			foreach ($seller_list['seller_list'] as $val) {
-				$seller_group[] = $val['id'];
+		if ($flow_type != 'CART_EXCHANGE_GOODS') {
+			/* 获取附近的商家，判断购买商品是否在附近*/
+			$seller_list = RC_Api::api('seller', 'seller_list', array('location' => array('longitude' => $consignee['longitude'], 'latitude' => $consignee['latitude']), 'limit' => 'all'));
+			if (!empty($seller_list['seller_list'])) {
+				foreach ($seller_list['seller_list'] as $val) {
+					$seller_group[] = $val['id'];
+				}
+				foreach ($get_cart_goods['goods_list'] as $val) {
+					$goods_group[] = $val['seller_id'];
+				}
+				$goods_diff = array_diff($goods_group, $seller_group);
+				if (!empty($goods_diff)) {
+					return new ecjia_error('goods_beyond_delivery', '有部分商品不再送货范围内！');
+				}
+			} else {
+				return new ecjia_error('beyond_delivery', '您的收货地址不在送货范围内！');
 			}
-			foreach ($get_cart_goods['goods_list'] as $val) {
-				$goods_group[] = $val['seller_id'];
-			}
-			$goods_diff = array_diff($goods_group, $seller_group);
-			if (!empty($goods_diff)) {
-				return new ecjia_error('goods_beyond_delivery', '有部分商品不再送货范围内！');
-			}
-		} else {
-			return new ecjia_error('beyond_delivery', '您的收货地址不在送货范围内！');
 		}
 		
 		/* 对是否允许修改购物车赋值 */
