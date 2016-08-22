@@ -942,7 +942,7 @@ class cart {
 		if (!$goods_list) {
 			return 0;
 		}
-	
+		
 		/* 初始化折扣 */
 		$discount = 0;
 		$favourable_name = array();
@@ -989,7 +989,7 @@ class cart {
 // 						if ($favourable['user_id'] == $goods['user_id']) {
 						if ($favourable['seller_id'] == $goods['seller_id']) {
 // 							if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
-							if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['seller_id'] . ',') !== false) {
+							if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
 								$total_amount += $goods['subtotal'];
 							}
 						}
@@ -1104,7 +1104,7 @@ class cart {
 // 					if ($favourable['user_id'] == $goods['user_id']) {
 					if ($favourable['seller_id'] == $goods['seller_id']) {
 // 						if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
-						if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['seller_id'] . ',') !== false) {
+						if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
 							$total_amount += $goods['subtotal'];
 						}
 					}
