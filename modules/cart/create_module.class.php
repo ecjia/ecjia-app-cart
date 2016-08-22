@@ -32,6 +32,13 @@ class create_module implements ecjia_interface {
 	    	}
 	    	$result = addto_cart_groupbuy($object_id, $goods_number, $goods_spec);
 	    	unset($_SESSION['cart_id']);
+	    } elseif ($rec_type == 'CART_EXCHANGE_GOODS') {
+	    	//TODO:积分兑换处理
+	    	$options = array('goods_id' => $goods_id);
+	    	$result = RC_Api::api('cart', 'exchange_buy', $options);
+	    	if (is_ecjia_error($result)) {
+	    		return $result;
+	    	}
 	    } else {
 	    	unset($_SESSION['flow_type']);
 	    	if (!$goods_id) {
