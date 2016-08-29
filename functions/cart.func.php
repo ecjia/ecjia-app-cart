@@ -1012,30 +1012,6 @@ function recalculate_price()
 	} else {
 		$db_cart->where('session_id = "' . SESS_ID . '" AND is_gift > 0')->delete();
 	}
-	// $sql = 'SELECT c.rec_id, c.goods_id, c.goods_attr_id, g.promote_price, g.promote_start_date, c.goods_number,'.
-	// "g.promote_end_date, IFNULL(mp.user_price, g.shop_price * '$_SESSION[discount]') AS member_price ".
-	// 'FROM ' . $db_cart->table() . ' AS c '.
-	// 'LEFT JOIN ' . $db_goods->table() . ' AS g ON g.goods_id = c.goods_id '.
-	// "LEFT JOIN " . $db_member_price->table() . " AS mp ".
-	// "ON mp.goods_id = g.goods_id AND mp.user_rank = '" . $_SESSION['user_rank'] . "' ".
-	// "WHERE session_id = '" .SESS_ID. "' AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 " .
-	// "AND c.rec_type = '" . CART_GENERAL_GOODS . "' AND c.extension_code <> 'package_buy'";
-
-	// $res = $db_cart->getAll($sql);
-	// $goods_sql = "UPDATE " .$db_cart->table(). " SET goods_price = '$goods_price' ".
-	// "WHERE goods_id = '" . $row['goods_id'] . "' AND session_id = '" . SESS_ID . "' AND rec_id = '" . $row['rec_id'] . "'";
-
-	// $db_cart->query($goods_sql);
-
-	// $where = array(
-	// "goods_id"=>$row['goods_id'],
-	// "session_id"=>SESS_ID,
-	// "rec_id"=>$row['rec_id'],
-	// );
-	// $db_cart->update("goods_price = '$goods_price'",$where);
-	// $db_cart->query('DELETE FROM ' . $db_cart->table() .
-	// " WHERE session_id = '" . SESS_ID . "' AND is_gift > 0");
-	// $db_cart->delete("session_id = '" . SESS_ID . "' AND is_gift > 0");
 }
 
 /**
