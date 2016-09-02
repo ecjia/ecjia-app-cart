@@ -6,13 +6,12 @@ defined('IN_ECJIA') or exit('No permission resources.');
  * @author royalwang
  *
  */
-class checkOrder_module implements ecjia_interface {
-	
-	public function run(ecjia_api & $api) {
-		
-		EM_Api::authSession();
+class checkOrder_module extends api_front implements api_interface {
+    public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
+    		
+    	$this->authSession();
 		RC_Loader::load_app_class('cart', 'cart', false);
-		$rec_id = _POST('rec_id');
+		$rec_id = $this->requestData('rec_id');
 		if (isset($_SESSION['cart_id'])) {
 			$rec_id = empty($rec_id) ? $_SESSION['cart_id'] : $rec_id;
 		}
@@ -50,7 +49,7 @@ class checkOrder_module implements ecjia_interface {
 		}
 		
 		/* 获取用户收货地址*/
-		$address_id = _POST('address_id', 0);
+		$address_id = $this->requestData('address_id', 0);
 		if ($address_id > 0) {
 			$consignee = RC_Model::model('user/user_address_model')->find(array('address_id' => $address_id, 'user_id' => $_SESSION['user_id']));
 			$_SESSION['address_id'] = $address_id;
@@ -394,7 +393,7 @@ class checkOrder_module implements ecjia_interface {
 				unset($out['shipping_list'][$key]['shipping_desc']);
 			}
 		}
-		$device = _POST('device', array());
+		$device = $this->requestData('device', array());
 		$device_code = $device['code'];
 		if (!empty($out['payment_list'])) {
 			foreach ($out['payment_list'] as $key => $value) {

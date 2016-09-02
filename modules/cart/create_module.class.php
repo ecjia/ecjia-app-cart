@@ -5,28 +5,27 @@ defined('IN_ECJIA') or exit('No permission resources.');
  * @author royalwang
  *
  */
-class create_module implements ecjia_interface {
-	
-	public function run(ecjia_api & $api) {
-		
-	    EM_Api::authSession();
+class create_module extends api_front implements api_interface {
+    public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
+    		
+    	$this->authSession();
 
-	    $goods_id		= _POST('goods_id', 0);
-	    $goods_number	= _POST('number', 1);
-	    $location		= _POST('location');
+	    $goods_id		= $this->requestData('goods_id', 0);
+	    $goods_number	= $this->requestData('number', 1);
+	    $location		= $this->requestData('location',array());
 // 	    		$location = array(
 // 	    				'latitude'	=> '31.235450744628906',
 // 	    				'longitude' => '121.41641998291016',
 // 	    		);
-	    $goods_spec		= _POST('spec', array());
-	    $rec_type		= _POST('rec_type');
+	    $goods_spec		= $this->requestData('spec', array());
+	    $rec_type		= $this->requestData('rec_type');
 	    
 	    
 // 	    $result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'location' => $location));
 	    
 	    RC_Loader::load_app_func('cart', 'cart');
 	    if ($rec_type == 'GROUPBUY_GOODS') {
-	    	$object_id = _POST('object_id');
+	    	$object_id = $this->requestData('object_id');
 	    	if ($object_id <= 0) {
 	    		EM_Api::outPut(101);
 	    	}

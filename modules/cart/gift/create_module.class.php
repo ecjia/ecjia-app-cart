@@ -5,15 +5,15 @@ defined('IN_ECJIA') or exit('No permission resources.');
  * @author royalwang
  *
  */
-class create_module implements ecjia_interface {
-	
-	public function run(ecjia_api & $api) {
-	    EM_Api::authSession();
+class create_module extends api_front implements api_interface {
+    public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
+    		
+    	$this->authSession();
 		RC_Loader::load_app_func('favourable', 'favourable');
 		RC_Loader::load_app_func('global', 'cart');
 		/* 取得优惠活动信息 */
-	    $favourable_id = _POST('favourable_id',0);
-	    $goods_id = _POST('goods_id', array());
+	    $favourable_id = $this->requestData('favourable_id',0);
+	    $goods_id = $this->requestData('goods_id', array());
 	    $favourable = favourable_info($favourable_id);
 	    if (empty($favourable)) {
 	    	$result = new ecjia_error('favourable_not_exist', __('您要加入购物车的优惠活动不存在！'));
@@ -71,19 +71,6 @@ class create_module implements ecjia_interface {
 	        add_favourable_to_cart($favourable_id, $favourable['act_name'], $favourable['act_type_ext']);
 	    }
 	    EM_Api::outPut(array());
-	    // 	        show_message($_LANG['favourable_not_exist']);
-	    // 	        show_message($_LANG['favourable_not_available']);
-	    // 	        show_message($_LANG['favourable_used']);
-	    // 	            show_message($_LANG['pls_select_gift']);
-	    // 	        $sql = "SELECT goods_name" .
-	    // 	                " FROM " . $ecs->table('cart') .
-	    // 	                " WHERE session_id = '" . SESS_ID . "'" .
-	    // 	                " AND rec_type = '" . CART_GENERAL_GOODS . "'" .
-	    // 	                " AND is_gift = '$act_id'" .
-	    // 	                " AND goods_id " . db_create_in($_POST['gift']);
-	    // 	        $gift_name = $db->getCol($sql);
-	    // 	            show_message(sprintf($_LANG['gift_in_cart'], join(',', $gift_name)));
-	    // 	            show_message($_LANG['gift_count_exceed']);
 	}
 }
 

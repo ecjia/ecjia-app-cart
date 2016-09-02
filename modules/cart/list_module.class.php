@@ -5,12 +5,11 @@ defined('IN_ECJIA') or exit('No permission resources.');
  * @author royalwang
  *
  */
-class list_module implements ecjia_interface {
-	
-	public function run(ecjia_api & $api) {
-		
-		EM_Api::authSession();
-		$location = _POST('location');
+class list_module extends api_front implements api_interface {
+    public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
+    		
+    	$this->authSession();
+		$location = $this->requestData('location',array());
 		
 		$cart_result = RC_Api::api('cart', 'cart_list', array('location' => $location, 'flow_type' => CART_GENERAL_GOODS));
 		if (is_ecjia_error($cart_result)) {

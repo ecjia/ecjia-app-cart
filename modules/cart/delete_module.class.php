@@ -5,15 +5,14 @@ defined('IN_ECJIA') or exit('No permission resources.');
  * @author royalwang
  *
  */
-class delete_module implements ecjia_interface {
-	
-	public function run(ecjia_api & $api) {
-
-	    EM_Api::authSession();
-	    $location = _POST('location');
+class delete_module extends api_front implements api_interface {
+    public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
+    		
+    	$this->authSession();
+	    $location = $this->requestData('location',array());
 	    RC_Loader::load_app_class('cart', 'cart', false);
 		
-	    $rec_id = _POST('rec_id');
+	    $rec_id = $this->requestData('rec_id');
 	    $rec_id = explode(',', $rec_id);
 	    
 	    if (is_array($rec_id)) {

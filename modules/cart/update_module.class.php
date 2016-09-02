@@ -5,16 +5,16 @@ defined('IN_ECJIA') or exit('No permission resources.');
  * @author royalwang
  *
  */
-class update_module implements ecjia_interface {
-	
-	public function run(ecjia_api & $api) {
-		EM_Api::authSession();
-		$location = _POST('location');
+class update_module extends api_front implements api_interface {
+    public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
+    		
+    	$this->authSession();
+		$location = $this->requestData('location',array());
 		RC_Loader::load_app_class('cart', 'cart', false);
 // 	    RC_Loader::load_app_func('cart','cart');
 		
-		$rec_id = _POST('rec_id', 0);
-		$new_number = _POST('new_number', 0);
+		$rec_id = $this->requestData('rec_id', 0);
+		$new_number = $this->requestData('new_number', 0);
 		if ($new_number < 1 || !$rec_id) {
 			EM_Api::outPut(101);
 		}
