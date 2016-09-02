@@ -26,7 +26,7 @@ class done_module extends api_admin implements api_interface {
         RC_Loader::load_app_func('order','orders');
         
         //获取所需购买购物车id  will.chen
-        $rec_id = _POST('rec_id');
+        $rec_id = $this->requestData('rec_id');
         $rec_id = empty($rec_id) ? $_SESSION['cart_id'] : $rec_id;
 		$cart_id = empty($rec_id) ? '' : explode(',', $rec_id);
 		
@@ -118,29 +118,24 @@ class done_module extends api_admin implements api_interface {
         	$consignee = array_merge($consignee, $region_info);
         }
         
-        $_POST['how_oos'] = isset($_POST['how_oos']) ? intval($_POST['how_oos']) : 0;
-        $_POST['card_message'] = isset($_POST['card_message']) ? htmlspecialchars($_POST['card_message']) : '';
-        $_POST['inv_type'] = ! empty($_POST['inv_type']) ? $_POST['inv_type'] : '';
-        $_POST['inv_payee'] = isset($_POST['inv_payee']) ? htmlspecialchars($_POST['inv_payee']) : '';
-        $_POST['inv_content'] = isset($_POST['inv_content']) ? htmlspecialchars($_POST['inv_content']) : '';
-        $_POST['postscript'] = isset($_POST['postscript']) ? htmlspecialchars_decode($_POST['postscript']) : '';
-        $how_oosLang = RC_Lang::lang("oos/$_POST[how_oos]");
+        $how_oos= $this->requestData('how_oos', 0);
+        $how_oosLang = RC_Lang::lang("oos/$how_oos");
         $order = array(
-            'shipping_id' => intval($_POST['shipping_id']),
-            'pay_id' => intval($_POST['pay_id']),
-            'pack_id' => isset($_POST['pack']) ? intval($_POST['pack']) : 0,
-            'card_id' => isset($_POST['card']) ? intval($_POST['card']) : 0,
-            'card_message' => trim($_POST['card_message']),
-            'surplus' => isset($_POST['surplus']) ? floatval($_POST['surplus']) : 0.00,
-            'integral' => isset($_POST['integral']) ? intval($_POST['integral']) : 0,
-            'bonus_id' => isset($_POST['bonus']) ? intval($_POST['bonus']) : 0,
-            'need_inv' => empty($_POST['need_inv']) ? 0 : 1,
-            'inv_type' => $_POST['inv_type'],
-            'inv_payee' => trim($_POST['inv_payee']),
-            'inv_content' => $_POST['inv_content'],
-            'postscript' => trim($_POST['postscript']),
+            'shipping_id' => $this->requestData('shipping_id'),
+            'pay_id' => $this->requestData('pay_id'),
+            'pack_id' => $this->requestData('pack', 0),
+            'card_id' => $this->requestData('card', 0),
+            'card_message' => $this->requestData('card_message'),
+            'surplus' => $this->requestData('surplus', 0.00),
+            'integral' => $this->requestData('integral', 0),
+            'bonus_id' => $this->requestData('bonus', 0),
+            'need_inv' => $this->requestData('need_inv', 0),
+            'inv_type' => $this->requestData('inv_type'),
+            'inv_payee' => $this->requestData('inv_payee'),
+            'inv_content' =>$this->requestData('inv_content'),
+            'postscript' =>$this->requestData('postscript'),
             'how_oos' => isset($how_oosLang) ? addslashes($how_oosLang) : '',
-            'need_insure' => isset($_POST['need_insure']) ? intval($_POST['need_insure']) : 0,
+            'need_insure' => $this->requestData('need_insure', 0),
             'user_id' => $_SESSION['user_id'],
             'add_time' => RC_Time::gmtime(),
             'order_status' => OS_UNCONFIRMED,
@@ -187,8 +182,8 @@ class done_module extends api_admin implements api_interface {
             if (empty($bonus) || $bonus['user_id'] != $user_id || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart_amount(true, $flow_type, $cart_id)) {
                 $order['bonus_id'] = 0;
             }
-        } elseif (isset($_POST['bonus_sn'])) {
-            $bonus_sn = trim($_POST['bonus_sn']);
+        } elseif ($this->requestData('bonus_sn')) {
+            $bonus_sn = $this->requestData('bonus_sn');
             $bonus = bonus_info(0, $bonus_sn);
             $now = RC_Time::gmtime();
             if (empty($bonus) || $bonus['user_id'] > 0 || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart_amount(true, $flow_type, $cart_id) || $now > $bonus['use_end_date']) {} else {

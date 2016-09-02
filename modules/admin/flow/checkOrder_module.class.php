@@ -19,10 +19,10 @@ class checkOrder_module extends api_admin implements api_interface {
 		define('SESS_ID', RC_Session::session()->get_session_id());
 		
 		//从移动端接收数据
-		$addgoods		= _POST('addgoods');	//添加商品
-		$updategoods	= _POST('updategoods');	//更新商品数量
-		$deletegoods	= _POST('deletegoods');	//删除商铺
-		$user			= _POST('user');		//选择用户
+		$addgoods		= $this->requestData('addgoods');	//添加商品
+		$updategoods	= $this->requestData('updategoods');	//更新商品数量
+		$deletegoods	= $this->requestData('deletegoods');	//删除商铺
+		$user			= $this->requestData('user');		//选择用户
 		
 		//选择用户
 		if (!empty($user)) {
