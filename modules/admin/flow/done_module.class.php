@@ -1,10 +1,8 @@
 <?php
 defined('IN_ECJIA') or exit('No permission resources.');
 
-class done_module implements ecjia_interface {
-
-    public function run(ecjia_api & $api) {
-		
+class done_module extends api_admin implements api_interface {
+    public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
 		/**
          * bonus 0 //红包
          * how_oos 0 //缺货处理
@@ -17,10 +15,8 @@ class done_module implements ecjia_interface {
          * inv_payee 发票抬头
          * inv_content 发票内容
          */
-    	
-    	
+    	$this->authadminSession();
     	$ecjia = RC_Loader::load_app_class('api_admin', 'api');
-    	$ecjia->authadminSession();
     	define('SESS_ID', RC_Session::session()->get_session_id());
     	if ($_SESSION['temp_user_id'] > 0) {
     		$_SESSION['user_id'] = $_SESSION['temp_user_id'];
