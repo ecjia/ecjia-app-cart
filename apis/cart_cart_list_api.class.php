@@ -31,9 +31,9 @@ class cart_cart_list_api extends Component_Event_Api {
 	 * @return  array
 	 */
 	private function get_cart_goods($cart_id = array(), $flow_type = CART_GENERAL_GOODS, $location = array()) {
-		$dbview_cart 	= RC_Loader::load_app_model('cart_viewmodel', 'cart');
-		$db_goods_attr 	= RC_Loader::load_app_model('goods_attr_model','goods');
-		$db_goods 		= RC_Loader::load_app_model('goods_model','goods');
+		$dbview_cart 	= RC_Model::model('cart/cart_viewmodel');
+		$db_goods_attr 	= RC_Model::model('goods/goods_attr_model');
+		$db_goods 		= RC_Loader::model('goods/goods_model');
 	
 		/* 初始化 */
 		$goods_list = array();

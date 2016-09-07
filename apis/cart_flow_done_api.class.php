@@ -122,7 +122,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			$now = RC_Time::gmtime();
 			if (empty($bonus) || $bonus['user_id'] > 0 || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart::cart_amount(true, $options['flow_type']) || $now > $bonus['use_end_date']) {} else {
 				if ($user_id > 0) {
-					$db_user_bonus = RC_Loader::load_app_model('user_bonus_model',' bonus');
+					$db_user_bonus = RC_Model::model('bonus/user_bonus_model');
 					$db_user_bonus->where(array('bonus_id' => $bonus['bonus_id']))->update(array('user_id' => $user_id));
 				}
 				$order['bonus_id'] = $bonus['bonus_id'];
@@ -243,14 +243,14 @@ class cart_flow_done_api extends Component_Event_Api {
 		
 		/* 插入订单表 */
 		$order['order_sn'] = cart::get_order_sn(); // 获取新订单号
-		$db_order_info	= RC_Loader::load_app_model('order_info_model','orders');
+		$db_order_info	= RC_Model::model('orders/order_info_model');
 		$new_order_id	= $db_order_info->insert($order);
 		
 		$order['order_id'] = $new_order_id;
 		
 		/* 插入订单商品 */
-		$db_order_goods = RC_Loader::load_app_model('order_goods_model','orders');
-		$db_goods_activity = RC_Loader::load_app_model('goods_activity_model','goods');
+		$db_order_goods = RC_Model::model('orders/order_goods_model');
+		$db_goods_activity = RC_Model::model('goods/goods_activity_model');
 		
 		
 		$field = 'goods_id, goods_name, goods_sn, product_id, goods_number, market_price,goods_price, goods_attr, is_real, extension_code, parent_id, is_gift, goods_attr_id, ru_id';
