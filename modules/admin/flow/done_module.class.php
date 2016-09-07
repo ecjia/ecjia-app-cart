@@ -367,7 +367,7 @@ class done_module extends api_admin implements api_interface {
         			'pay_points'=> $order['integral'] * (- 1),
         			'change_desc'=>sprintf(RC_Lang::lang('pay_order'), $order['order_sn'])
         	);
-        	$result = RC_Api::api('user', 'account_change_log',$options);
+        	$result = RC_Api::api('user', 'account_change_log', $options);
         	if (is_ecjia_error($result)) {
         		EM_Api::outPut(8);
         	}
@@ -483,7 +483,7 @@ class done_module extends api_admin implements api_interface {
         	get_insert_order_goods_single($order_info, $row, $order_id);
         }
         
-        EM_Api::outPut($out);
+        return $out;
 	}
 
 }

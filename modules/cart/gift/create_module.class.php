@@ -70,7 +70,8 @@ class create_module extends api_front implements api_interface {
 	    } elseif ($favourable['act_type'] == FAT_PRICE) {
 	        add_favourable_to_cart($favourable_id, $favourable['act_name'], $favourable['act_type_ext']);
 	    }
-	    EM_Api::outPut(array());
+	    
+	    return array();
 	}
 }
 

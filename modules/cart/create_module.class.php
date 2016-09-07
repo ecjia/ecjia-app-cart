@@ -121,9 +121,9 @@ class create_module extends api_front implements api_interface {
 					);
 				}
 			}
-	        EM_Api::outPut($goods_list);
+	        return $goods_list;
 	    } else {
-	    	EM_Api::outPut($result);
+	    	return $result;	    
 	    }
 	    
 	}

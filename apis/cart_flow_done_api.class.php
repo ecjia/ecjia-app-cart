@@ -406,9 +406,10 @@ class cart_flow_done_api extends Component_Event_Api {
 									'pay_points' => intval($integral['custom_points']),
 									'change_desc' =>sprintf(RC_Lang::lang('order_gift_integral'), $order['order_sn'])
 							);
-							$result = RC_Api::api('user', 'account_change_log',$options);
+							$result = RC_Api::api('user', 'account_change_log', $options);
 							if (is_ecjia_error($result)) {
-								EM_Api::outPut(8);
+// 								EM_Api::outPut(8);
+                                return $result;
 							}
 							/* 发放红包 */
 							send_order_bonus($order['order_id']);

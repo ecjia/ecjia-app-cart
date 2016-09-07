@@ -330,7 +330,7 @@ class checkOrder_module extends api_admin implements api_interface {
 				}
 			}
 		}
-		EM_API::outPut($out);
+		return $out;
 	}
 		
 }
