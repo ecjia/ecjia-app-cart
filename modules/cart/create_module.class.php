@@ -52,8 +52,8 @@ class create_module extends api_front implements api_interface {
 	    // 更新：添加到购物车
 	    if (!is_ecjia_error($result)){
 			/* 循环、统计 */
-			$cart_dbview = RC_Loader::load_app_model('cart_viewmodel', 'cart');
-			$db_goods_attr = RC_Loader::load_app_model('goods_attr_model', 'goods');
+			$cart_dbview = RC_Model::model('cart/cart_viewmodel');
+			$db_goods_attr = RC_Model::model('goods/goods_attr_model');
 			RC_Loader::load_app_func('common', 'goods');
 			
 			$field = 'c.*, IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, ssi.shop_name as seller_name';

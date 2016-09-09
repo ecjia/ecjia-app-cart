@@ -351,7 +351,7 @@ class checkOrder_module extends api_front implements api_interface {
 			$ids = array($out['consignee']['country'], $out['consignee']['province'], $out['consignee']['city'], $out['consignee']['district']);
 			$ids = array_filter($ids);
 		
-			$db_region = RC_Loader::load_app_model('region_model','shipping');
+			$db_region = RC_Model::model('shipping/region_model');
 			$data = $db_region->in(array('region_id' => implode(',', $ids)))->select();
 			
 			$a_out = array();

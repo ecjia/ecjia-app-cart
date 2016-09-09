@@ -38,7 +38,7 @@ class create_module extends api_front implements api_interface {
 	        }
 	
 	        /* 检查是否已在购物车 */
-	        $db = RC_Loader::load_app_model('cart_model','cart');
+	        $db = RC_Model::model('cart/cart_model');
 	        $where = array(
 	        	'rec_type' => CART_GENERAL_GOODS ,
 	        	'is_gift' => $favourable_id , 
