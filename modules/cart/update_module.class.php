@@ -16,13 +16,13 @@ class update_module extends api_front implements api_interface {
 		$rec_id = $this->requestData('rec_id', 0);
 		$new_number = $this->requestData('new_number', 0);
 		if ($new_number < 1 || !$rec_id) {
-			EM_Api::outPut(101);
+			return new ecjia_error(101, '参数错误');
 		}
 		$goods_number = array($rec_id => $new_number);
 
 		$result = cart::flow_update_cart($goods_number);
 		if (is_ecjia_error($result)) {
-			EM_Api::outPut(10008);
+			return new ecjia_error(10008, '库存不足');
 		}
 // 		$cart_goods = EM_get_cart_goods();
 		$cart_goods = RC_Api::api('cart', 'cart_list', array('location' => $location));

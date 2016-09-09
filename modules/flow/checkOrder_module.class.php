@@ -246,12 +246,12 @@ class checkOrder_module extends api_front implements api_interface {
  				if ($flow_type == CART_GROUP_BUY_GOODS) {
  					$group_buy_id = $_SESSION['extension_id'];
  					if ($group_buy_id <= 0) {
- 						EM_Api::outPut(10006);
+ 						return new ecjia_error(10006, '如果是团购，且保证金大于0，不能使用货到付款');
  					}
  					RC_Loader::load_app_func('goods', 'goods');
  					$group_buy = group_buy_info($group_buy_id);
  					if (empty($group_buy)) {
- 						EM_Api::outPut(101);
+ 						return new ecjia_error(101, '参数错误');
  					}
  					if ($group_buy['deposit'] > 0) {
  						$cod = false;

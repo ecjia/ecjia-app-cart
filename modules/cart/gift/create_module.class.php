@@ -57,7 +57,7 @@ class create_module extends api_front implements api_interface {
 	        	$result = new ecjia_error('gift_count_exceed', __('您选择的赠品（特惠品）数量超过上限了 ！'));
 	        }
 			if (is_ecjia_error($result)) {
-				EM_Api::outPut(14);
+				return new ecjia_error(14, '购买失败');
 			}
 	        /* 添加赠品到购物车 */
 	        foreach ($favourable['gift'] as $gift) {

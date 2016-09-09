@@ -408,7 +408,7 @@ class cart_flow_done_api extends Component_Event_Api {
 							);
 							$result = RC_Api::api('user', 'account_change_log', $options);
 							if (is_ecjia_error($result)) {
-// 								EM_Api::outPut(8);
+// 								return new ecjia_error(8, 'fail');
                                 return $result;
 							}
 							/* 发放红包 */

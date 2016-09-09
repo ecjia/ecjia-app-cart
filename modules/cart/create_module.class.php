@@ -27,7 +27,7 @@ class create_module extends api_front implements api_interface {
 	    if ($rec_type == 'GROUPBUY_GOODS') {
 	    	$object_id = $this->requestData('object_id');
 	    	if ($object_id <= 0) {
-	    		EM_Api::outPut(101);
+	    		return new ecjia_error(101, '参数错误');
 	    	}
 	    	$result = addto_cart_groupbuy($object_id, $goods_number, $goods_spec);
 	    	unset($_SESSION['cart_id']);
