@@ -14,10 +14,10 @@ class create_module extends api_front implements api_interface {
 	    $goods_number	= $this->requestData('number', 1);
 	    $location		= $this->requestData('location',array());
 	    //TODO:目前强制坐标
-	    		$location = array(
-	    				'latitude'	=> '31.235450744628906',
-	    				'longitude' => '121.41641998291016',
-	    		);
+// 	    		$location = array(
+// 	    				'latitude'	=> '31.235450744628906',
+// 	    				'longitude' => '121.41641998291016',
+// 	    		);
 	    $goods_spec		= $this->requestData('spec', array());
 	    $rec_type		= $this->requestData('rec_type', 0);
 	    
@@ -45,6 +45,7 @@ class create_module extends api_front implements api_interface {
 	    	if (!$goods_id) {
 	    		return new ecjia_error('not_found_goods', '请选择您所需要购买的商品！');
 	    	}
+// 	    	_dump($goods_number,1);
 	    	$result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'location' => $location));
 // 	    	$result = addto_cart($goods_id, $goods_number, $goods_spec, 0, $warehouse_id, $area_id);
 	    }

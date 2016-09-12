@@ -10,6 +10,11 @@ class delete_module extends api_front implements api_interface {
     		
     	$this->authSession();
 	    $location = $this->requestData('location',array());
+	    //TODO:目前强制坐标
+// 	    $location = array(
+// 	        'latitude'	=> '31.235450744628906',
+// 	        'longitude' => '121.41641998291016',
+// 	    );
 	    RC_Loader::load_app_class('cart', 'cart', false);
 		
 	    $rec_id = $this->requestData('rec_id');
@@ -25,6 +30,9 @@ class delete_module extends api_front implements api_interface {
 	    
 // 	    $cart_goods = EM_get_cart_goods();
 	   	$cart_goods = RC_Api::api('cart', 'cart_list', array('location' => $location));
+	   	if (is_ecjia_error($cart_goods)) {
+	   	    return $cart_goods;
+	   	}
 	    return $cart_goods['total'];
 	    
 	    
