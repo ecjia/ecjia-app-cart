@@ -13,25 +13,27 @@ class create_module extends api_front implements api_interface {
 	    $goods_id		= $this->requestData('goods_id', 0);
 	    $goods_number	= $this->requestData('number', 1);
 	    $location		= $this->requestData('location',array());
-// 	    		$location = array(
-// 	    				'latitude'	=> '31.235450744628906',
-// 	    				'longitude' => '121.41641998291016',
-// 	    		);
+	    //TODO:目前强制坐标
+	    		$location = array(
+	    				'latitude'	=> '31.235450744628906',
+	    				'longitude' => '121.41641998291016',
+	    		);
 	    $goods_spec		= $this->requestData('spec', array());
-	    $rec_type		= $this->requestData('rec_type');
+	    $rec_type		= $this->requestData('rec_type', 0);
 	    
 	    
 // 	    $result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'location' => $location));
 	    
 	    RC_Loader::load_app_func('cart', 'cart');
-	    if ($rec_type == 'GROUPBUY_GOODS') {
+	    if ($rec_type == CART_GROUP_BUY_GOODS) {
+	        //TODO:1 团购
 	    	$object_id = $this->requestData('object_id');
 	    	if ($object_id <= 0) {
 	    		return new ecjia_error(101, '参数错误');
 	    	}
 	    	$result = addto_cart_groupbuy($object_id, $goods_number, $goods_spec);
 	    	unset($_SESSION['cart_id']);
-	    } elseif ($rec_type == 'CART_EXCHANGE_GOODS') {
+	    } elseif ($rec_type == CART_EXCHANGE_GOODS) {
 	    	//TODO:积分兑换处理
 	    	$options = array('goods_id' => $goods_id);
 	    	$result = RC_Api::api('cart', 'exchange_buy', $options);
@@ -43,11 +45,9 @@ class create_module extends api_front implements api_interface {
 	    	if (!$goods_id) {
 	    		return new ecjia_error('not_found_goods', '请选择您所需要购买的商品！');
 	    	}
-	    	
 	    	$result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'location' => $location));
 // 	    	$result = addto_cart($goods_id, $goods_number, $goods_spec, 0, $warehouse_id, $area_id);
 	    }
-	    
 	    
 	    // 更新：添加到购物车
 	    if (!is_ecjia_error($result)){
@@ -62,13 +62,11 @@ class create_module extends api_front implements api_interface {
 							->where(array('c.user_id' => $_SESSION['user_id'] , 'rec_type' => CART_GENERAL_GOODS, 'rec_id' => $result))
 							->select();
 			
-			
 			$goods_list = array();
 			if (!empty($data)) {
 				foreach ($data as $row) {
 					$total['goods_price']  += $row['goods_price'] * $row['goods_number'];
 					$total['market_price'] += $row['market_price'] * $row['goods_number'];
-					
 					
 					$row['subtotal']     = price_format($row['goods_price'] * $row['goods_number'], false);
 					$row['formated_goods_price']  = price_format($row['goods_price'], false);
