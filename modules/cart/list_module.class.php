@@ -9,7 +9,12 @@ class list_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
     		
     	$this->authSession();
-		$location = $this->requestData('location',array());
+		$location = $this->requestData('location', array());
+		//TODO:目前强制坐标
+// 	    $location = array(
+// 	        'latitude'	=> '31.235450744628906',
+// 	        'longitude' => '121.41641998291016',
+// 	    );
 		
 		$cart_result = RC_Api::api('cart', 'cart_list', array('location' => $location, 'flow_type' => CART_GENERAL_GOODS));
 		if (is_ecjia_error($cart_result)) {
@@ -30,8 +35,8 @@ class list_module extends api_front implements api_interface {
 				if (trim($row['goods_attr']) != '') {
 					$goods_attr = explode("\n", $row['goods_attr']);
 					$goods_attr = array_filter($goods_attr);
-					foreach ($goods_attr as  $v) {
-						$a = explode(':',$v);
+					foreach ($goods_attr as $v) {
+						$a = explode(':', $v);
 						if (!empty($a[0]) && !empty($a[1])) {
 							$goods_attrs[] = array('name' => $a[0], 'value' => $a[1]);
 						}

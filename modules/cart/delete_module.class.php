@@ -9,7 +9,7 @@ class delete_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
     		
     	$this->authSession();
-	    $location = $this->requestData('location',array());
+	    $location = $this->requestData('location', array());
 	    //TODO:目前强制坐标
 // 	    $location = array(
 // 	        'latitude'	=> '31.235450744628906',

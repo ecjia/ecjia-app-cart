@@ -1223,7 +1223,7 @@ class cart {
 	 */
 	public static function get_final_price($goods_id, $goods_num = '1', $is_spec_price = false, $spec = array())
 	{
-		$dbview = RC_Loader::load_app_model ( 'sys_goods_member_viewmodel', 'goods' );
+		$dbview = RC_Model::model ( 'goods/sys_goods_member_viewmodel');
 		
 		$final_price = '0'; // 商品最终购买价格
 		$volume_price = '0'; // 商品优惠价格
@@ -1240,24 +1240,14 @@ class cart {
 				}
 			}
 		}
-		$field = "wg.w_id, g.goods_name, g.goods_sn, g.is_on_sale, g.is_real, g.user_id as ru_id, g.model_inventory, g.model_attr, ".
-				"wg.warehouse_price, wg.warehouse_promote_price, wg.region_number as wg_number, wag.region_price, wag.region_promote_price, wag.region_number as wag_number, g.model_price, g.model_attr, ".
-				"g.market_price, IF(g.model_price < 1, g.shop_price, IF(g.model_price < 2, wg.warehouse_price, wag.region_price)) AS org_price, ".
-				"IF(g.model_price < 1, g.promote_price, IF(g.model_price < 2, wg.warehouse_promote_price, wag.region_promote_price)) as promote_price, ".
-				" g.promote_start_date, g.promote_end_date, g.goods_weight, g.integral, g.extension_code, g.goods_number, g.is_alone_sale, g.is_shipping, ".
-				"IFNULL(mp.user_price, IF(g.model_price < 1, g.shop_price, IF(g.model_price < 2, wg.warehouse_price, wag.region_price)) * '$_SESSION[discount]') AS shop_price ";
+// 		$field = " g.goods_name, g.goods_sn, g.is_on_sale, g.is_real, g.user_id as ru_id, g.model_inventory, g.model_attr, ".
+// 				" g.model_price, g.model_attr, ".
+// 				"g.market_price, IF(g.model_price < 1, g.shop_price, IF(g.model_price < 2, wg.warehouse_price, wag.region_price)) AS org_price, ".
+// 				"IF(g.model_price < 1, g.promote_price, IF(g.model_price < 2, wg.warehouse_promote_price, wag.region_promote_price)) as promote_price, ".
+// 				" g.promote_start_date, g.promote_end_date, g.goods_weight, g.integral, g.extension_code, g.goods_number, g.is_alone_sale, g.is_shipping, ".
+// 				"IFNULL(mp.user_price, IF(g.model_price < 1, g.shop_price, IF(g.model_price < 2, wg.warehouse_price, wag.region_price)) * '$_SESSION[discount]') AS shop_price ";
 		/* 取得商品信息 */
 		$dbview->view = array(
-				'warehouse_goods' => array(
-						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
-						'alias' => 'wg',
-						'on'   	=> "g.goods_id = wg.goods_id and wg.region_id = '$warehouse_id'"
-				),
-				'warehouse_area_goods' => array(
-						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
-						'alias' => 'wag',
-						'on'   	=> "g.goods_id = wag.goods_id and wag.region_id = '$area_id'"
-				),
 				'member_price' => array(
 						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
 						'alias' => 'mp',
@@ -1265,7 +1255,7 @@ class cart {
 				)
 		);
 		// 取得商品促销价格列表
-		$goods = $dbview->field($field)->join (array('warehouse_goods', 'warehouse_area_goods', 'member_price'))->find (array('g.goods_id' => $goods_id, 'g.is_delete' => 0));
+		$goods = $dbview->join (array('member_price'))->find (array('g.goods_id' => $goods_id, 'g.is_delete' => 0));
 		/* 计算商品的促销价格 */
 		if ($goods ['promote_price'] > 0) {
 			$promote_price = self::bargain_price ( $goods['promote_price'], $goods['promote_start_date'], $goods['promote_end_date'] );
@@ -1293,7 +1283,7 @@ class cart {
 			$final_price = $user_price;
 		}
 		/* 手机专享*/
-		$mobilebuy_db = RC_Loader::load_app_model('goods_activity_model', 'goods');
+		$mobilebuy_db = RC_Model::model('goods/goods_activity_model');
 		$mobilebuy_ext_info = array();
 		$mobilebuy = $mobilebuy_db->find(array(
 				'goods_id'	 => $goods_id,

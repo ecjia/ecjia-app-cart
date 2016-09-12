@@ -10,12 +10,17 @@ class update_module extends api_front implements api_interface {
     		
     	$this->authSession();
 		$location = $this->requestData('location',array());
+		//TODO:目前强制坐标
+// 		$location = array(
+// 		    'latitude'	=> '31.235450744628906',
+// 		    'longitude' => '121.41641998291016',
+// 		);
 		RC_Loader::load_app_class('cart', 'cart', false);
-// 	    RC_Loader::load_app_func('cart','cart');
 		
 		$rec_id = $this->requestData('rec_id', 0);
 		$new_number = $this->requestData('new_number', 0);
-		if ($new_number < 1 || !$rec_id) {
+		
+		if ($new_number < 1 || $rec_id < 1) {
 			return new ecjia_error(101, '参数错误');
 		}
 		$goods_number = array($rec_id => $new_number);
@@ -24,7 +29,7 @@ class update_module extends api_front implements api_interface {
 		if (is_ecjia_error($result)) {
 			return new ecjia_error(10008, '库存不足');
 		}
-// 		$cart_goods = EM_get_cart_goods();
+		
 		$cart_goods = RC_Api::api('cart', 'cart_list', array('location' => $location));
 	    return $cart_goods['total'];
 	}

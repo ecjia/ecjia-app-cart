@@ -14,10 +14,10 @@ class create_module extends api_front implements api_interface {
 	    $goods_number	= $this->requestData('number', 1);
 	    $location		= $this->requestData('location',array());
 	    //TODO:目前强制坐标
-// 	    		$location = array(
-// 	    				'latitude'	=> '31.235450744628906',
-// 	    				'longitude' => '121.41641998291016',
-// 	    		);
+// 		$location = array(
+// 				'latitude'	=> '31.235450744628906',
+// 				'longitude' => '121.41641998291016',
+// 		);
 	    $goods_spec		= $this->requestData('spec', array());
 	    $rec_type		= $this->requestData('rec_type', 0);
 	    
