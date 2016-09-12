@@ -48,7 +48,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			return new ecjia_error('pls_fill_in_consinee_info_', '请完善收货人信息！');
 		}
 		
-		if ($_SESSION['flow_type'] != 'CART_EXCHANGE_GOODS') {
+		if ($_SESSION['flow_type'] != CART_EXCHANGE_GOODS) {
 			/* 获取附近的商家，判断购买商品是否在附近*/
 			$seller_list = RC_Api::api('seller', 'seller_list', array('location' => array('longitude' => $consignee['longitude'], 'latitude' => $consignee['latitude']), 'limit' => 'all'));
 			if (!empty($seller_list['seller_list'])) {
