@@ -9,8 +9,8 @@ class flow_hooks {
 	public static function clear_cart() {
 	    $lasttime = RC_Cache::app_cache_get('clean_cart_session', 'cart');
 	    if (! $lasttime) {
-	        $db_view = RC_Loader::load_app_model('cart_sessions_viewmodel', 'cart');
-	        $db = RC_Loader::load_app_model('cart_model', 'cart');
+	        $db_view = RC_Model::model('cart/cart_sessions_viewmodel');
+	        $db = RC_Model::model('cart/cart_model');
 	        /* 取得有效的session */
 	        $valid_sess = $db_view->join('sessions')->select();
 	        

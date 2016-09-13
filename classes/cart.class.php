@@ -460,8 +460,8 @@ class cart {
 	 */
 	public static function order_fee($order, $goods, $consignee, $cart_id = array()) {
 		
-		$db 	= RC_Loader::load_app_model('cart_model', 'cart');
-		$dbview = RC_Loader::load_app_model('cart_exchange_viewmodel', 'cart');
+		$db = RC_Model::model('cart/cart_model');
+		$db_view = RC_Model::model('cart/cart_exchange_viewmodel');
 		/* 初始化订单的扩展code */
 		if (!isset($order['extension_code'])) {
 			$order['extension_code'] = '';
@@ -750,7 +750,7 @@ class cart {
 	 * @return  int	 积分数
 	 */
 	public static function get_give_integral($cart_id = array()) {
-		$db_cartview = RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
+		$db_cartview = RC_Model::model('cart/cart_good_member_viewmodel')
 		$db_cartview->view = array(
 				'goods' => array(
 						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
@@ -786,9 +786,9 @@ class cart {
 	 * @return  array
 	 */
 	public static function cart_weight_price($type = CART_GENERAL_GOODS, $cart_id = array()) {
-		$db 			= RC_Loader::load_app_model('cart_model', 'cart');
-		$dbview 		= RC_Loader::load_app_model('package_goods_viewmodel','orders');
-		$db_cartview 	= RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
+		$db = RC_Model::model('cart/cart_model');
+		$dbview = RC_Model::model('orders/package_goods_viewmodel');
+		$db_cartview = RC_Model::model('cart/cart_good_member_viewmodel');
 	
 		$package_row['weight'] 			= 0;
 		$package_row['amount'] 			= 0;
@@ -899,8 +899,8 @@ class cart {
 	 * @return  float   折扣
 	 */
 	public static function compute_discount($cart_id = array()) {
-		$db 			= RC_Loader::load_app_model('favourable_activity_model', 'favourable');
-		$db_cartview 	= RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
+		$db = RC_Model::model('favourable/favourable_activity_model');
+		$db_cartview = RC_Model::model('cart/cart_good_member_viewmodel');
 	
 		/* 查询优惠活动 */
 		$now = RC_Time::gmtime();
@@ -1020,8 +1020,9 @@ class cart {
 	 * @return  float   享受红包支付的总额
 	 */
 	public static function compute_discount_amount($cart_id = array()) {
-		$db 			= RC_Loader::load_app_model('favourable_activity_model', 'favourable');
-		$db_cartview 	= RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
+		$db = RC_Model::model('favourable/favourable_activity_modelv');
+		$db_cartview = RC_Model::model('cart/cart_good_member_viewmodel');
+		
 		/* 查询优惠活动 */
 		$now = RC_Time::gmtime();
 		$user_rank = ',' . $_SESSION['user_rank'] . ',';
@@ -1130,9 +1131,9 @@ class cart {
 	 * @return  boolen
 	 */
 	public static function judge_package_stock($package_id, $package_num = 1) {
-		$db_package_goods 	= RC_Loader::load_app_model('package_goods_model', 'goods');
-		$db_products_view 	= RC_Loader::load_app_model('products_viewmodel', 'goods');
-		$db_goods_view 		= RC_Loader::load_app_model('goods_auto_viewmodel', 'goods');
+		$db_package_goods = RC_Model::model('goods/package_goods_model');
+		$db_products_view = RC_Model::model('goods/products_viewmodel');
+		$db_goods_view = RC_Model::model('goods/goods_auto_viewmodel');
 	
 		$row = $db_package_goods->field('goods_id, product_id, goods_number')->where(array('package_id' => $package_id))->select();
 		if (empty($row)) {
@@ -1180,7 +1181,7 @@ class cart {
 	 * @param   int	 $type   类型：默认普通商品
 	 */
 	public static function clear_cart($type = CART_GENERAL_GOODS, $cart_id = array()) {
-		$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
+		$db_cart = RC_Model::model('cart/cart_model');
 		
 		$cart_w = array(
 				'user_id'	=> $_SESSION['user_id'],
@@ -1319,7 +1320,7 @@ class cart {
 	 * @return 优惠价格列表
 	 */
 	public static function get_volume_price_list($goods_id, $price_type = '1') {
-		$db = RC_Loader::load_app_model ( 'volume_price_model', 'goods' );
+		$db = RC_Model::model('goods/volume_price_model');
 		$volume_price = array ();
 		$temp_index = '0';
 	
@@ -1370,7 +1371,7 @@ class cart {
 	 * @return void
 	 */
 	public static function spec_price($spec) {
-		$db = RC_Loader::load_app_model ('goods_attr_model', 'goods');
+		$db = RC_Model:::model('goods/goods_attr_model');
 		if (! empty ( $spec )) {
 			if (is_array ( $spec )) {
 				foreach ( $spec as $key => $val ) {
