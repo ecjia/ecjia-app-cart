@@ -24,8 +24,14 @@ class done_module extends api_front implements api_interface {
     	$cart_id = array();
     	if (!empty($rec_id)) {
     		$cart_id = explode(',', $rec_id);
-    	} 
+    	}
     	
+    	$location		= $this->requestData('location',array());
+    	//TODO:目前强制坐标
+    	$location = array(
+    	    'latitude'	=> '31.235450744628906',
+    	    'longitude' => '121.41641998291016',
+    	);
     	/* 取得购物类型 */
     	$flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
     	
@@ -62,7 +68,7 @@ class done_module extends api_front implements api_interface {
     			'expect_shipping_time' =>  $this->requestData('expect_shipping_time'),
     	);
     	
-    	$result = RC_Api::api('cart', 'flow_done', array('cart_id' => $cart_id, 'order' => $order, 'address_id' => $address_id, 'flow_type' => $flow_type, 'bonus_sn' => $this->requestData('bonus_sn')));
+    	$result = RC_Api::api('cart', 'flow_done', array('cart_id' => $cart_id, 'order' => $order, 'address_id' => $address_id, 'flow_type' => $flow_type, 'bonus_sn' => $this->requestData('bonus_sn'), 'location' => $location));
     	
     	return $result;
     }

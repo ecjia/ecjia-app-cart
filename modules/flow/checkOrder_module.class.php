@@ -10,6 +10,7 @@ class checkOrder_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
     		
     	$this->authSession();
+    	$address_id = $this->requestData('address_id', 0);
 		RC_Loader::load_app_class('cart', 'cart', false);
 		$rec_id = $this->requestData('rec_id');
 		if (isset($_SESSION['cart_id'])) {
@@ -44,12 +45,14 @@ class checkOrder_module extends api_front implements api_interface {
 		
 		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $cart_id, 'flow_type' => $flow_type));
 		
+		if(is_ecjia_error($get_cart_goods)) {
+		    return new $get_cart_goods;
+		}
 		if (count($get_cart_goods['goods_list']) == 0) {
 			return new ecjia_error('not_found_cart_goods', '购物车中没有您选择的商品');
 		}
 		
 		/* 获取用户收货地址*/
-		$address_id = $this->requestData('address_id', 0);
 		if ($address_id > 0) {
 			$consignee = RC_Model::model('user/user_address_model')->find(array('address_id' => $address_id, 'user_id' => $_SESSION['user_id']));
 			$_SESSION['address_id'] = $address_id;
@@ -67,9 +70,12 @@ class checkOrder_module extends api_front implements api_interface {
 			return new ecjia_error('pls_fill_in_consinee_info_', '请完善收货人信息！');
 		}
 		
-		if ($flow_type != 'CART_EXCHANGE_GOODS') {
+		if ($flow_type != CART_EXCHANGE_GOODS) {
 			/* 获取附近的商家，判断购买商品是否在附近*/
 			$seller_list = RC_Api::api('seller', 'seller_list', array('location' => array('longitude' => $consignee['longitude'], 'latitude' => $consignee['latitude']), 'limit' => 'all'));
+			if(is_ecjia_error($seller_list)) {
+			    return $seller_list;
+			}
 			if (!empty($seller_list['seller_list'])) {
 				foreach ($seller_list['seller_list'] as $val) {
 					$seller_group[] = $val['id'];
@@ -79,7 +85,7 @@ class checkOrder_module extends api_front implements api_interface {
 				}
 				$goods_diff = array_diff($goods_group, $seller_group);
 				if (!empty($goods_diff)) {
-					return new ecjia_error('goods_beyond_delivery', '有部分商品不再送货范围内！');
+					return new ecjia_error('goods_beyond_delivery', '有部分商品不在送货范围内！');
 				}
 			} else {
 				return new ecjia_error('beyond_delivery', '您的收货地址不在送货范围内！');
@@ -455,7 +461,6 @@ class checkOrder_module extends api_front implements api_interface {
 			}
 		}
 		$out['favourable_list'] = $favourable_list_a;
-		
 		
 		return $out;
 

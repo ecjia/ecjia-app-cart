@@ -29,8 +29,11 @@ class cart_flow_done_api extends Component_Event_Api {
 // 			$cart_where['session_id'] = SESS_ID;
 // 		}
 // 		$cart_result = RC_Model::model('cart/cart_model')->where($cart_where)->select();
-		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $options['cart_id'], 'flow_type' => $options['flow_type']));
+		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $options['cart_id'], 'flow_type' => $options['flow_type'], 'location' => $options['location']));
 		
+		if (is_ecjia_error($get_cart_goods)) {
+		    return $get_cart_goods;
+		}
 		if (count($get_cart_goods['goods_list']) == 0) {
 			return new ecjia_error('not_found_cart_goods', '购物车中没有您选择的商品');
 		}
