@@ -750,7 +750,7 @@ class cart {
 	 * @return  int	 积分数
 	 */
 	public static function get_give_integral($cart_id = array()) {
-		$db_cartview = RC_Model::model('cart/cart_good_member_viewmodel')
+		$db_cartview = RC_Model::model('cart/cart_good_member_viewmodel');
 		$db_cartview->view = array(
 				'goods' => array(
 						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
@@ -1371,7 +1371,7 @@ class cart {
 	 * @return void
 	 */
 	public static function spec_price($spec) {
-		$db = RC_Model:::model('goods/goods_attr_model');
+		$db = RC_Model::model('goods/goods_attr_model');
 		if (! empty ( $spec )) {
 			if (is_array ( $spec )) {
 				foreach ( $spec as $key => $val ) {
