@@ -9,9 +9,6 @@ class pay_log_model extends Component_Model_Model {
 		$this->table_name = 'pay_log';
 		parent::__construct();
 	}
-
-
-
 }
 
 // end
