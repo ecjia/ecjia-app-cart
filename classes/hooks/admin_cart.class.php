@@ -17,11 +17,15 @@ class flow_hooks {
 	        if (!empty($valid_sess)) {
 	            $sess_arr = array();
 	            foreach ($valid_sess as $sess) {
-	                $sess_arr[] = $sess['session_id'];
+	            	if (!empty($sess['session_id'])){
+	            		$sess_arr[] = $sess['session_id'];
+	            	}
 	            }
 	        
 	            // 删除cart中无效的数据
-	            $db->in(array('session_id' => $sess_arr), true)->delete();
+	            if (!empty($sess_arr)) {
+	            	$db->in(array('session_id' => $sess_arr), true)->delete();
+	            }
 	        }
 	        RC_Cache::app_cache_set('clean_cart_session', 'clean_cart_session', 'cart', 1440);
 	    }
