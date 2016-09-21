@@ -59,7 +59,7 @@ class cart_cart_list_api extends Component_Event_Api {
 
 		/* 选择购买 */
 		if (!empty($cart_id)) {
-			$dbview_cart->where(RC_DB::raw('c.rec_id'), '=', $cart_id);
+			$dbview_cart->whereIn(RC_DB::raw('c.rec_id'), $cart_id);
 		}
 		if ($_SESSION['user_id']) {
 			$dbview_cart->where(RC_DB::raw('c.user_id'), '=', $_SESSION['user_id']);
@@ -93,7 +93,6 @@ class cart_cart_list_api extends Component_Event_Api {
 				->orderBy('pid', 'asc')
 				->orderBy('parent_id', 'asc')
 				->get();
-		
 		/* 用于统计购物车中实体商品和虚拟商品的个数 */
 		$virtual_goods_count = 0;
 		$real_goods_count    = 0;
