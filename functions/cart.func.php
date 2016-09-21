@@ -1138,7 +1138,7 @@ function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
 	if (!empty($cart_id)) {
 		$cart_where = array_merge($cart_where,  array('rec_id' => $cart_id));
 	}
-	$field = 'goods_img, original_img, goods_thumb, c.rec_id, c.user_id, c.ru_id, c.goods_id, c.goods_name, c.goods_sn, c.goods_number, c.market_price, c.goods_price, c.goods_attr, c.is_real, c.extension_code, c.parent_id, c.is_gift, c.is_shipping, c.goods_price * c.goods_number|subtotal, goods_weight as goodsWeight, c.goods_attr_id';
+	$field = 'goods_img, original_img, goods_thumb, c.rec_id, c.user_id, c.goods_id, c.goods_name, c.goods_sn, c.goods_number, c.market_price, c.goods_price, c.goods_attr, c.is_real, c.extension_code, c.parent_id, c.is_gift, c.is_shipping, c.goods_price * c.goods_number|subtotal, goods_weight as goodsWeight, c.goods_attr_id';
 	if ($_SESSION['user_id']) {
 		$cart_where = array_merge($cart_where, array('c.user_id' => $_SESSION['user_id']));
 		$arr = $db->field($field)->where($cart_where)->select();
@@ -1467,7 +1467,7 @@ function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $us
 				'goods' => array(
 						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
 						'alias' => 'g',
-						'field' => "c.ru_id, c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id",
+						'field' => " c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id",
 						'on'   	=> 'c.goods_id = g.goods_id'
 				)
 		);
@@ -1660,7 +1660,7 @@ function compute_discount_amount($cart_id = array()) {
 			'goods' => array(
 					'type'  => Component_Model_View::TYPE_LEFT_JOIN,
 					'alias' => 'g',
-					'field' => "c.ru_id, c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id",
+					'field' => " c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id",
 					'on'    => 'c.goods_id = g.goods_id'
 			)
 	);
