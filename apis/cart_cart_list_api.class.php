@@ -31,10 +31,12 @@ class cart_cart_list_api extends Component_Event_Api {
 	 * @return  array
 	 */
 	private function get_cart_goods($cart_id = array(), $flow_type = CART_GENERAL_GOODS, $location = array()) {
-		$dbview_cart 	= RC_Model::model('cart/cart_viewmodel');
-		$db_goods_attr 	= RC_Model::model('goods/goods_attr_model');
-		$db_goods 		= RC_Model::model('goods/goods_model');
-	
+		$dbview_cart = RC_DB::table('cart as c')
+					   ->leftJoin('goods as g', RC_DB::raw('c.goods_id'), '=', RC_DB::raw('g.goods_id'))
+					   ->leftJoin('seller_shopinfo as ssi', RC_DB::raw('ssi.id'), '=', RC_DB::raw('c.seller_id'));
+		$db_goods_attr = RC_DB::table('goods_attr');
+		$db_goods 	   = RC_DB::table('goods');
+		
 		/* 初始化 */
 		$goods_list = array();
 		$total = array(
@@ -46,75 +48,51 @@ class cart_cart_list_api extends Component_Event_Api {
 		);
 		
 		/* 循环、统计 */
-		$cart_where = array('rec_type' => $flow_type);
-		
+		$dbview_cart->where(RC_DB::raw('c.rec_type'), '=', $flow_type);
 		/* 根据经纬度查询附近店铺*/
 		if (is_array($location) && isset($location['latitude']) && isset($location['longitude'])) {
 			$geohash = RC_Loader::load_app_class('geohash', 'shipping');
 			$geohash_code = $geohash->encode($location['latitude'] , $location['longitude']);
 			$geohash_code = substr($geohash_code, 0, 5);
-			
-			$cart_where['geohash'] = array('like' => "%$geohash_code%");
-// 			$msi_dbview = RC_Loader::load_app_model('merchants_shop_information_viewmodel', 'seller');
-// 			$ru_id_info = $msi_dbview->join(array('merchants_shop_information', 'seller_shopinfo'))
-// 									 ->field(array('msi.user_id', 'msi.shopNameSuffix', 'msi.shoprz_brandName'))
-// 									 ->where(array(
-// 												'geohash'		=> array('like' => "%$where_geohash%"),
-// 												'ssi.status'	=> 1,
-// 												'msi.merchants_audit' => 1,))
-// 									 ->select();
-		
-// 			if (!empty($ru_id_info)) {
-// 				$ru_id = array();
-// 				foreach ($ru_id_info as $val) {
-// 					$ru_id[] = $val['user_id'];
-// 					$seller_info[$val['user_id']]['seller_id'] = $val['user_id'];
-// 					$seller_info[$val['user_id']]['seller_name'] = (!empty($val['shoprz_brandName']) && !empty($val['shopNameSuffix'])) ? $val['shoprz_brandName'].$val['shopNameSuffix'] : '';
-		
-// 				}
-// 				$merchants_shop_information_db = RC_Loader::load_app_model('merchants_shop_information_model', 'seller');
-// 				$merchants_shop_information_db->where(array('user_id' => $ru_id))->select();
-// 				$cart_where['c.ru_id'] = $ru_id;
-// 			} else {
-// 				$cart_where['c.ru_id'] = '';
-// 			}
+			$dbview_cart->where(RC_DB::raw('ssi.geohash'), 'like', '%'.$geohash_code.'%');
 		}
 
 		/* 选择购买 */
 		if (!empty($cart_id)) {
-			$cart_where['rec_id'] = $cart_id;
+			$dbview_cart->where(RC_DB::raw('c.rec_id'), '=', $cart_id);
 		}
 		if ($_SESSION['user_id']) {
-			$cart_where['c.user_id'] = $_SESSION['user_id'];
+			$dbview_cart->where(RC_DB::raw('c.user_id'), '=', $_SESSION['user_id']);
 		} else {
-			$cart_where['session_id'] = SESS_ID;
+			$dbview_cart->where(RC_DB::raw('c.session_id'), '=', SESS_ID);
 		}
-// 		$data = $db_cart->field('*, IF(parent_id, parent_id, goods_id)|pid')->where($cart_where)->order(array('pid'=>'asc', 'parent_id'=>'asc'))->select();
+				
+		//$dbview_cart->view = array(
+		//		'goods' => array(
+		//				'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
+		//				'alias' => 'g',
+		//				'on' 	=> 'c.goods_id = g.goods_id'
+		//		),
+		//		'seller_shopinfo' => array(
+		//				'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
+		//				'alias' => 'ssi',
+		//				'on' 	=> 'ssi.id = c.seller_id'
+		//		),
+		//);
 		
-		$dbview_cart->view = array(
-				'goods' => array(
-						'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
-						'alias' => 'g',
-						'on' 	=> 'c.goods_id = g.goods_id'
-				),
-				'seller_shopinfo' => array(
-						'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
-						'alias' => 'ssi',
-						'on' 	=> 'ssi.id = c.seller_id'
-				),
-// 				'merchants_shop_information' => array(
-// 						'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
-// 						'alias' => 'msi',
-// 						'on' 	=> 'msi.user_id = c.ru_id'
-// 				),
-		);
+		//$field = 'c.*, IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, ssi.shop_name as seller_name';
+		//$data = $dbview_cart->join(array('goods', 'seller_shopinfo'))
+		//					->field($field)
+		//					->where($cart_where)
+		//					->order(array('seller_id' => 'asc', 'pid' => 'asc', 'parent_id' => 'asc'))
+		//					->select();
 		
-		$field = 'c.*, IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, ssi.shop_name as seller_name';
-		$data = $dbview_cart->join(array('goods', 'seller_shopinfo'))
-							->field($field)
-							->where($cart_where)
-							->order(array('seller_id' => 'asc', 'pid' => 'asc', 'parent_id' => 'asc'))
-							->select();
+		$data = $dbview_cart
+				->selectRaw("c.*,IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, ssi.shop_name as seller_name")
+				->orderBy('seller_id', 'asc')
+				->orderBy('pid', 'asc')
+				->orderBy('parent_id', 'asc')
+				->get();
 		
 		/* 用于统计购物车中实体商品和虚拟商品的个数 */
 		$virtual_goods_count = 0;
@@ -143,7 +121,8 @@ class cart_cart_list_api extends Component_Event_Api {
 				/* 查询规格 */
 				if (trim($row['goods_attr']) != '') {
 					$row['goods_attr'] = addslashes($row['goods_attr']);
-					$attr_list = $db_goods_attr->field('attr_value')->in(array('goods_attr_id' =>$row['goods_attr_id']))->select();
+					//$attr_list = $db_goods_attr->field('attr_value')->in(array('goods_attr_id' =>$row['goods_attr_id']))->select();
+					$attr_list = $db_goods_attr->select('attr_value')->whereIn('goods_attr_id', $row['goods_attr_id'])->get();
 					foreach ($attr_list AS $attr) {
 						$row['goods_name'] .= ' [' . $attr[attr_value] . '] ';
 					}
@@ -170,7 +149,7 @@ class cart_cart_list_api extends Component_Event_Api {
 		$total['market_price'] 			= price_format($total['market_price'], false);
 		$total['real_goods_count']    	= $real_goods_count;
 		$total['virtual_goods_count'] 	= $virtual_goods_count;
-	
+		
 		return array('goods_list' => $goods_list, 'total' => $total);
 
 	}
