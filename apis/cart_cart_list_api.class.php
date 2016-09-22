@@ -51,7 +51,7 @@ class cart_cart_list_api extends Component_Event_Api {
 		$dbview_cart->where(RC_DB::raw('c.rec_type'), '=', $flow_type);
 		/* 根据经纬度查询附近店铺*/
 		if (is_array($location) && isset($location['latitude']) && isset($location['longitude'])) {
-			$geohash = RC_Loader::load_app_class('geohash', 'shipping');
+			$geohash = RC_Loader::load_app_class('geohash', 'store');
 			$geohash_code = $geohash->encode($location['latitude'] , $location['longitude']);
 			$geohash_code = substr($geohash_code, 0, 5);
 			$dbview_cart->where(RC_DB::raw('ssi.geohash'), 'like', '%'.$geohash_code.'%');
