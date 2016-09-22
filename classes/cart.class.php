@@ -1020,7 +1020,7 @@ class cart {
 	 * @return  float   享受红包支付的总额
 	 */
 	public static function compute_discount_amount($cart_id = array()) {
-		$db = RC_Model::model('favourable/favourable_activity_modelv');
+		$db = RC_Model::model('favourable/favourable_activity_model');
 		$db_cartview = RC_Model::model('cart/cart_good_member_viewmodel');
 		
 		/* 查询优惠活动 */
