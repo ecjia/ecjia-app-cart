@@ -24,10 +24,10 @@ class list_module extends api_front implements api_interface {
 		$cart_goods = array('cart_list' => array(), 'total' => $cart_result['total']);
 		if (!empty($cart_result['goods_list'])) {
 			foreach ($cart_result['goods_list'] as $row) {
-				if (!isset($cart_goods['cart_list'][$row['seller_id']])) {
-					$cart_goods['cart_list'][$row['seller_id']] = array(
-							'seller_id'		=> intval($row['seller_id']),
-							'seller_name'	=> $row['seller_name'],
+				if (!isset($cart_goods['cart_list'][$row['store_id']])) {
+					$cart_goods['cart_list'][$row['store_id']] = array(
+							'seller_id'		=> intval($row['store_id']),
+							'seller_name'	=> $row['store_name'],
 					);
 				}
 				$goods_attrs = null;
@@ -43,7 +43,7 @@ class list_module extends api_front implements api_interface {
 					}
 				}
 				
-				$cart_goods['cart_list'][$row['seller_id']]['goods_list'][] = array(
+				$cart_goods['cart_list'][$row['store_id']]['goods_list'][] = array(
 						'rec_id'	=> intval($row['rec_id']),
 						'goods_id'	=> intval($row['goods_id']),
 						'goods_sn'	=> $row['goods_sn'],
@@ -75,8 +75,8 @@ class list_module extends api_front implements api_interface {
 				'size'		=> 8,
 				'location'	=> $location,
 		);
-		$result = RC_Api::api('goods', 'goods_list', $options);
 		
+		$result = RC_Api::api('goods', 'goods_list', $options);
 	
 		$cart_goods['related_goods'] = array();
 		if (!empty($result['list'])) {
@@ -127,8 +127,8 @@ class list_module extends api_front implements api_interface {
 						'object_id'		=> $object_id,
 						'saving_price'	=>	$saving_price,
 						'formatted_saving_price' => $saving_price > 0 ? '已省'.$saving_price.'元' : '',
-						'seller_id'		=> $val['seller_id'],
-						'seller_name'	=> $val['seller_name'],
+						'seller_id'		=> $val['store_id'],
+						'seller_name'	=> $val['store_name'],
 				);
 			}
 		}

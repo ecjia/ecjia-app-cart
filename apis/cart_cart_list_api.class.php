@@ -33,7 +33,7 @@ class cart_cart_list_api extends Component_Event_Api {
 	private function get_cart_goods($cart_id = array(), $flow_type = CART_GENERAL_GOODS, $location = array()) {
 		$dbview_cart = RC_DB::table('cart as c')
 					   ->leftJoin('goods as g', RC_DB::raw('c.goods_id'), '=', RC_DB::raw('g.goods_id'))
-					   ->leftJoin('seller_shopinfo as ssi', RC_DB::raw('ssi.id'), '=', RC_DB::raw('c.seller_id'));
+					   ->leftJoin('store_franchisee as s', RC_DB::raw('s.store_id'), '=', RC_DB::raw('c.store_id'));
 		$db_goods_attr = RC_DB::table('goods_attr');
 		$db_goods 	   = RC_DB::table('goods');
 		
@@ -54,7 +54,7 @@ class cart_cart_list_api extends Component_Event_Api {
 			$geohash = RC_Loader::load_app_class('geohash', 'store');
 			$geohash_code = $geohash->encode($location['latitude'] , $location['longitude']);
 			$geohash_code = substr($geohash_code, 0, 5);
-			$dbview_cart->where(RC_DB::raw('ssi.geohash'), 'like', '%'.$geohash_code.'%');
+			$dbview_cart->where(RC_DB::raw('s.geohash'), 'like', '%'.$geohash_code.'%');
 		}
 
 		/* 选择购买 */
@@ -76,7 +76,7 @@ class cart_cart_list_api extends Component_Event_Api {
 		//		'seller_shopinfo' => array(
 		//				'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
 		//				'alias' => 'ssi',
-		//				'on' 	=> 'ssi.id = c.seller_id'
+		//				'on' 	=> 'ssi.id = c.store_id'
 		//		),
 		//);
 		
@@ -84,12 +84,12 @@ class cart_cart_list_api extends Component_Event_Api {
 		//$data = $dbview_cart->join(array('goods', 'seller_shopinfo'))
 		//					->field($field)
 		//					->where($cart_where)
-		//					->order(array('seller_id' => 'asc', 'pid' => 'asc', 'parent_id' => 'asc'))
+		//					->order(array('store_id' => 'asc', 'pid' => 'asc', 'parent_id' => 'asc'))
 		//					->select();
 		
 		$data = $dbview_cart
-				->selectRaw("c.*,IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, ssi.shop_name as seller_name")
-				->orderBy('seller_id', 'asc')
+				->selectRaw("c.*,IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, s.merchants_name as seller_name")
+				->orderBy('store_id', 'asc')
 				->orderBy('pid', 'asc')
 				->orderBy('parent_id', 'asc')
 				->get();
