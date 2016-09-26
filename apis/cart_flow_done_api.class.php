@@ -58,17 +58,18 @@ class cart_flow_done_api extends Component_Event_Api {
 		
 		if ($_SESSION['flow_type'] != CART_EXCHANGE_GOODS) {
 			/* 获取附近的商家，判断购买商品是否在附近*/
-			$seller_list = RC_Api::api('seller', 'seller_list', array('location' => array('longitude' => $consignee['longitude'], 'latitude' => $consignee['latitude']), 'limit' => 'all'));
-			if (!empty($seller_list['seller_list'])) {
-				foreach ($seller_list['seller_list'] as $val) {
-					$seller_group[] = $val['id'];
-				}
+		    /* 获取附近的商家，判断购买商品是否在附近*/
+		    $geohash = RC_Loader::load_app_class('geohash', 'store');
+		    $geohash_code = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
+		    $geohash_code = substr($geohash_code, 0, 5);
+		    $store_list = RC_Api:: api( 'store', 'neighbors_store_id' , array('geohash' => $geohash_code));
+// 			$seller_list = RC_Api::api('seller', 'seller_list', array('location' => array('longitude' => $consignee['longitude'], 'latitude' => $consignee['latitude']), 'limit' => 'all'));
+			if (!empty($store_list)) {
 				foreach ($get_cart_goods['goods_list'] as $val) {
 					$order['store_id']		= $val['store_id'];
-	// 				$goods_group[] = $val['ru_id'];
 					$goods_group[] = $val['store_id'];
 				}
-				$goods_diff = array_diff($goods_group, $seller_group);
+				$goods_diff = array_diff($goods_group, $store_list);
 				if (!empty($goods_diff)) {
 					return new ecjia_error('goods_beyond_delivery', '有部分商品不再送货范围内！');
 				}
@@ -277,7 +278,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		$db_order_goods = RC_DB::table('order_goods');
 		$db_goods_activity = RC_DB::table('goods_activity');
 		
-		$field = 'goods_id, goods_name, goods_sn, product_id, goods_number, market_price,goods_price, goods_attr, is_real, extension_code, parent_id, is_gift, goods_attr_id, ru_id';
+		$field = 'goods_id, goods_name, goods_sn, product_id, goods_number, market_price,goods_price, goods_attr, is_real, extension_code, parent_id, is_gift, goods_attr_id, store_id';
 
 		//$cart_w = array(
 		//		'user_id'	=> $_SESSION['user_id'],
@@ -312,7 +313,7 @@ class cart_flow_done_api extends Component_Event_Api {
 						'parent_id'		=> $row['parent_id'],
 						'is_gift'		=> $row['is_gift'],
 						'goods_attr_id' => $row['goods_attr_id'],
-// 						'ru_id'			=> $row['ru_id'],
+						'store_id'		=> $row['store_id'],
 				);
 				$db_order_goods->insert($arr);
 			}
@@ -360,12 +361,12 @@ class cart_flow_done_api extends Component_Event_Api {
 			$tpl_name = 'remind_of_new_order';
 			$tpl   = RC_Api::api('mail', 'mail_template', $tpl_name);
 		
-			ecjia_front::$controller->assign('order', $order);
-			ecjia_front::$controller->assign('goods_list', $cart_goods);
+			ecjia_admin::$controller->assign('order', $order);
+			ecjia_admin::$controller->assign('goods_list', $cart_goods);
 			ecjia_front::$controller->assign('shop_name', ecjia::config('shop_name'));
-			ecjia_front::$controller->assign('send_date', date(ecjia::config('time_format')));
+			ecjia_admin::$controller->assign('send_date', date(ecjia::config('time_format')));
 		
-			$content = ecjia::$controller->fetch_string($tpl['template_content']);
+			$content = ecjia_admin::$controller->fetch_string($tpl['template_content']);
 			RC_Mail::send_mail(ecjia::config('shop_name'), ecjia::config('service_email'), $tpl['template_subject'], $content, $tpl['is_html']);
 		}
 		
@@ -404,17 +405,29 @@ class cart_flow_done_api extends Component_Event_Api {
 			//	$cart_w = array_merge($cart_w, array('session_id' => SESS_ID));
 			//}
 			//$res = RC_Model::model('cart/cart_model')->field('goods_id, goods_name, goods_number AS num')->where($cart_w)->select();
-			$cart_w = '';
+// 			$cart_w = '';
 			$rec_type = $options['flow_type'];
 			$user_id  = $_SESSION['user_id'];
-			$cart_w = "is_real = 0" . "and extension_code = 'virtual_card'" . "and rec_type = '$rec_type'";
-			if ($_SESSION['user_id']) {
-				$cart_w .= " and user_id = '$user_id'";
+// 			$cart_w = " is_real=0 and extension_code='virtual_card' and rec_type='$rec_type'";
+			if ($user_id) {
+// 				$cart_w .= " and user_id = '$user_id'";
+			    $res = RC_DB::table('cart')->select(RC_DB::raw('goods_id, goods_name, goods_number AS num'))
+			                               ->where('is_real', 0)
+			                               ->where('extension_code', 'virtual_card')
+			                               ->where('is_real', $rec_type)
+			                               ->where('user_id', $user_id)
+			                               ->get();
 			} else {
 				$session_id = SESS_ID;
-				$cart_w .= " and session_id = '$session_id'";
+// 				$cart_w .= " and session_id = '$session_id'";
+				$res = RC_DB::table('cart')->select(RC_DB::raw('goods_id, goods_name, goods_number AS num'))
+				->where('is_real', 0)
+				->where('extension_code', 'virtual_card')
+				->where('is_real', $rec_type)
+				->where('session_id', $session_id)
+				->get();
 			}
-			$res = RC_DB::table('cart')->select(RC_DB::raw('goods_id, goods_name, goods_number AS num'))->where($cart_w)->get();
+			
 			$virtual_goods = array();
 			foreach ($res as $row) {
 				$virtual_goods['virtual_card'][] = array(
@@ -426,7 +439,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		
 			if ($virtual_goods and $options['flow_type'] != CART_GROUP_BUY_GOODS) {
 				/* 虚拟卡发货 */
-				if (virtual_goods_ship($virtual_goods, $msg, $order['order_sn'], true)) {
+// 				if (virtual_goods_ship($virtual_goods, $msg, $order['order_sn'], true)) {
 					/* 如果没有实体商品，修改发货状态，送积分和红包 */
 					//$count = $db_order_goods->where(array('order_id' => $order['order_id'] , 'is_real' => 1))->count();
 					$count = $db_order_goods
@@ -461,11 +474,11 @@ class cart_flow_done_api extends Component_Event_Api {
 							send_order_bonus($order['order_id']);
 						}
 					}
-				}
+// 				}
 			}
 			$result = ecjia_app::validate_application('sms');
 			 
-			if (!is_ecjia_error($result)) {
+			/*收货验证码 if (!is_ecjia_error($result)) {
 				$code = rand(100000, 999999);
 				//$order_goods = $db_order_goods->field('goods_name, sum(goods_number) as goods_number')->find(array('order_id' => $order['order_id']));
 				//$db_order_info->where(array('order_id' => $order['order_id']))->update(array('mobile_verify' => $code));
@@ -473,9 +486,10 @@ class cart_flow_done_api extends Component_Event_Api {
 								->select(RC_DB::raw('goods_name, sum(goods_number) as goods_number'))
 								->where('order_id', $order['order_id'])
 								->first();
-				$db_order_info->where('order_id', $order['order_id'])->update(array('mobile_verify', $code));
+				$db_order_info->where('order_id', $order['order_id'])->update(array('mobile_verify' => $code));
 				//发送短信
 				$tpl_name = 'sms_ordercode';
+
 				$tpl   = RC_Api::api('sms', 'sms_template', $tpl_name);
 				if (!empty($tpl)) {
 					ecjia_front::$controller->assign('code', $code);
@@ -490,7 +504,7 @@ class cart_flow_done_api extends Component_Event_Api {
 					);
 					$response = RC_Api::api('sms', 'sms_send', $options);
 				}
-			}
+			} */
 		}
 		
 		/* 清空购物车 */
