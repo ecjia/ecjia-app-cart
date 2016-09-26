@@ -917,7 +917,7 @@ class cart {
 						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
 						'alias' => 'g',
 // 						'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.user_id",
-						'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.seller_id",
+						'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.store_id",
 						'on'   	=> 'c.goods_id = g.goods_id'
 				)
 		);
@@ -954,7 +954,7 @@ class cart {
 				if ($favourable['act_range'] == FAR_ALL) {
 					foreach ($goods_list as $goods) {
 // 						if ($favourable['user_id'] == $goods['user_id']) {
-						if ($favourable['seller_id'] == $goods['seller_id']) {
+						if ($favourable['seller_id'] == $goods['store_id']) {
 							$total_amount += $goods['subtotal'];
 						}
 					}
@@ -969,7 +969,7 @@ class cart {
 		
 					foreach ($goods_list as $goods) {
 // 						if ($favourable['user_id'] == $goods['user_id']) {
-						if ($favourable['seller_id'] == $goods['seller_id']) {
+						if ($favourable['seller_id'] == $goods['store_id']) {
 							if (strpos(',' . $ids . ',', ',' . $goods['cat_id'] . ',') !== false) {
 								$total_amount += $goods['subtotal'];
 							}
@@ -978,7 +978,7 @@ class cart {
 				} elseif ($favourable['act_range'] == FAR_BRAND) {
 					foreach ($goods_list as $goods) {
 // 						if ($favourable['user_id'] == $goods['user_id']) {
-						if ($favourable['seller_id'] == $goods['seller_id']) {
+						if ($favourable['seller_id'] == $goods['store_id']) {
 							if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['brand_id'] . ',') !== false) {
 								$total_amount += $goods['subtotal'];
 							}
@@ -987,7 +987,7 @@ class cart {
 				} elseif ($favourable['act_range'] == FAR_GOODS) {
 					foreach ($goods_list as $goods) {
 // 						if ($favourable['user_id'] == $goods['user_id']) {
-						if ($favourable['seller_id'] == $goods['seller_id']) {
+						if ($favourable['seller_id'] == $goods['store_id']) {
 // 							if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
 							if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
 								$total_amount += $goods['subtotal'];
@@ -1038,7 +1038,7 @@ class cart {
 						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
 						'alias' => 'g',
 // 						'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.user_id",
-						'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.seller_id",
+						'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.store_id",
 						'on'    => 'c.goods_id = g.goods_id'
 				)
 		);
@@ -1070,7 +1070,7 @@ class cart {
 			if ($favourable['act_range'] == FAR_ALL) {
 				foreach ($goods_list as $goods) {
 // 					if ($favourable['user_id'] == $goods['user_id']) {
-					if ($favourable['seller_id'] == $goods['seller_id']) {
+					if ($favourable['seller_id'] == $goods['store_id']) {
 						$total_amount += $goods['subtotal'];
 					}
 				}
@@ -1085,7 +1085,7 @@ class cart {
 	
 				foreach ($goods_list as $goods) {
 // 					if ($favourable['user_id'] == $goods['user_id']) {
-					if ($favourable['seller_id'] == $goods['seller_id']) {
+					if ($favourable['seller_id'] == $goods['store_id']) {
 						if (strpos(',' . $ids . ',', ',' . $goods['cat_id'] . ',') !== false) {
 							$total_amount += $goods['subtotal'];
 						}
@@ -1094,7 +1094,7 @@ class cart {
 			} elseif ($favourable['act_range'] == FAR_BRAND) {
 				foreach ($goods_list as $goods) {
 // 					if ($favourable['user_id'] == $goods['user_id']) {
-					if ($favourable['seller_id'] == $goods['seller_id']) {
+					if ($favourable['seller_id'] == $goods['store_id']) {
 						if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['brand_id'] . ',') !== false) {
 							$total_amount += $goods['subtotal'];
 						}
@@ -1103,7 +1103,7 @@ class cart {
 			} elseif ($favourable['act_range'] == FAR_GOODS) {
 				foreach ($goods_list as $goods) {
 // 					if ($favourable['user_id'] == $goods['user_id']) {
-					if ($favourable['seller_id'] == $goods['seller_id']) {
+					if ($favourable['seller_id'] == $goods['store_id']) {
 // 						if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
 						if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
 							$total_amount += $goods['subtotal'];
