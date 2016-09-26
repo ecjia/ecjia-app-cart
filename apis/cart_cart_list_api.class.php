@@ -80,7 +80,7 @@ class cart_cart_list_api extends Component_Event_Api {
 		//		),
 		//);
 		
-		//$field = 'c.*, IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, ssi.shop_name as seller_name';
+		//$field = 'c.*, IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, ssi.shop_name as store_name';
 		//$data = $dbview_cart->join(array('goods', 'seller_shopinfo'))
 		//					->field($field)
 		//					->where($cart_where)
@@ -88,7 +88,7 @@ class cart_cart_list_api extends Component_Event_Api {
 		//					->select();
 		
 		$data = $dbview_cart
-				->selectRaw("c.*,IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, s.merchants_name as seller_name")
+				->selectRaw("c.*,IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, s.merchants_name as store_name")
 				->orderBy('store_id', 'asc')
 				->orderBy('pid', 'asc')
 				->orderBy('parent_id', 'asc')

@@ -64,9 +64,9 @@ class cart_flow_done_api extends Component_Event_Api {
 					$seller_group[] = $val['id'];
 				}
 				foreach ($get_cart_goods['goods_list'] as $val) {
-					$order['seller_id']		= $val['seller_id'];
+					$order['store_id']		= $val['store_id'];
 	// 				$goods_group[] = $val['ru_id'];
-					$goods_group[] = $val['seller_id'];
+					$goods_group[] = $val['store_id'];
 				}
 				$goods_diff = array_diff($goods_group, $seller_group);
 				if (!empty($goods_diff)) {
