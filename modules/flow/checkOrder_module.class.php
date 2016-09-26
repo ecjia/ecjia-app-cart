@@ -16,6 +16,9 @@ class checkOrder_module extends api_front implements api_interface {
 		if (isset($_SESSION['cart_id'])) {
 			$rec_id = empty($rec_id) ? $_SESSION['cart_id'] : $rec_id;
 		}
+		if (empty($address_id) || empty($rec_id)) {
+		    return new ecjia_error( 'invalid_parameter', RC_Lang::get ('system::system.invalid_parameter' ));
+		}
 		$cart_id = array();
 		if (!empty($rec_id)) {
 			$cart_id = explode(',', $rec_id);
@@ -72,18 +75,21 @@ class checkOrder_module extends api_front implements api_interface {
 		
 		if ($flow_type != CART_EXCHANGE_GOODS) {
 			/* 获取附近的商家，判断购买商品是否在附近*/
-			$seller_list = RC_Api::api('seller', 'seller_list', array('location' => array('longitude' => $consignee['longitude'], 'latitude' => $consignee['latitude']), 'limit' => 'all'));
-			if(is_ecjia_error($seller_list)) {
-			    return $seller_list;
+		    $geohash = RC_Loader::load_app_class('geohash', 'store');
+		    $geohash_code = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
+		    $geohash_code = substr($geohash_code, 0, 5);
+		    $store_list = RC_Api:: api( 'store', 'neighbors_store_id' , array('geohash' => $geohash_code));
+// 			$seller_list = RC_Api::api('seller', 'seller_list', array('location' => array('longitude' => $consignee['longitude'], 'latitude' => $consignee['latitude']), 'limit' => 'all'));
+			
+			if(is_ecjia_error($store_list)) {
+			    return $store_list;
 			}
-			if (!empty($seller_list['seller_list'])) {
-				foreach ($seller_list['seller_list'] as $val) {
-					$seller_group[] = $val['id'];
-				}
+			
+			if (!empty($store_list)) {
 				foreach ($get_cart_goods['goods_list'] as $val) {
-					$goods_group[] = $val['seller_id'];
+					$goods_group[] = $val['store_id'];
 				}
-				$goods_diff = array_diff($goods_group, $seller_group);
+				$goods_diff = array_diff($goods_group, $store_list);
 				if (!empty($goods_diff)) {
 					return new ecjia_error('goods_beyond_delivery', '有部分商品不在送货范围内！');
 				}
@@ -112,8 +118,8 @@ class checkOrder_module extends api_front implements api_interface {
 		$cart_goods = array();
 		foreach ($get_cart_goods['goods_list'] as $row) {
 			$cart_goods[] = array(
-					'seller_id'		=> intval($row['seller_id']),
-					'seller_name'	=> $row['seller_name'],
+					'seller_id'		=> intval($row['store_id']),
+					'seller_name'	=> $row['store_name'],
 					'rec_id'		=> intval($row['rec_id']),
 					'goods_id'		=> intval($row['goods_id']),
 					'goods_sn'		=> $row['goods_sn'],
