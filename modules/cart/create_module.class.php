@@ -57,8 +57,8 @@ class create_module extends api_front implements api_interface {
 			$db_goods_attr = RC_Model::model('goods/goods_attr_model');
 			RC_Loader::load_app_func('common', 'goods');
 			
-			$field = 'c.*, IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, ssi.shop_name as seller_name';
-			$data = $cart_dbview->join(array('goods', 'seller_shopinfo'))
+			$field = 'c.*, IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, s.merchants_name as store_name';
+			$data = $cart_dbview->join(array('goods', 'store_franchisee'))
 							->field($field)
 							->where(array('c.user_id' => $_SESSION['user_id'] , 'rec_type' => CART_GENERAL_GOODS, 'rec_id' => $result))
 							->select();
@@ -98,8 +98,8 @@ class create_module extends api_front implements api_interface {
 							
 					$goods_list = array(
 							'rec_id'		=> $row['rec_id'],
-							'seller_id'		=> $row['seller_id'],
-							'seller_name'	=> empty($row['seller_name']) ? ecjia::config('shop_name') : $row['seller_name'],
+							'seller_id'		=> $row['store_id'],
+							'seller_name'	=> empty($row['store_name']) ? ecjia::config('shop_name') : $row['store_name'],
 							'goods_id'		=> $row['goods_id'],
 							'goods_sn'		=> $row['goods_sn'],
 							'goods_name'	=> $row['goods_name'],
