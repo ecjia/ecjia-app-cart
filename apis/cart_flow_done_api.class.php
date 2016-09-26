@@ -421,11 +421,11 @@ class cart_flow_done_api extends Component_Event_Api {
 				$session_id = SESS_ID;
 // 				$cart_w .= " and session_id = '$session_id'";
 				$res = RC_DB::table('cart')->select(RC_DB::raw('goods_id, goods_name, goods_number AS num'))
-				->where('is_real', 0)
-				->where('extension_code', 'virtual_card')
-				->where('is_real', $rec_type)
-				->where('session_id', $session_id)
-				->get();
+                                            ->where('is_real', 0)
+                                            ->where('extension_code', 'virtual_card')
+                                            ->where('is_real', $rec_type)
+                                            ->where('session_id', $session_id)
+                                            ->get();
 			}
 			
 			$virtual_goods = array();
