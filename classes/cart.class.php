@@ -285,8 +285,7 @@ class cart {
 		if (self::exist_real_goods(0, $flow_type)) {
 			/* 如果存在实体商品 */
 			$res = !empty($consignee['consignee']) &&
-			!empty($consignee['country']) &&
-			!empty($consignee['tel']);
+			!empty($consignee['country']);
 	
 			if ($res) {
 				if (empty($consignee['province'])) {
@@ -493,10 +492,11 @@ class cart {
 				'tax'              => 0
 		   
 		);
-		$weight = 0;
-	
+		$weight		= 0;
+		$store_id	= 0;
 		/* 商品总价 */
 		foreach ($goods AS $key => $val) {
+			$store_id = $val['store_id'];
 			/* 统计实体商品的个数 */
 			if ($val['is_real']) {
 				$total['real_goods_count']++;
@@ -557,14 +557,14 @@ class cart {
 	
 		/* 红包 */
 		if (!empty($order['bonus_id'])) {
-			$bonus          = RC_Api::api('bonus', 'bonus_info', array('bonus_id' => $order['bonus_id']));
+			$bonus          = RC_Api::api('bonus', 'bonus_info', array('bonus_id' => $order['bonus_id'], 'store_id' => $store_id));
 			$total['bonus'] = $bonus['type_money'];
 		}
 		$total['bonus_formated'] = price_format($total['bonus'], false);
 		/* 线下红包 */
 		if (!empty($order['bonus_kill'])) {
 			 
-			$bonus  = RC_Api::api('bonus', 'bonus_info', array('bonus_id' => 0, 'bonus_sn' => $order['bonus_kill']));
+			$bonus  = RC_Api::api('bonus', 'bonus_info', array('bonus_id' => 0, 'bonus_sn' => $order['bonus_kill'], 'store_id' => $store_id));
 			$total['bonus_kill'] = $order['bonus_kill'];
 			$total['bonus_kill_formated'] = price_format($total['bonus_kill'], false);
 		}
@@ -576,12 +576,11 @@ class cart {
 			$region['province'] = $consignee['province'];
 			$region['city']     = $consignee['city'];
 			$region['district'] = isset($consignee['district']) ? $consignee['district'] : '';
-			 
+			
 			$shipping_method	= RC_Loader::load_app_class('shipping_method', 'shipping');
-			$shipping_info 		= $shipping_method->shipping_area_info($order['shipping_id'], $region);
+			$shipping_info 		= $shipping_method->shipping_area_info($order['shipping_id'], $region, $store_id);
 	
 			if (!empty($shipping_info)) {
-	
 				if ($order['extension_code'] == 'group_buy') {
 					$weight_price = self::cart_weight_price(CART_GROUP_BUY_GOODS);
 				} else {
@@ -599,21 +598,9 @@ class cart {
 				 
 				$total['shipping_fee'] = ($shipping_count == 0 AND $weight_price['free_shipping'] == 1) ? 0 :  $shipping_method->shipping_fee($shipping_info['shipping_code'], $shipping_info['configure'], $weight_price['weight'], $total['goods_price'], $weight_price['number']);
 				
-				//ecmoban模板堂 --zhuo start
-// 				if (ecjia::config('freight_model') == 0) {
-// 					$total['shipping_fee'] = ($shipping_count == 0 AND $weight_price['free_shipping'] == 1) ? 0 :  $shipping_method->shipping_fee($shipping_info['shipping_code'],$shipping_info['configure'], $weight_price['weight'], $total['goods_price'], $weight_price['number']);
-// 					//             	$total['shipping_fee'] = ($shipping_count == 0 AND $weight_price['free_shipping'] == 1) ?0 :  shipping_fee($shipping_info['shipping_code'],$shipping_info['configure'], $weight_price['weight'], $total['goods_price'], $weight_price['number']);
-// 				} elseif (ecjia::config('freight_model') == 1) {
-// 					$shipping_fee = get_goods_order_shipping_fee($goods, $region, $shipping_info['shipping_code']);
-// 					$total['shipping_fee'] = ($shipping_count == 0 AND $weight_price['free_shipping'] == 1) ? 0 :  $shipping_fee['shipping_fee'];
-// 					//             	$total['ru_list'] = $shipping_fee['ru_list']; //商家运费详细信息
-// 				}
-				 
-				//ecmoban模板堂 --zhuo end
-				//             $total['shipping_fee'] = ($shipping_count == 0 AND $weight_price['free_shipping'] == 1) ? 0 :  $shipping_method->shipping_fee($shipping_info['shipping_code'],$shipping_info['configure'], $weight_price['weight'], $total['goods_price'], $weight_price['number']);
-				 
+
 				if (!empty($order['need_insure']) && $shipping_info['insure'] > 0) {
-					$total['shipping_insure'] = self::shipping_insure_fee($shipping_info['shipping_code'], $total['goods_price'], $shipping_info['insure']);
+					$total['shipping_insure'] = $shipping_method->shipping_insure_fee($shipping_info['shipping_code'], $total['goods_price'], $shipping_info['insure']);
 				} else {
 					$total['shipping_insure'] = 0;
 				}
@@ -709,14 +696,14 @@ class cart {
 		$total['formated_market_price'] = price_format($total['market_price'], false);
 		$total['formated_saving']       = price_format($total['saving'], false);
 	
-		if ($order['extension_code'] == 'exchange_goods') {
-			if ($_SESSION['user_id']) {
-				$exchange_integral = $dbview->join('exchange_goods')->where(array('c.user_id' => $_SESSION['user_id'] , 'c.rec_type' => CART_EXCHANGE_GOODS , 'c.is_gift' => 0 ,'c.goods_id' => array('gt' => 0)))->group('eg.goods_id')->sum('eg.exchange_integral');
-			} else {
-				$exchange_integral = $dbview->join('exchange_goods')->where(array('c.session_id' => SESS_ID , 'c.rec_type' => CART_EXCHANGE_GOODS , 'c.is_gift' => 0 ,'c.goods_id' => array('gt' => 0)))->group('eg.goods_id')->sum('eg.exchange_integral');
-			}
-			$total['exchange_integral'] = $exchange_integral;
-		}
+// 		if ($order['extension_code'] == 'exchange_goods') {
+// 			if ($_SESSION['user_id']) {
+// 				$exchange_integral = $dbview->join('exchange_goods')->where(array('c.user_id' => $_SESSION['user_id'] , 'c.rec_type' => CART_EXCHANGE_GOODS , 'c.is_gift' => 0 ,'c.goods_id' => array('gt' => 0)))->group('eg.goods_id')->sum('eg.exchange_integral');
+// 			} else {
+// 				$exchange_integral = $dbview->join('exchange_goods')->where(array('c.session_id' => SESS_ID , 'c.rec_type' => CART_EXCHANGE_GOODS , 'c.is_gift' => 0 ,'c.goods_id' => array('gt' => 0)))->group('eg.goods_id')->sum('eg.exchange_integral');
+// 			}
+// 			$total['exchange_integral'] = $exchange_integral;
+// 		}
 		return $total;
 	}
 	
@@ -798,10 +785,6 @@ class cart {
 		if (!empty($cart_id)) {
 			$where['rec_id'] = $cart_id;
 		}
-	
-// 		if (defined('SESS_ID')) {
-// 			$where['session_id'] = SESS_ID;
-// 		}
 		
 		/* 计算超值礼包内商品的相关配送参数 */
 		$row = $db->field('goods_id, goods_number, goods_price')->where($where)->select();
@@ -916,7 +899,6 @@ class cart {
 				'goods' => array(
 						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
 						'alias' => 'g',
-// 						'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.user_id",
 						'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.store_id",
 						'on'   	=> 'c.goods_id = g.goods_id'
 				)
@@ -954,7 +936,7 @@ class cart {
 				if ($favourable['act_range'] == FAR_ALL) {
 					foreach ($goods_list as $goods) {
 // 						if ($favourable['user_id'] == $goods['user_id']) {
-						if ($favourable['seller_id'] == $goods['store_id']) {
+						if ($favourable['store_id'] == $goods['store_id']) {
 							$total_amount += $goods['subtotal'];
 						}
 					}
@@ -969,7 +951,7 @@ class cart {
 		
 					foreach ($goods_list as $goods) {
 // 						if ($favourable['user_id'] == $goods['user_id']) {
-						if ($favourable['seller_id'] == $goods['store_id']) {
+						if ($favourable['store_id'] == $goods['store_id']) {
 							if (strpos(',' . $ids . ',', ',' . $goods['cat_id'] . ',') !== false) {
 								$total_amount += $goods['subtotal'];
 							}
@@ -978,7 +960,7 @@ class cart {
 				} elseif ($favourable['act_range'] == FAR_BRAND) {
 					foreach ($goods_list as $goods) {
 // 						if ($favourable['user_id'] == $goods['user_id']) {
-						if ($favourable['seller_id'] == $goods['store_id']) {
+						if ($favourable['store_id'] == $goods['store_id']) {
 							if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['brand_id'] . ',') !== false) {
 								$total_amount += $goods['subtotal'];
 							}
@@ -987,7 +969,7 @@ class cart {
 				} elseif ($favourable['act_range'] == FAR_GOODS) {
 					foreach ($goods_list as $goods) {
 // 						if ($favourable['user_id'] == $goods['user_id']) {
-						if ($favourable['seller_id'] == $goods['store_id']) {
+						if ($favourable['store_id'] == $goods['store_id']) {
 // 							if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
 							if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
 								$total_amount += $goods['subtotal'];
@@ -1054,7 +1036,6 @@ class cart {
 		}
 		$goods_list = $db_cartview->where($cart_where)->select();
 
-	
 		if (!$goods_list) {
 			return 0;
 		}
@@ -1070,7 +1051,7 @@ class cart {
 			if ($favourable['act_range'] == FAR_ALL) {
 				foreach ($goods_list as $goods) {
 // 					if ($favourable['user_id'] == $goods['user_id']) {
-					if ($favourable['seller_id'] == $goods['store_id']) {
+					if ($favourable['store_id'] == $goods['store_id']) {
 						$total_amount += $goods['subtotal'];
 					}
 				}
@@ -1085,7 +1066,7 @@ class cart {
 	
 				foreach ($goods_list as $goods) {
 // 					if ($favourable['user_id'] == $goods['user_id']) {
-					if ($favourable['seller_id'] == $goods['store_id']) {
+					if ($favourable['store_id'] == $goods['store_id']) {
 						if (strpos(',' . $ids . ',', ',' . $goods['cat_id'] . ',') !== false) {
 							$total_amount += $goods['subtotal'];
 						}
@@ -1094,7 +1075,7 @@ class cart {
 			} elseif ($favourable['act_range'] == FAR_BRAND) {
 				foreach ($goods_list as $goods) {
 // 					if ($favourable['user_id'] == $goods['user_id']) {
-					if ($favourable['seller_id'] == $goods['store_id']) {
+					if ($favourable['store_id'] == $goods['store_id']) {
 						if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['brand_id'] . ',') !== false) {
 							$total_amount += $goods['subtotal'];
 						}
@@ -1103,7 +1084,7 @@ class cart {
 			} elseif ($favourable['act_range'] == FAR_GOODS) {
 				foreach ($goods_list as $goods) {
 // 					if ($favourable['user_id'] == $goods['user_id']) {
-					if ($favourable['seller_id'] == $goods['store_id']) {
+					if ($favourable['store_id'] == $goods['store_id']) {
 // 						if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
 						if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
 							$total_amount += $goods['subtotal'];

@@ -16,7 +16,16 @@ class list_module extends api_front implements api_interface {
 // 	        'longitude' => '121.41641998291016',
 // 	    );
 		
-		$cart_result = RC_Api::api('cart', 'cart_list', array('location' => $location, 'flow_type' => CART_GENERAL_GOODS));
+		if (isset($location['latitude']) && !empty($location['latitude']) && isset($location['longitude']) && !empty($location['longitude'])) {
+			$geohash = RC_Loader::load_app_class('geohash', 'store');
+			$geohash_code = $geohash->encode($location['latitude'] , $location['longitude']);
+			$geohash_code = substr($geohash_code, 0, 5);
+			$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code));
+		} else {
+			return new ecjia_error('location_error', '请选择有效的收货地址！');
+		}
+		
+		$cart_result = RC_Api::api('cart', 'cart_list', array('store_group' => $store_id_group, 'flow_type' => CART_GENERAL_GOODS));
 		if (is_ecjia_error($cart_result)) {
 			return $cart_result;
 		}
@@ -28,6 +37,8 @@ class list_module extends api_front implements api_interface {
 					$cart_goods['cart_list'][$row['store_id']] = array(
 							'seller_id'		=> intval($row['store_id']),
 							'seller_name'	=> $row['store_name'],
+							'store_id'		=> intval($row['store_id']),
+							'store_name'	=> $row['store_name'],
 					);
 				}
 				$goods_attrs = null;

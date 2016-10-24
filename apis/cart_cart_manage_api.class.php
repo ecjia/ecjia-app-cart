@@ -15,8 +15,7 @@ class cart_cart_manage_api extends Component_Event_Api {
      */
     public function call(&$options) {
 
-        if (!isset($options['location']) || !isset($options['location']['latitude']) || !isset($options['location']['latitude']))
-        {
+        if (!isset($options['store_group']) || empty($options['store_group'])) {
             return new ecjia_error('location_error', '请选择有效的收货地址！');
         }
 
@@ -24,7 +23,7 @@ class cart_cart_manage_api extends Component_Event_Api {
             return new ecjia_error('not_found_goods', '请选择您所需要的商品！');
         }
 
-        return $this->addto_cart($options['goods_id'], $options['goods_number'], $options['goods_spec'], $options['parent_id'], $options['location']);
+        return $this->addto_cart($options['goods_id'], $options['goods_number'], $options['goods_spec'], $options['parent_id'], $options['store_group']);
     }
 
 
@@ -38,7 +37,7 @@ class cart_cart_manage_api extends Component_Event_Api {
      * @param   integer $parent     基本件
      * @return  boolean
      */
-    private function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $location = array()) {
+    private function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $store_group = array()) {
         $_parent_id     = $parent;
 
         $dbview = RC_DB::table('goods as g')->leftJoin('member_price as mp', RC_DB::raw('g.goods_id'), '=', RC_DB::raw('mp.goods_id'));
@@ -82,7 +81,11 @@ class cart_cart_manage_api extends Component_Event_Api {
         if (empty($parent) && $goods['is_alone_sale'] == 0) {
             return new ecjia_error('not_alone_sale', __('对不起，该商品不能单独购买！'));
         }
-
+        
+        if (in_array($goods['store_id'], $store_group)) {
+        	return new ecjia_error('goods_delivery_beyond_error', '您所添加的商品超出了配送区域！');
+        }
+        
         /* 如果商品有规格则取规格商品信息 配件除外 */
 
         //$prod = RC_Model::model('goods/products_model')->find(array('goods_id' => $goods_id));

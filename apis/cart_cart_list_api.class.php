@@ -13,14 +13,9 @@ class cart_cart_list_api extends Component_Event_Api {
      *
      * @return array
      */
-	public function call(&$options) {	
-		
-		if ((!isset($options['location']) || empty($options['location'])) && (!isset($options['cart_id']) || empty($options['cart_id'])) && $options['flow_type'] == CART_GENERAL_GOODS)
-		{
-			return new ecjia_error('location_error', '请选择有效的收货地址！');
-		}
-		
-		return $this->get_cart_goods($options['cart_id'], $options['flow_type'], $options['location']);
+	public function call(&$options) 
+	{	
+		return $this->get_cart_goods($options['cart_id'], $options['flow_type'], $options['store_group']);
 	}
 	
 	
@@ -30,12 +25,11 @@ class cart_cart_list_api extends Component_Event_Api {
 	 * @access  public
 	 * @return  array
 	 */
-	private function get_cart_goods($cart_id = array(), $flow_type = CART_GENERAL_GOODS, $location = array()) {
+	private function get_cart_goods($cart_id = array(), $flow_type = CART_GENERAL_GOODS, $store_group = array()) {
 		$dbview_cart = RC_DB::table('cart as c')
 					   ->leftJoin('goods as g', RC_DB::raw('c.goods_id'), '=', RC_DB::raw('g.goods_id'))
 					   ->leftJoin('store_franchisee as s', RC_DB::raw('s.store_id'), '=', RC_DB::raw('c.store_id'));
 		$db_goods_attr = RC_DB::table('goods_attr');
-		$db_goods 	   = RC_DB::table('goods');
 		
 		/* 初始化 */
 		$goods_list = array();
@@ -47,46 +41,25 @@ class cart_cart_list_api extends Component_Event_Api {
 				'goods_amount' => 0, // 本店售价合计（无格式）
 		);
 		
-		/* 循环、统计 */
+		
 		$dbview_cart->where(RC_DB::raw('c.rec_type'), '=', $flow_type);
-		/* 根据经纬度查询附近店铺*/
-		if (is_array($location) && isset($location['latitude']) && isset($location['longitude'])) {
-			$geohash = RC_Loader::load_app_class('geohash', 'store');
-			$geohash_code = $geohash->encode($location['latitude'] , $location['longitude']);
-			$geohash_code = substr($geohash_code, 0, 5);
-			$dbview_cart->where(RC_DB::raw('s.geohash'), 'like', '%'.$geohash_code.'%');
+		
+		/* 符合店铺条件*/
+		if (!empty($store_group)) {
+			$dbview_cart->whereIn(RC_DB::raw('c.store_id'), $store_group);
 		}
-
+		
 		/* 选择购买 */
 		if (!empty($cart_id)) {
 			$dbview_cart->whereIn(RC_DB::raw('c.rec_id'), $cart_id);
 		}
 		if ($_SESSION['user_id']) {
-			$dbview_cart->where(RC_DB::raw('c.user_id'), '=', $_SESSION['user_id']);
+			$dbview_cart->where(RC_DB::raw('c.user_id'), $_SESSION['user_id']);
 		} else {
-			$dbview_cart->where(RC_DB::raw('c.session_id'), '=', SESS_ID);
+			$dbview_cart->where(RC_DB::raw('c.session_id'), RC_Session::session()->getSessionKey());
 		}
-				
-		//$dbview_cart->view = array(
-		//		'goods' => array(
-		//				'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
-		//				'alias' => 'g',
-		//				'on' 	=> 'c.goods_id = g.goods_id'
-		//		),
-		//		'seller_shopinfo' => array(
-		//				'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
-		//				'alias' => 'ssi',
-		//				'on' 	=> 'ssi.id = c.store_id'
-		//		),
-		//);
-		
-		//$field = 'c.*, IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, ssi.shop_name as store_name';
-		//$data = $dbview_cart->join(array('goods', 'seller_shopinfo'))
-		//					->field($field)
-		//					->where($cart_where)
-		//					->order(array('store_id' => 'asc', 'pid' => 'asc', 'parent_id' => 'asc'))
-		//					->select();
-		
+
+		/* 循环、统计 */
 		$data = $dbview_cart
 				->selectRaw("c.*,IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, s.merchants_name as store_name")
 				->orderBy('store_id', 'asc')
@@ -120,21 +93,15 @@ class cart_cart_list_api extends Component_Event_Api {
 				/* 查询规格 */
 				if (trim($row['goods_attr']) != '') {
 					$row['goods_attr'] = addslashes($row['goods_attr']);
-					//$attr_list = $db_goods_attr->field('attr_value')->in(array('goods_attr_id' =>$row['goods_attr_id']))->select();
 					$attr_list = $db_goods_attr->select('attr_value')->whereIn('goods_attr_id', $row['goods_attr_id'])->get();
 					foreach ($attr_list AS $attr) {
-						$row['goods_name'] .= ' [' . $attr[attr_value] . '] ';
+						$row['goods_name'] .= ' [' . $attr['attr_value'] . '] ';
 					}
 				}
-				/* 增加是否在购物车里显示商品图 */
-// 				if ((ecjia::config('show_goods_in_cart') == "2" || ecjia::config('show_goods_in_cart') == "3") &&
-// 				$row['extension_code'] != 'package_buy') {
-// 					$goods_thumb 		= $db_goods->where(array('goods_id' => $row['goods_id']))->get_field('goods_thumb');
-// 					$row['goods_thumb'] = !empty($goods_thumb) ? RC_Upload::upload_url($goods_thumb) : '';
-// 				}
-				if ($row['extension_code'] == 'package_buy') {
+
+// 				if ($row['extension_code'] == 'package_buy') {
 // 					$row['package_goods_list'] = get_package_goods($row['goods_id']);
-				}
+// 				}
 				$goods_list[] = $row;
 			}
 		}

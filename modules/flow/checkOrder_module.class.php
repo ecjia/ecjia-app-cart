@@ -8,14 +8,11 @@ defined('IN_ECJIA') or exit('No permission resources.');
  */
 class checkOrder_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
-    		
+    	
     	$this->authSession();
     	$address_id = $this->requestData('address_id', 0);
-		RC_Loader::load_app_class('cart', 'cart', false);
-		$rec_id = $this->requestData('rec_id');
-		if (isset($_SESSION['cart_id'])) {
-			$rec_id = empty($rec_id) ? $_SESSION['cart_id'] : $rec_id;
-		}
+		$rec_id		= $this->requestData('rec_id');
+		
 		if (empty($address_id) || empty($rec_id)) {
 		    return new ecjia_error( 'invalid_parameter', RC_Lang::get ('system::system.invalid_parameter' ));
 		}
@@ -23,12 +20,7 @@ class checkOrder_module extends api_front implements api_interface {
 		if (!empty($rec_id)) {
 			$cart_id = explode(',', $rec_id);
 		}
-		
-// 		if (empty($rec_id)) {
-// 			return new ecjia_error('not_found_goods', '请选择您所需要购买的商品！');
-// 		} else {
-// 			$cart_id = explode(',', $rec_id);
-// 		}
+		RC_Loader::load_app_class('cart', 'cart', false);
 		
 		/* 取得购物类型 */
 		$flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
@@ -42,17 +34,6 @@ class checkOrder_module extends api_front implements api_interface {
 		} else {
 			//正常购物流程  清空其他购物流程情况
 			$_SESSION['flow_order']['extension_code'] = '';
-		}
-		$db_cart = RC_Model::model('cart/cart_model');
-		/* 检查购物车中是否有商品 */
-		
-		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $cart_id, 'flow_type' => $flow_type));
-		
-		if(is_ecjia_error($get_cart_goods)) {
-		    return new $get_cart_goods;
-		}
-		if (count($get_cart_goods['goods_list']) == 0) {
-			return new ecjia_error('not_found_cart_goods', '购物车中没有您选择的商品');
 		}
 		
 		/* 获取用户收货地址*/
@@ -68,34 +49,32 @@ class checkOrder_module extends api_front implements api_interface {
 		}
 		
 		/* 检查收货人信息是否完整 */
-		if (! cart::check_consignee_info($consignee, $flow_type)) {
+		if (!cart::check_consignee_info($consignee, $flow_type)) {
 			/* 如果不完整则转向到收货人信息填写界面 */
 			return new ecjia_error('pls_fill_in_consinee_info_', '请完善收货人信息！');
 		}
 		
-		if ($flow_type != CART_EXCHANGE_GOODS) {
-			/* 获取附近的商家，判断购买商品是否在附近*/
-		    $geohash = RC_Loader::load_app_class('geohash', 'store');
-		    $geohash_code = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
-		    $geohash_code = substr($geohash_code, 0, 5);
-		    $store_list = RC_Api:: api( 'store', 'neighbors_store_id' , array('geohash' => $geohash_code));
-// 			$seller_list = RC_Api::api('seller', 'seller_list', array('location' => array('longitude' => $consignee['longitude'], 'latitude' => $consignee['latitude']), 'limit' => 'all'));
-			
-			if(is_ecjia_error($store_list)) {
-			    return $store_list;
-			}
-			
-			if (!empty($store_list)) {
-				foreach ($get_cart_goods['goods_list'] as $val) {
-					$goods_group[] = $val['store_id'];
-				}
-				$goods_diff = array_diff($goods_group, $store_list);
-				if (!empty($goods_diff)) {
-					return new ecjia_error('goods_beyond_delivery', '有部分商品不在送货范围内！');
-				}
-			} else {
-				return new ecjia_error('beyond_delivery', '您的收货地址不在送货范围内！');
-			}
+		$store_id_group = array();
+		/* 根据经纬度查询附近店铺id*/
+		if (!empty($consignee['latitude']) && !empty($consignee['longitude'])) {
+			$geohash = RC_Loader::load_app_class('geohash', 'store');
+			$geohash_code = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
+			$geohash_code = substr($geohash_code, 0, 5);
+			$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code));
+		}
+		
+		/* 检查购物车中是否有商品 */
+		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $cart_id, 'flow_type' => $flow_type, 'store_group' => $store_id_group));
+		
+		if(is_ecjia_error($get_cart_goods)) {
+			return $get_cart_goods;
+		}
+		if (count($get_cart_goods['goods_list']) == 0) {
+			return new ecjia_error('not_found_cart_goods', '购物车中还没有商品');
+		}
+		
+		if (count($get_cart_goods['goods_list']) != count($cart_id)) {
+			return new ecjia_error('delivery_beyond_error', '有部分商品不在送货范围内！');
 		}
 		
 		/* 对是否允许修改购物车赋值 */
@@ -107,19 +86,28 @@ class checkOrder_module extends api_front implements api_interface {
 		
 		/* 取得订单信息*/
 		$order = cart::flow_order_info();
-
 		
-		/* 计算折扣 */
-		if ($flow_type != CART_EXCHANGE_GOODS && $flow_type != CART_GROUP_BUY_GOODS) {
-			$discount = cart::compute_discount($cart_id);
-			$favour_name = empty($discount['name']) ? '' : join(',', $discount['name']);
-			$your_discount = sprintf(__('根据优惠活动<font color=red>%s</font>，您可以享受折扣 %s'), $favour_name, price_format($discount['discount']));
-		}
 		$cart_goods = array();
 		foreach ($get_cart_goods['goods_list'] as $row) {
+			$order['store_id'] = $row['store_id'];
+			if (!empty($row['goods_attr'])) {
+				$goods_attr = explode("\n", $row['goods_attr']);
+				$goods_attr = array_filter($goods_attr);
+				$goods_attr_gourp = array();
+// 				$out['goods_list'][$key]['goods_attr'] = array();
+				foreach ($goods_attr as  $v) {
+					$a = explode(':',$v);
+					if (!empty($a[0]) && !empty($a[1])) {
+						$goods_attr_gourp[] = array('name' => $a[0], 'value' => $a[1]);
+					}
+				}
+			}
+			
 			$cart_goods[] = array(
 					'seller_id'		=> intval($row['store_id']),
 					'seller_name'	=> $row['store_name'],
+					'store_id'		=> intval($row['store_id']),
+					'store_name'	=> $row['store_name'],
 					'rec_id'		=> intval($row['rec_id']),
 					'goods_id'		=> intval($row['goods_id']),
 					'goods_sn'		=> $row['goods_sn'],
@@ -132,17 +120,25 @@ class checkOrder_module extends api_front implements api_interface {
 					'subtotal'		=> $row['subtotal'],
 					'goods_attr_id' => $row['goods_attr_id'],
 					'attr'			=> $row['goods_attr'],
-					'goods_attr'	=> $goods_attrs,
+					'is_real'		=> $row['is_real'],
+					'goods_attr'	=> $goods_attr_gourp,
 					'img' => array(
 							'thumb'	=> RC_Upload::upload_url($row['goods_img']),
 							'url'	=> RC_Upload::upload_url($row['original_img']),
 							'small'	=> RC_Upload::upload_url($row['goods_img']),
 					)
 			);
+			
+		}
+		
+		/* 计算折扣 */
+		if ($flow_type != CART_EXCHANGE_GOODS && $flow_type != CART_GROUP_BUY_GOODS) {
+			$discount = cart::compute_discount($cart_id);
+			$favour_name = empty($discount['name']) ? '' : join(',', $discount['name']);
 		}
 		/* 计算订单的费用 */
 		$total = cart::order_fee($order, $cart_goods, $consignee, $cart_id);
-	
+		
 		/* 取得配送列表 */
 		$region            = array($consignee['country'], $consignee['province'], $consignee['city'], $consignee['district']);
 		
@@ -157,6 +153,8 @@ class checkOrder_module extends api_front implements api_interface {
 		if (!empty($cart_id)) {
 			$shipping_count_where = array_merge($shipping_count_where, array('rec_id' => $cart_id));
 		}
+		
+		$db_cart = RC_Model::model('cart/cart_model');
 		// 查看购物车中是否全为免运费商品，若是则把运费赋为零
 		if ($_SESSION['user_id']) {
 			$shipping_count_where = array_merge($shipping_count_where, array('user_id' => $_SESSION['user_id']));
@@ -175,29 +173,11 @@ class checkOrder_module extends api_front implements api_interface {
 			$ck[$val['shipping_id']] = $val['shipping_id'];
 		
 			$shipping_cfg = $shipping_method->unserialize_config($val['configure']);
-// 			$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : $shipping_method->shipping_fee($val['shipping_code'], unserialize($val['configure']),
-// 					$cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
-// 			if (ecjia::config('freight_model') == 0) {
-				// 				$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : shipping_fee($val['shipping_code'], unserialize($val['configure']),
-				// 						$cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
-					
-				$shipping_list[$key]['free_money']          = price_format($shipping_cfg['free_money'], false);
-				$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : $shipping_method->shipping_fee($val['shipping_code'], unserialize($val['configure']),
-						$cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
-// 			} elseif (ecjia::config('freight_model') == 1) {
-					
-// 				$goods_region = array(
-// 						'country'	=> $region[0],
-// 						'province'	=> $region[1],
-// 						'city'		=> $region[2],
-// 						'district'	=> isset($region[3]) ? $region[3] : '',
-// 				);
-// 				TODO:赞不用
-// 				$shippingFee = get_goods_order_shipping_fee($cart_goods, $goods_region, $val['shipping_code']);
-// 				$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 :  $shippingFee['shipping_fee'];
-					
-// 				$shipping_list[$key]['free_money']          = price_format($shippingFee['free_money'], false);
-// 			}
+
+			$shipping_list[$key]['free_money']          = price_format($shipping_cfg['free_money'], false);
+			$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : $shipping_method->shipping_fee($val['shipping_code'], unserialize($val['configure']),
+					$cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
+
 			
 			$shipping_list[$key]['format_shipping_fee'] = price_format($shipping_fee, false);
 			$shipping_list[$key]['shipping_fee']        = $shipping_fee;
@@ -258,12 +238,12 @@ class checkOrder_module extends api_front implements api_interface {
  				if ($flow_type == CART_GROUP_BUY_GOODS) {
  					$group_buy_id = $_SESSION['extension_id'];
  					if ($group_buy_id <= 0) {
- 						return new ecjia_error(10006, '如果是团购，且保证金大于0，不能使用货到付款');
+ 						return new ecjia_error('groupbuy_not_support_cod', '如果是团购，且保证金大于0，不能使用货到付款');
  					}
  					RC_Loader::load_app_func('goods', 'goods');
  					$group_buy = group_buy_info($group_buy_id);
  					if (empty($group_buy)) {
- 						return new ecjia_error(101, '参数错误');
+ 						return new ecjia_error( 'invalid_parameter', RC_Lang::get ('system::system.invalid_parameter' ));
  					}
  					if ($group_buy['deposit'] > 0) {
  						$cod = false;
@@ -273,7 +253,7 @@ class checkOrder_module extends api_front implements api_interface {
  					}
  				}
 				if ($cod) {
-					$shipping_area_info = $shipping_method->shipping_area_info($order['shipping_id'], $region);
+					$shipping_area_info = $shipping_method->shipping_area_info($order['shipping_id'], $region, $order['store_id']);
 					$cod_fee = $shipping_area_info['pay_fee'];
 				}
 			}
@@ -314,13 +294,41 @@ class checkOrder_module extends api_front implements api_interface {
 				&& ($flow_type != CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS))
 		{
 			// 取得用户可用红包
-			$user_bonus = RC_Api::api('bonus', 'user_bonus', array('user_id' => $_SESSION['user_id'], 'goods_amount' => $total['goods_price'], 'cart_id' => $cart_id));
-// 			$user_bonus = user_bonus($_SESSION['user_id'], $total['goods_price'], $cart_id);
+			$db_user_bonus_view	= RC_Model::model('bonus/user_bonus_type_viewmodel');
+				
+			$user_bonus = $db_user_bonus_view->join('bonus_type')->field('bt.type_id, bt.type_name, bt.send_type, bt.type_money, ub.bonus_id, bt.use_start_date, bt.use_end_date, min_goods_amount')->where(array('bt.use_start_date' => array('elt' => RC_Time::gmtime()),
+					'bt.use_end_date' => array('egt' => RC_Time::gmtime()),
+					'ub.user_id' => array('neq' => 0),
+					'ub.user_id' => $_SESSION['user_id'],
+					'bt.store_id' => $order['store_id'],
+					'ub.order_id' => 0))
+					->select();
+				
+			$user_bonus_list = array();
 			if (!empty($user_bonus)) {
 				foreach ($user_bonus AS $key => $val) {
-					$user_bonus[$key]['bonus_money_formated'] = price_format($val['type_money'], false);
+// 					/*app2.13 判断优惠券是否可用*/
+// 					if ($val['send_type'] == SEND_COUPON) {
+// 						$check_use_coupon = RC_Model::Model('bonus/bonus_type_viewmodel')->check_use_coupon($val['type_id'], $goods_id_group);
+// 						if (!$check_use_coupon) {
+// 							continue;
+// 						}
+// 					}
+					/*app 2.8新增字段处理*/
+					$user_bonus_list[$key]['bonus_id']	= $val['bonus_id'];
+					$user_bonus_list[$key]['bonus_name']	= $val['type_name'];
+					$user_bonus_list[$key]['bonus_amount'] = $val['type_money'];
+					$user_bonus_list[$key]['formatted_bonus_amount'] = price_format($val['type_money']);
+					$user_bonus_list[$key]['request_amount'] = $val['min_goods_amount'];
+					$user_bonus_list[$key]['formatted_request_amount'] = price_format($val['min_goods_amount']);
+					$user_bonus_list[$key]['bonus_status'] = 0;
+					$user_bonus_list[$key]['formatted_bonus_status'] = __('未使用');
+					$user_bonus_list[$key]['start_date']	= $val['use_start_date'];
+					$user_bonus_list[$key]['end_date']	= $val['use_end_date'];
+					$user_bonus_list[$key]['formatted_start_date']   = RC_Time::local_date(ecjia::config('date_format'), $val['use_start_date']);
+					$user_bonus_list[$key]['formatted_end_date']     = RC_Time::local_date(ecjia::config('date_format'), $val['use_end_date']);
 				}
-				$bonus_list = $user_bonus;
+				$bonus_list = array_merge($user_bonus_list);
 			}
 			// 能使用红包
 			$allow_use_bonus = 1;
@@ -351,7 +359,7 @@ class checkOrder_module extends api_front implements api_interface {
 		$out['inv_content_list']	= empty($inv_content_list) ? null : $inv_content_list;//发票内容项
 		$out['inv_type_list']		= $inv_type_list;//发票类型及税率 
 		$out['your_integral']		= $user_info['pay_points'];//用户可用积分
-		$out['your_discount']		= $your_discount;//用户享受折扣说明
+// 		$out['your_discount']		= $your_discount;//用户享受折扣说明
 		$out['discount']			= number_format($discount['discount'], 2, '.', '');//用户享受折扣数
 		$out['discount_formated']	= $total['discount_formated'];
 		
@@ -426,47 +434,47 @@ class checkOrder_module extends api_front implements api_interface {
 			$out['payment_list'] = array_values($out['payment_list']);
 		}
 		
-		if (!empty($out['goods_list'])) {
-			foreach ($out['goods_list'] as $key => $value) {
-				if (!empty($value['goods_attr'])) {
-					$goods_attr = explode("\n", $value['goods_attr']);
-					$goods_attr = array_filter($goods_attr);
-					$out['goods_list'][$key]['goods_attr'] = array();
-					foreach ($goods_attr as  $v) {
-						$a = explode(':',$v);
-						if (!empty($a[0]) && !empty($a[1])) {
-							$out['goods_list'][$key]['goods_attr'][] = array('name'=>$a[0], 'value'=>$a[1]);
-						}
-					}
-				}
-			}
-		}
+// 		if (!empty($out['goods_list'])) {
+// 			foreach ($out['goods_list'] as $key => $value) {
+// 				if (!empty($value['goods_attr'])) {
+// 					$goods_attr = explode("\n", $value['goods_attr']);
+// 					$goods_attr = array_filter($goods_attr);
+// 					$out['goods_list'][$key]['goods_attr'] = array();
+// 					foreach ($goods_attr as  $v) {
+// 						$a = explode(':',$v);
+// 						if (!empty($a[0]) && !empty($a[1])) {
+// 							$out['goods_list'][$key]['goods_attr'][] = array('name'=>$a[0], 'value'=>$a[1]);
+// 						}
+// 					}
+// 				}
+// 			}
+// 		}
 		
 		
-		/* 取得优惠活动 */
-		RC_Loader::load_app_func('global', 'cart');
-		$favourable_list = em_favourable_list($_SESSION['user_rank']);
-		usort($favourable_list, 'cmp_favourable');
-		$favourable_list_a = array();
-		if (!empty($favourable_list)) {
-			foreach ($favourable_list as $key => $row) {
-				if (!$row['available']) {
-					unset($favourable_list[$key]);
-				}
-				$favourable_list_a[$key]['act_id']		= $row['act_id'];
-				$favourable_list_a[$key]['act_name']	= $row['act_name'];
-				$favourable_list_a[$key]['start_time']	= $row['start_time'];
-				$favourable_list_a[$key]['end_time']	= $row['end_time'];
-				$favourable_list_a[$key]['act_type']	= $row['act_type'];
-				$favourable_list_a[$key]['act_type_ext'] = $row['act_type_ext'];
-				$favourable_list_a[$key]['gift'] = $row['gift'];
-				$favourable_list_a[$key]['formated_start_time'] = $row['formated_start_time'];
-				$favourable_list_a[$key]['formated_end_time']	= $row['formated_end_time'];
-				$favourable_list_a[$key]['formated_min_amount'] = $row['formated_min_amount'];
-				$favourable_list_a[$key]['formated_max_amount'] = $row['formated_max_amount'];
-			}
-		}
-		$out['favourable_list'] = $favourable_list_a;
+// 		/* 取得优惠活动 */
+// 		RC_Loader::load_app_func('global', 'cart');
+// 		$favourable_list = em_favourable_list($_SESSION['user_rank']);
+// 		usort($favourable_list, 'cmp_favourable');
+// 		$favourable_list_a = array();
+// 		if (!empty($favourable_list)) {
+// 			foreach ($favourable_list as $key => $row) {
+// 				if (!$row['available']) {
+// 					unset($favourable_list[$key]);
+// 				}
+// 				$favourable_list_a[$key]['act_id']		= $row['act_id'];
+// 				$favourable_list_a[$key]['act_name']	= $row['act_name'];
+// 				$favourable_list_a[$key]['start_time']	= $row['start_time'];
+// 				$favourable_list_a[$key]['end_time']	= $row['end_time'];
+// 				$favourable_list_a[$key]['act_type']	= $row['act_type'];
+// 				$favourable_list_a[$key]['act_type_ext'] = $row['act_type_ext'];
+// 				$favourable_list_a[$key]['gift'] = $row['gift'];
+// 				$favourable_list_a[$key]['formated_start_time'] = $row['formated_start_time'];
+// 				$favourable_list_a[$key]['formated_end_time']	= $row['formated_end_time'];
+// 				$favourable_list_a[$key]['formated_min_amount'] = $row['formated_min_amount'];
+// 				$favourable_list_a[$key]['formated_max_amount'] = $row['formated_max_amount'];
+// 			}
+// 		}
+// 		$out['favourable_list'] = $favourable_list_a;
 		
 		return $out;
 
