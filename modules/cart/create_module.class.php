@@ -7,7 +7,7 @@ defined('IN_ECJIA') or exit('No permission resources.');
  */
 class create_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
-    		
+
     	$this->authSession();
 
 	    $goods_id		= $this->requestData('goods_id', 0);
@@ -20,10 +20,10 @@ class create_module extends api_front implements api_interface {
 // 		);
 	    $goods_spec		= $this->requestData('spec', array());
 	    $rec_type		= $this->requestData('rec_type', 0);
-	    
-	    
+
+
 // 	    $result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'location' => $location));
-	    
+
 	    RC_Loader::load_app_func('cart', 'cart');
 	    if ($rec_type == CART_GROUP_BUY_GOODS) {
 	        //TODO:1 团购
@@ -45,34 +45,32 @@ class create_module extends api_front implements api_interface {
 	    	if (!$goods_id) {
 	    		return new ecjia_error('not_found_goods', '请选择您所需要购买的商品！');
 	    	}
-// 	    	_dump($goods_number,1);
 	    	$result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'location' => $location));
 // 	    	$result = addto_cart($goods_id, $goods_number, $goods_spec, 0, $warehouse_id, $area_id);
 	    }
-	    
+
 	    // 更新：添加到购物车
 	    if (!is_ecjia_error($result)){
 			/* 循环、统计 */
 			$cart_dbview = RC_Model::model('cart/cart_viewmodel');
 			$db_goods_attr = RC_Model::model('goods/goods_attr_model');
 			RC_Loader::load_app_func('common', 'goods');
-			
+
 			$field = 'c.*, IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, s.merchants_name as store_name';
 			$data = $cart_dbview->join(array('goods', 'store_franchisee'))
 							->field($field)
 							->where(array('c.user_id' => $_SESSION['user_id'] , 'rec_type' => CART_GENERAL_GOODS, 'rec_id' => $result))
 							->select();
-			
 			$goods_list = array();
 			if (!empty($data)) {
 				foreach ($data as $row) {
 					$total['goods_price']  += $row['goods_price'] * $row['goods_number'];
 					$total['market_price'] += $row['market_price'] * $row['goods_number'];
-					
+
 					$row['subtotal']     = price_format($row['goods_price'] * $row['goods_number'], false);
 					$row['formated_goods_price']  = price_format($row['goods_price'], false);
 					$row['formated_market_price'] = price_format($row['market_price'], false);
-				
+
 					$goods_attrs = array();
 					/* 查询规格 */
 					if (trim($row['goods_attr']) != '') {
@@ -80,7 +78,7 @@ class create_module extends api_front implements api_interface {
 						foreach ($attr_list AS $attr) {
 							$row['goods_name'] .= ' [' . $attr['attr_value'] . '] ';
 						}
-						
+
 						$goods_attr = explode("\n", $row['goods_attr']);
 						$goods_attr = array_filter($goods_attr);
 						foreach ($goods_attr as  $v) {
@@ -90,12 +88,12 @@ class create_module extends api_front implements api_interface {
 							}
 						}
 					}
-		
+
 	//	 			TODO:暂无该功能
 	// 				if ($row['extension_code'] == 'package_buy') {
 	// 					$row['package_goods_list'] = get_package_goods($row['goods_id']);
 	// 				}
-							
+
 					$goods_list = array(
 							'rec_id'		=> $row['rec_id'],
 							'seller_id'		=> $row['store_id'],
@@ -122,9 +120,9 @@ class create_module extends api_front implements api_interface {
 			}
 	        return $goods_list;
 	    } else {
-	    	return $result;	    
+	    	return $result;
 	    }
-	    
+
 	}
 }
 
