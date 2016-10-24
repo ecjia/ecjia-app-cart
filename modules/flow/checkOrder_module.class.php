@@ -143,7 +143,7 @@ class checkOrder_module extends api_front implements api_interface {
 		$region            = array($consignee['country'], $consignee['province'], $consignee['city'], $consignee['district']);
 		
 		$shipping_method   = RC_Loader::load_app_class('shipping_method', 'shipping');
-		$shipping_list     = $shipping_method->available_shipping_list($region);
+		$shipping_list     = $shipping_method->available_shipping_list($region, $order['store_id']);
 		
 		$cart_weight_price = cart::cart_weight_price($flow_type, $cart_id);
 		$insure_disabled   = true;
