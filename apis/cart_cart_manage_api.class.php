@@ -82,7 +82,7 @@ class cart_cart_manage_api extends Component_Event_Api {
             return new ecjia_error('not_alone_sale', __('对不起，该商品不能单独购买！'));
         }
         
-        if (in_array($goods['store_id'], $store_group)) {
+        if (!in_array($goods['store_id'], $store_group)) {
         	return new ecjia_error('goods_delivery_beyond_error', '您所添加的商品超出了配送区域！');
         }
         
@@ -138,7 +138,7 @@ class cart_cart_manage_api extends Component_Event_Api {
                 'is_gift'       => 0,
                 'is_shipping'   => $goods['is_shipping'],
                 'rec_type'      => CART_GENERAL_GOODS,
-                'store_id'        => $goods['store_id']
+                'store_id'      => $goods['store_id']
         );
 
         if (defined('SESS_ID')) {
