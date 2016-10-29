@@ -306,10 +306,10 @@ class checkOrder_module extends api_front implements api_interface {
 					'bt.use_end_date' => array('egt' => RC_Time::gmtime()),
 					'ub.user_id' => array('neq' => 0),
 					'ub.user_id' => $_SESSION['user_id'],
-					'bt.store_id' => $order['store_id'],
 					'ub.order_id' => 0))
+                    ->in(array('bt.store_id' => array($order['store_id'], '0'))
 					->select();
-            
+
 			$user_bonus_list = array();
 			if (!empty($user_bonus)) {
 				foreach ($user_bonus AS $key => $val) {
