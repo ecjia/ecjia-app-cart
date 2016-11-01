@@ -61,7 +61,8 @@ class cart_flow_done_api extends Component_Event_Api {
 		if (count($store_group) > 1) {
 			return new ecjia_error('pls_single_shop_for_settlement', '请单个店铺进行结算!');
 		}
-
+		$order['store_id'] = $store_group[0];
+		
 		/* 检查收货人信息是否完整 */
 		if (!cart::check_consignee_info($consignee, $options['flow_type'])) {
 			/* 如果不完整则转向到收货人信息填写界面 */
