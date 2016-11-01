@@ -9,6 +9,10 @@ class checkOrder_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
 
     	$this->authSession();
+    	if ($_SESSION['user_id'] <= 0) {
+    		return new ecjia_error(100, 'Invalid session');
+    	}
+    	
     	$address_id = $this->requestData('address_id', 0);
 		$rec_id		= $this->requestData('rec_id');
 
@@ -85,10 +89,10 @@ class checkOrder_module extends api_front implements api_interface {
 
 		/* 取得订单信息*/
 		$order = cart::flow_order_info();
-
+		$store_group = array();
 		$cart_goods = array();
 		foreach ($get_cart_goods['goods_list'] as $row) {
-			$order['store_id'] = $row['store_id'];
+			$store_group[] = $row['store_id'];
 			if (!empty($row['goods_attr'])) {
 				$goods_attr = explode("\n", $row['goods_attr']);
 				$goods_attr = array_filter($goods_attr);
@@ -127,9 +131,15 @@ class checkOrder_module extends api_front implements api_interface {
 							'small'	=> RC_Upload::upload_url($row['goods_img']),
 					)
 			);
-
 		}
-
+		
+		$store_group = array_unique($store_group);
+		if (count($store_group) > 1) {
+			return new ecjia_error('pls_single_shop_for_settlement', '请单个店铺进行结算!');
+		} else {
+			$order['store_id'] = $store_group[0];
+		}
+		
 		/* 计算折扣 */
 		if ($flow_type != CART_EXCHANGE_GOODS && $flow_type != CART_GROUP_BUY_GOODS) {
 			$discount = cart::compute_discount($cart_id);
@@ -163,6 +173,7 @@ class checkOrder_module extends api_front implements api_interface {
 			$shipping_count = $db_cart->where($shipping_count_where)->count();
 		}
 
+		
 		$ck = array();
 		foreach ($shipping_list AS $key => $val) {
 			if (isset($ck[$val['shipping_id']])) {
@@ -261,7 +272,13 @@ class checkOrder_module extends api_front implements api_interface {
 		$payment_method = RC_Loader::load_app_class('payment_method', 'payment');
 
 		// 给货到付款的手续费加<span id>，以便改变配送的时候动态显示
-		$payment_list = $payment_method->available_payment_list(1, $cod_fee);
+		$store_info = RC_DB::table('store_franchisee')->where('store_id', $order['store_id'])->first();
+		if ($store_info['manage_mode'] == 'self') {
+			$payment_list = $payment_method->available_payment_list(1, $cod_fee);
+		} else {
+			$payment_list = $payment_method->available_payment_list(false, $cod_fee);
+		}
+		
 
 		$user_info = RC_Api::api('user', 'user_info', array('user_id' => $_SESSION['user_id']));
 		/* 保存 session */

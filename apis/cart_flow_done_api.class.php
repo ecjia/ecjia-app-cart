@@ -7,7 +7,6 @@ defined('IN_ECJIA') or exit('No permission resources.');
  */
 class cart_flow_done_api extends Component_Event_Api {
 
-
     /**
      * @param
      *
@@ -18,19 +17,27 @@ class cart_flow_done_api extends Component_Event_Api {
 		RC_Loader::load_app_class('cart', 'cart', false);
 
 		$order = $options['order'];
+		
+		/* 获取用户收货地址*/
+		if ($options['address_id'] == 0) {
+			$consignee = cart::get_consignee($_SESSION['user_id']);
+		} else {
+			$consignee = RC_DB::table('user_address')
+			->where('address_id', $options['address_id'])
+			->where('user_id', $_SESSION['user_id'])
+			->first();
+		}
+		if (isset($consignee['latitude']) && isset($consignee['longitude'])) {
+			$geohash = RC_Loader::load_app_class('geohash', 'store');
+			$geohash_code = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
+			$geohash_code = substr($geohash_code, 0, 5);
+			$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code));
+		} else {
+			return new ecjia_error('pls_fill_in_consinee_info', '请完善收货人信息！');
+		}
+		
 		/* 检查购物车中是否有商品 */
-// 		$cart_where = array(
-// 				'parent_id'	=> 0,
-// 				'is_gift'	=> 0,
-// 				'rec_type'	=> $options['flow_type'],
-// 				'rec_id'	=> $options['cart_id']
-// 		);
-// 		if (defined('SESS_ID')) {
-// 			$cart_where['session_id'] = SESS_ID;
-// 		}
-// 		$cart_result = RC_Model::model('cart/cart_model')->where($cart_where)->select();
-
-		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $options['cart_id'], 'flow_type' => $options['flow_type'], 'location' => $options['location']));
+		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $options['cart_id'], 'flow_type' => $options['flow_type'], 'store_group' => $store_id_group));
 
 		if (is_ecjia_error($get_cart_goods)) {
 		    return $get_cart_goods;
@@ -38,44 +45,27 @@ class cart_flow_done_api extends Component_Event_Api {
 		if (count($get_cart_goods['goods_list']) == 0) {
 			return new ecjia_error('not_found_cart_goods', '购物车中没有您选择的商品');
 		}
-
-		/* 获取用户收货地址*/
-		if ($options['address_id'] == 0) {
-			$consignee = cart::get_consignee($_SESSION['user_id']);
-		} else {
-			//$consignee = RC_Model::model('user/user_address_model')->find(array('address_id' => $options['address_id'], 'user_id' => $_SESSION['user_id']));
-			$consignee = RC_DB::table('user_address')
-						->where('address_id', $options['address_id'])
-						->where('user_id', $_SESSION['user_id'])
-						->first();
+		
+		$cart_goods = $get_cart_goods['goods_list'];
+		
+		/* 判断是不是实体商品  及店铺数量如有多家店铺返回错误*/
+		$store_group = array();
+		foreach ($cart_goods as $val) {
+			$store_group[] = $val['store_id'];
+			/* 统计实体商品的个数 */
+			if ($val['is_real']) {
+				$is_real_good = 1;
+			}
+		}
+		$store_group = array_unique($store_group);
+		if (count($store_group) > 1) {
+			return new ecjia_error('pls_single_shop_for_settlement', '请单个店铺进行结算!');
 		}
 
 		/* 检查收货人信息是否完整 */
-		if (! cart::check_consignee_info($consignee, $options['flow_type'])) {
+		if (!cart::check_consignee_info($consignee, $options['flow_type'])) {
 			/* 如果不完整则转向到收货人信息填写界面 */
-			return new ecjia_error('pls_fill_in_consinee_info_', '请完善收货人信息！');
-		}
-
-		if ($_SESSION['flow_type'] != CART_EXCHANGE_GOODS) {
-			/* 获取附近的商家，判断购买商品是否在附近*/
-		    /* 获取附近的商家，判断购买商品是否在附近*/
-		    $geohash = RC_Loader::load_app_class('geohash', 'store');
-		    $geohash_code = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
-		    $geohash_code = substr($geohash_code, 0, 5);
-		    $store_list = RC_Api:: api( 'store', 'neighbors_store_id' , array('geohash' => $geohash_code));
-// 			$seller_list = RC_Api::api('seller', 'seller_list', array('location' => array('longitude' => $consignee['longitude'], 'latitude' => $consignee['latitude']), 'limit' => 'all'));
-			if (!empty($store_list)) {
-				foreach ($get_cart_goods['goods_list'] as $val) {
-					$order['store_id']		= $val['store_id'];
-					$goods_group[] = $val['store_id'];
-				}
-				$goods_diff = array_diff($goods_group, $store_list);
-				if (!empty($goods_diff)) {
-					return new ecjia_error('goods_beyond_delivery', '有部分商品不再送货范围内！');
-				}
-			} else {
-				return new ecjia_error('beyond_delivery', '您的收货地址不在送货范围内！');
-			}
+			return new ecjia_error('pls_fill_in_consinee_info', '请完善收货人信息！');
 		}
 
 		/* 检查商品库存 */
@@ -131,8 +121,6 @@ class cart_flow_done_api extends Component_Event_Api {
 			$now = RC_Time::gmtime();
 			if (empty($bonus) || $bonus['user_id'] > 0 || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart::cart_amount(true, $options['flow_type']) || $now > $bonus['use_end_date']) {} else {
 				if ($user_id > 0) {
-					//$db_user_bonus = RC_Model::model('bonus/user_bonus_model');
-					//$db_user_bonus->where(array('bonus_id' => $bonus['bonus_id']))->update(array('user_id' => $user_id));
 					$db_user_bonus = RC_DB::table('user_bonus');
 					$db_user_bonus->where('bonus_id', $bonus['bonus_id'])->update(array('user_id' => $user_id));
 				}
@@ -151,14 +139,6 @@ class cart_flow_done_api extends Component_Event_Api {
 			$order[$key] = addslashes($value);
 		}
 
-		$cart_goods = $get_cart_goods['goods_list'];
-		/* 判断是不是实体商品 */
-		foreach ($cart_goods as $val) {
-			/* 统计实体商品的个数 */
-			if ($val['is_real']) {
-				$is_real_good = 1;
-			}
-		}
 		if (isset($is_real_good)) {
 			$shipping_method = RC_Loader::load_app_class('shipping_method', 'shipping');
 			$data = $shipping_method->shipping_info($order['shipping_id']);
@@ -198,7 +178,15 @@ class cart_flow_done_api extends Component_Event_Api {
 			$payment = $payment_method->payment_info_by_id($order['pay_id']);
 			$order['pay_name'] = addslashes($payment['pay_name']);
 			//如果是货到付款，状态设置为已确认。
-			if($payment['pay_code'] == 'pay_cod') { $order['order_status'] = 1; }
+			if($payment['pay_code'] == 'pay_cod') { 
+				$order['order_status'] = 1;
+				$store_info = RC_DB::table('store_franchisee')->where('store_id', $store_group[0])->first();
+				/* 货到付款判断是否是自营*/
+				if ($store_info['manage_mode'] != 'self') {
+					return new ecjia_error('pay_not_support', '货到付款不支持非自营商家！');
+				}
+			}
+			
 		}
 		$order['pay_fee']	= $total['pay_fee'];
 		$order['cod_fee']	= $total['cod_fee'];
@@ -207,21 +195,6 @@ class cart_flow_done_api extends Component_Event_Api {
 		$order['card_fee']	= $total['card_fee'];
 
 		$order['order_amount'] = number_format($total['amount'], 2, '.', '');
-
-		/* 如果全部使用余额支付，检查余额是否足够 */
-// 		if (($payment['pay_code'] == 'balance' ) && $order['order_amount'] > 0) {
-// 			// 余额支付里如果输入了一个金额
-// 			if ($order['surplus'] > 0) {
-// 				$order['order_amount'] = $order['order_amount'] + $order['surplus'];
-// 				$order['surplus'] = 0;
-// 			}
-// 			if ($order['order_amount'] > ($user_info['user_money'] + $user_info['credit_line'])) {
-// 				EM_Api::outPut(10003);
-// 			} else {
-// 				$order['surplus'] = $order['order_amount'];
-// 				$order['order_amount'] = 0;
-// 			}
-// 		}
 
 		/* 如果订单金额为0（使用余额或积分或红包支付），修改订单状态为已确认、已付款 */
 		if ($order['order_amount'] <= 0) {
@@ -360,12 +333,12 @@ class cart_flow_done_api extends Component_Event_Api {
 			$tpl_name = 'remind_of_new_order';
 			$tpl   = RC_Api::api('mail', 'mail_template', $tpl_name);
 
-			ecjia_admin::$controller->assign('order', $order);
-			ecjia_admin::$controller->assign('goods_list', $cart_goods);
+			ecjia_front::$controller->assign('order', $order);
+			ecjia_front::$controller->assign('goods_list', $cart_goods);
 			ecjia_front::$controller->assign('shop_name', ecjia::config('shop_name'));
-			ecjia_admin::$controller->assign('send_date', date(ecjia::config('time_format')));
+			ecjia_front::$controller->assign('send_date', date(ecjia::config('time_format')));
 
-			$content = ecjia_admin::$controller->fetch_string($tpl['template_content']);
+			$content = ecjia_front::$controller->fetch_string($tpl['template_content']);
 			RC_Mail::send_mail(ecjia::config('shop_name'), ecjia::config('service_email'), $tpl['template_subject'], $content, $tpl['is_html']);
 		}
 
@@ -381,7 +354,7 @@ class cart_flow_done_api extends Component_Event_Api {
 					ecjia_front::$controller->assign('consignee', $order['consignee']);
 					ecjia_front::$controller->assign('mobile', $order['mobile']);
 
-					$content = ecjia::$controller->fetch_string($tpl['template_content']);
+					$content = ecjia_front::$controller->fetch_string($tpl['template_content']);
 					$msg = $order['pay_status'] == PS_UNPAYED ? $content : $content.__('已付款');
 					$options = array(
 							'mobile' 		=> ecjia::config('sms_shop_mobile'),
