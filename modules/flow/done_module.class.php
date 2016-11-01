@@ -28,10 +28,10 @@ class done_module extends api_front implements api_interface {
     	
     	$location		= $this->requestData('location',array());
     	//TODO:目前强制坐标
-    	$location = array(
-    	    'latitude'	=> '31.235450744628906',
-    	    'longitude' => '121.41641998291016',
-    	);
+//     	$location = array(
+//     	    'latitude'	=> '31.235450744628906',
+//     	    'longitude' => '121.41641998291016',
+//     	);
     	/* 取得购物类型 */
     	$flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
     	

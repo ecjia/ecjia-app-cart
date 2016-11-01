@@ -1,5 +1,4 @@
 <?php
-use Royalcms\Component\Foundation\String;
 defined('IN_ECJIA') or exit('No permission resources.');
 /**
  * 购物流检查订单
@@ -307,7 +306,7 @@ class checkOrder_module extends api_front implements api_interface {
 					'ub.user_id' => array('neq' => 0),
 					'ub.user_id' => $_SESSION['user_id'],
 					'ub.order_id' => 0))
-                    ->in(array('bt.store_id' => array($order['store_id'], '0'))
+                    ->in(array('bt.store_id' => array($order['store_id'], '0')))
 					->select();
 
 			$user_bonus_list = array();
