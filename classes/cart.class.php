@@ -576,10 +576,11 @@ class cart {
 			$region['province'] = $consignee['province'];
 			$region['city']     = $consignee['city'];
 			$region['district'] = isset($consignee['district']) ? $consignee['district'] : '';
+			$region_list = array($region['country'], $region['province'], $region['city'], $region['district']);
 			
 			$shipping_method	= RC_Loader::load_app_class('shipping_method', 'shipping');
-			$shipping_info 		= $shipping_method->shipping_area_info($order['shipping_id'], $region, $store_id);
-	
+			$shipping_info 		= $shipping_method->shipping_area_info($order['shipping_id'], $region_list, $store_id);
+
 			if (!empty($shipping_info)) {
 				if ($order['extension_code'] == 'group_buy') {
 					$weight_price = self::cart_weight_price(CART_GROUP_BUY_GOODS);
@@ -704,6 +705,9 @@ class cart {
 // 			}
 // 			$total['exchange_integral'] = $exchange_integral;
 // 		}
+
+		
+		
 		return $total;
 	}
 	
