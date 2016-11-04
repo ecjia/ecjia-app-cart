@@ -557,7 +557,7 @@ class cart {
 	
 		/* 红包 */
 		if (!empty($order['bonus_id'])) {
-			$bonus          = RC_Api::api('bonus', 'bonus_info', array('bonus_id' => $order['bonus_id'], 'store_id' => $store_id));
+			$bonus          = RC_Api::api('bonus', 'bonus_info', array('bonus_id' => $order['bonus_id']));
 			$total['bonus'] = $bonus['type_money'];
 		}
 		$total['bonus_formated'] = price_format($total['bonus'], false);

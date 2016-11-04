@@ -113,14 +113,14 @@ class cart_flow_done_api extends Component_Event_Api {
 		/* 检查红包是否存在 */
 		if ($order['bonus_id'] > 0) {
 			$bonus = RC_Api::api('bonus', 'bonus_info', array('bonus_id' => $order['bonus_id']));
-			if (empty($bonus) || $bonus['user_id'] != $user_id || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart::cart_amount(true, $options['flow_type'])) {
+			if (empty($bonus) || $bonus['store_id'] != $order['store_id'] || $bonus['user_id'] != $user_id || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart::cart_amount(true, $options['flow_type'])) {
 				$order['bonus_id'] = 0;
 			}
 		} elseif (isset($options['bonus_sn'])) {
 			$bonus_sn = trim($options['bonus_sn']);
 			$bonus = RC_Api::api('bonus', 'bonus_info', array('bonus_id' => 0, 'bonus_sn' => $bonus_sn));
 			$now = RC_Time::gmtime();
-			if (empty($bonus) || $bonus['user_id'] > 0 || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart::cart_amount(true, $options['flow_type']) || $now > $bonus['use_end_date']) {} else {
+			if (empty($bonus) || $bonus['store_id'] != $order['store_id'] || $bonus['user_id'] > 0 || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart::cart_amount(true, $options['flow_type']) || $now > $bonus['use_end_date']) {} else {
 				if ($user_id > 0) {
 					$db_user_bonus = RC_DB::table('user_bonus');
 					$db_user_bonus->where('bonus_id', $bonus['bonus_id'])->update(array('user_id' => $user_id));
