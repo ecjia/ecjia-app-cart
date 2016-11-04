@@ -213,10 +213,10 @@ class cart_flow_done_api extends Component_Event_Api {
 			$order['integral_money'] = 0;
 			$order['integral']		 = $total['exchange_integral'];
 		}
-
+		
 		$order['from_ad'] = ! empty($_SESSION['from_ad']) ? $_SESSION['from_ad'] : '0';
-		$order['referer'] = $this->device['client'];
-
+		$order['referer'] = $options['device']['client'];
+		
 		/* 记录扩展信息 */
 		if ($options['flow_type'] != CART_GENERAL_GOODS) {
 			$order['extension_code'] = $_SESSION['extension_code'];
