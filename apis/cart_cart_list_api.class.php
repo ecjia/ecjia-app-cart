@@ -1,24 +1,24 @@
 <?php
 defined('IN_ECJIA') or exit('No permission resources.');
 /**
- * 
+ *
  * @author will.chen
  *
  */
 class cart_cart_list_api extends Component_Event_Api {
-	
-	
+
+
     /**
-     * @param  
+     * @param
      *
      * @return array
      */
-	public function call(&$options) 
-	{	
+	public function call(&$options)
+	{
 		return $this->get_cart_goods($options['cart_id'], $options['flow_type'], $options['store_group']);
 	}
-	
-	
+
+
 	/**
 	 * 获得购物车中的商品
 	 *
@@ -30,7 +30,7 @@ class cart_cart_list_api extends Component_Event_Api {
 					   ->leftJoin('goods as g', RC_DB::raw('c.goods_id'), '=', RC_DB::raw('g.goods_id'))
 					   ->leftJoin('store_franchisee as s', RC_DB::raw('s.store_id'), '=', RC_DB::raw('c.store_id'));
 		$db_goods_attr = RC_DB::table('goods_attr');
-		
+
 		/* 初始化 */
 		$goods_list = array();
 		$total = array(
@@ -40,15 +40,15 @@ class cart_cart_list_api extends Component_Event_Api {
 				'save_rate'    => 0, // 节省百分比
 				'goods_amount' => 0, // 本店售价合计（无格式）
 		);
-		
-		
+
+
 		$dbview_cart->where(RC_DB::raw('c.rec_type'), '=', $flow_type);
-		
+
 		/* 符合店铺条件*/
 		if (!empty($store_group)) {
 			$dbview_cart->whereIn(RC_DB::raw('c.store_id'), $store_group);
 		}
-		
+
 		/* 选择购买 */
 		if (!empty($cart_id)) {
 			$dbview_cart->whereIn(RC_DB::raw('c.rec_id'), $cart_id);
@@ -69,7 +69,7 @@ class cart_cart_list_api extends Component_Event_Api {
 		/* 用于统计购物车中实体商品和虚拟商品的个数 */
 		$virtual_goods_count = 0;
 		$real_goods_count    = 0;
-	
+
 		if (!empty($data)) {
 			foreach ($data as $row) {
 				$total['goods_price']  += $row['goods_price'] * $row['goods_number'];
@@ -79,17 +79,17 @@ class cart_cart_list_api extends Component_Event_Api {
 				/* 返回未格式化价格*/
 				$row['goods_price']		= $row['goods_price'];
 				$row['market_price']	= $row['market_price'];
-				
+
 				$row['formatted_goods_price']  	= price_format($row['goods_price'], false);
 				$row['formatted_market_price'] 	= price_format($row['market_price'], false);
-	
+
 				/* 统计实体商品和虚拟商品的个数 */
 				if ($row['is_real']) {
 					$real_goods_count++;
 				} else {
 					$virtual_goods_count++;
 				}
-	
+
 				/* 查询规格 */
 				if (trim($row['goods_attr']) != '') {
 					$row['goods_attr'] = addslashes($row['goods_attr']);
@@ -119,7 +119,7 @@ class cart_cart_list_api extends Component_Event_Api {
 		return array('goods_list' => $goods_list, 'total' => $total);
 
 	}
-	
+
 }
 
 // end

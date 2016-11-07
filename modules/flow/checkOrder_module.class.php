@@ -12,7 +12,7 @@ class checkOrder_module extends api_front implements api_interface {
     	if ($_SESSION['user_id'] <= 0) {
     		return new ecjia_error(100, 'Invalid session');
     	}
-    	
+
     	$address_id = $this->requestData('address_id', 0);
 		$rec_id		= $this->requestData('rec_id');
 
@@ -132,14 +132,14 @@ class checkOrder_module extends api_front implements api_interface {
 					)
 			);
 		}
-		
+
 		$store_group = array_unique($store_group);
 		if (count($store_group) > 1) {
 			return new ecjia_error('pls_single_shop_for_settlement', '请单个店铺进行结算!');
 		} else {
 			$order['store_id'] = $store_group[0];
 		}
-		
+
 		/* 计算折扣 */
 		if ($flow_type != CART_EXCHANGE_GOODS && $flow_type != CART_GROUP_BUY_GOODS) {
 			$discount = cart::compute_discount($cart_id);
@@ -147,7 +147,6 @@ class checkOrder_module extends api_front implements api_interface {
 		}
 		/* 计算订单的费用 */
 		$total = cart::order_fee($order, $cart_goods, $consignee, $cart_id);
-
 		/* 取得配送列表 */
 		$region            = array($consignee['country'], $consignee['province'], $consignee['city'], $consignee['district']);
 
@@ -173,7 +172,7 @@ class checkOrder_module extends api_front implements api_interface {
 			$shipping_count = $db_cart->where($shipping_count_where)->count();
 		}
 
-		
+
 		$ck = array();
 		foreach ($shipping_list AS $key => $val) {
 			if (isset($ck[$val['shipping_id']])) {
@@ -278,7 +277,7 @@ class checkOrder_module extends api_front implements api_interface {
 		} else {
 			$payment_list = $payment_method->available_payment_list(false, $cod_fee);
 		}
-		
+
 
 		$user_info = RC_Api::api('user', 'user_info', array('user_id' => $_SESSION['user_id']));
 		/* 保存 session */
@@ -318,11 +317,15 @@ class checkOrder_module extends api_front implements api_interface {
     			 	'on'   	=> 'ub.bonus_type_id = bt.type_id'
     			)
             );
-			$user_bonus = $db_user_bonus_view->join('bonus_type')->field('bt.type_id, bt.type_name, bt.send_type, bt.type_money, ub.bonus_id, bt.use_start_date, bt.use_end_date, min_goods_amount')->where(array('bt.use_start_date' => array('elt' => RC_Time::gmtime()),
-					'bt.use_end_date' => array('egt' => RC_Time::gmtime()),
-					'ub.user_id' => array('neq' => 0),
-					'ub.user_id' => $_SESSION['user_id'],
-					'ub.order_id' => 0))
+			$user_bonus = $db_user_bonus_view->join('bonus_type')->field('bt.type_id, bt.type_name, bt.send_type, bt.type_money, ub.bonus_id, bt.use_start_date, bt.use_end_date, min_goods_amount')
+					->where(array(
+						'bt.use_start_date' => array('elt' => RC_Time::gmtime()),
+						'bt.use_end_date' => array('egt' => RC_Time::gmtime()),
+						'ub.user_id' => array('neq' => 0),
+						'ub.user_id' => $_SESSION['user_id'],
+						'ub.order_id' => 0,
+						'bt.min_goods_amount' => array('lt' => $total['goods_price']),
+					))
                     ->in(array('bt.store_id' => array($order['store_id'], '0')))
 					->select();
 
