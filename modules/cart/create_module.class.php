@@ -9,14 +9,14 @@ class create_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
 
     	$this->authSession();
-    	if ($_SESSION['user_id'] <= 0) {
-    		return new ecjia_error(100, 'Invalid session');
-    	}
-    	
+    	// if ($_SESSION['user_id'] <= 0) {
+    	// 	return new ecjia_error(100, 'Invalid session');
+    	// }
+
 	    $goods_id		= $this->requestData('goods_id', 0);
 	    $goods_number	= $this->requestData('number', 1);
 	    $location		= $this->requestData('location', array());
-	    
+
 	    //TODO:目前强制坐标
 // 		$location = array(
 // 				'latitude'	=> '31.235450744628906',
@@ -25,7 +25,22 @@ class create_module extends api_front implements api_interface {
 	    $goods_spec		= $this->requestData('spec', array());
 	    $rec_type		= $this->requestData('rec_type', 0);
 
-
+		$time_temp = date('H:i',time());
+		$time = explode(':', $time_temp);
+		$time = ($time[0]*60 + $time[1]);
+		$store_id = RC_DB::table('goods')->where('goods_id', $goods_id)->pluck('store_id');
+		$shop_trade_time = RC_DB::table('merchants_config')
+			->where('code', '=', 'shop_trade_time')
+			->where('store_id', $store_id)
+			->pluck('value');
+		$shop_trade_time = unserialize($shop_trade_time);
+		$start_time_temp = explode(':', $shop_trade_time['start']);
+		$end_time_temp = explode(':', $shop_trade_time['end']);
+		$start_time = ($start_time_temp[0]*60 + $start_time_temp[1]);
+		$end_time = ($end_time_temp[0]*60 + $end_time_temp[1]);
+		if($time > $end_time || $time < $start_time){
+			return new ecjia_error('商家已经休息');
+		}
 // 	    $result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'location' => $location));
 
 // 	    RC_Loader::load_app_func('cart', 'cart');
@@ -59,7 +74,7 @@ class create_module extends api_front implements api_interface {
 	    	} else {
 	    		return new ecjia_error('location_error', '请定位您当前所在地址！');
 	    	}
-	    	
+
 	    	$result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'store_group' => $store_id_group));
 // 	    	$result = addto_cart($goods_id, $goods_number, $goods_spec, 0, $warehouse_id, $area_id);
 // 	    }
@@ -76,7 +91,7 @@ class create_module extends api_front implements api_interface {
 							->field($field)
 							->where(array('c.user_id' => $_SESSION['user_id'] , 'rec_type' => CART_GENERAL_GOODS, 'rec_id' => $result))
 							->find();
-			
+
 			$row['subtotal']     = price_format($row['goods_price'] * $row['goods_number'], false);
 			$row['formated_goods_price']  = price_format($row['goods_price'], false);
 			$row['formated_market_price'] = price_format($row['market_price'], false);
