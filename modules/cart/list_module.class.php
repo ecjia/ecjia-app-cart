@@ -7,21 +7,21 @@ defined('IN_ECJIA') or exit('No permission resources.');
  */
 class list_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
-    		
+
     	$this->authSession();
     	if ($_SESSION['user_id'] <= 0) {
     		return new ecjia_error(100, 'Invalid session');
     	}
 		$location = $this->requestData('location', array());
-		
+
 		$seller_id		= $this->requestData('seller_id', 0);
-		
+
 		//TODO:目前强制坐标
 // 	    $location = array(
 // 	        'latitude'	=> '31.235450744628906',
 // 	        'longitude' => '121.41641998291016',
 // 	    );
-		
+
 		if (isset($location['latitude']) && !empty($location['latitude']) && isset($location['longitude']) && !empty($location['longitude'])) {
 			$geohash = RC_Loader::load_app_class('geohash', 'store');
 			$geohash_code = $geohash->encode($location['latitude'] , $location['longitude']);
@@ -35,7 +35,7 @@ class list_module extends api_front implements api_interface {
 		} else {
 			return new ecjia_error('location_error', '请定位您当前所在地址！');
 		}
-		
+
 		$cart_result = RC_Api::api('cart', 'cart_list', array('store_group' => $store_id_group, 'flow_type' => CART_GENERAL_GOODS));
 		if (is_ecjia_error($cart_result)) {
 			return $cart_result;
@@ -62,7 +62,7 @@ class list_module extends api_front implements api_interface {
 						}
 					}
 				}
-				
+
 				$cart_goods['cart_list'][$row['store_id']]['goods_list'][] = array(
 						'rec_id'	=> intval($row['rec_id']),
 						'goods_id'	=> intval($row['goods_id']),
@@ -86,7 +86,7 @@ class list_module extends api_front implements api_interface {
 			}
 		}
 		$cart_goods['cart_list'] = array_merge($cart_goods['cart_list']);
-				
+
 // 		//购物车猜你喜欢  api2.4功能
 // 		$options = array(
 // 				'intro'		=> 'hot',
@@ -95,9 +95,9 @@ class list_module extends api_front implements api_interface {
 // 				'size'		=> 8,
 // 				'location'	=> $location,
 // 		);
-		
+
 // 		$result = RC_Api::api('goods', 'goods_list', $options);
-	
+
 // 		$cart_goods['related_goods'] = array();
 // 		if (!empty($result['list'])) {
 // 			$mobilebuy_db = RC_Model::model('goods/goods_activity_model');
@@ -110,7 +110,7 @@ class list_module extends api_front implements api_interface {
 // 				$activity_type = ($val['unformatted_shop_price'] > $val['unformatted_promote_price'] && $val['unformatted_promote_price'] > 0) ? 'PROMOTE_GOODS' : 'GENERAL_GOODS';
 // 				/* 计算节约价格*/
 // 				$saving_price = ($val['unformatted_shop_price'] > $val['unformatted_promote_price'] && $val['unformatted_promote_price'] > 0) ? $val['unformatted_shop_price'] - $val['unformatted_promote_price'] : (($val['unformatted_market_price'] > 0 && $val['unformatted_market_price'] > $val['unformatted_shop_price']) ? $val['unformatted_market_price'] - $val['unformatted_shop_price'] : 0);
-				 
+
 // 				$mobilebuy_price = $object_id = 0;
 // 				if (!is_ecjia_error($result_mobilebuy) && $is_active) {
 // 					$mobilebuy = $mobilebuy_db->find(array(
@@ -130,7 +130,7 @@ class list_module extends api_front implements api_interface {
 // 						}
 // 					}
 // 				}
-				 
+
 // 				$cart_goods['related_goods'][] = array(
 // 						'goods_id'		=> $val['goods_id'],
 // 						'id'			=> $val['goods_id'],
@@ -152,7 +152,7 @@ class list_module extends api_front implements api_interface {
 // 				);
 // 			}
 // 		}
-		
+
 		return $cart_goods;
 	}
 }

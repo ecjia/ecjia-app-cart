@@ -60,6 +60,11 @@ class cart_cart_manage_api extends Component_Event_Api {
             return new ecjia_error('goods_out_of_stock', __('对不起，该商品已下架！'));
         }
 
+		$count = RC_DB::table('store_franchisee')->where('shop_close', '0')->where('store_id', $goods['store_id'])->count();
+		if(empty($count)){
+			return new ecjia_error('no_goods', __('对不起，该商品所属的店铺已经下线！'));
+		}
+
         /* 如果是作为配件添加到购物车的，需要先检查购物车里面是否已经有基本件 */
         if ($parent > 0) {
             //$parent_w = array('goods_id' => $parent , 'user_id' => $_SESSION['user_id'] , 'extension_code' => array('neq' => 'package_buy'));
@@ -81,11 +86,11 @@ class cart_cart_manage_api extends Component_Event_Api {
         if (empty($parent) && $goods['is_alone_sale'] == 0) {
             return new ecjia_error('not_alone_sale', __('对不起，该商品不能单独购买！'));
         }
-        
+
         if (!in_array($goods['store_id'], $store_group)) {
         	return new ecjia_error('goods_delivery_beyond_error', '您所添加的商品超出了配送区域！');
         }
-        
+
         /* 如果商品有规格则取规格商品信息 配件除外 */
 
         //$prod = RC_Model::model('goods/products_model')->find(array('goods_id' => $goods_id));
