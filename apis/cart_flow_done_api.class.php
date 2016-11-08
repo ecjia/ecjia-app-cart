@@ -215,7 +215,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		}
 		
 		$order['from_ad'] = ! empty($_SESSION['from_ad']) ? $_SESSION['from_ad'] : '0';
-		$order['referer'] = $options['device']['client'];
+		$order['referer'] = ! empty($options['device']['client']) ? $options['device']['client'] : 'mobile';
 		
 		/* 记录扩展信息 */
 		if ($options['flow_type'] != CART_GENERAL_GOODS) {
