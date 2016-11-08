@@ -43,6 +43,7 @@ class cart_cart_list_api extends Component_Event_Api {
 
 
 		$dbview_cart->where(RC_DB::raw('c.rec_type'), '=', $flow_type);
+		$dbview_cart->where(RC_DB::raw('s.shop_close'), '=', '0');
 
 		/* 符合店铺条件*/
 		if (!empty($store_group)) {
@@ -115,7 +116,7 @@ class cart_cart_list_api extends Component_Event_Api {
 		$total['market_price'] 			= price_format($total['market_price'], false);
 		$total['real_goods_count']    	= $real_goods_count;
 		$total['virtual_goods_count'] 	= $virtual_goods_count;
-		
+
 		return array('goods_list' => $goods_list, 'total' => $total);
 
 	}
