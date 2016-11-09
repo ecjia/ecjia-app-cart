@@ -1334,7 +1334,7 @@ class cart {
 	 *        	促销结束日期
 	 * @return float 如果还在促销期则返回促销价，否则返回0
 	 */
-	private function bargain_price($price, $start, $end) {
+	private static function bargain_price($price, $start, $end) {
 		if ($price == 0) {
 			return 0;
 		} else {
