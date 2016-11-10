@@ -17,7 +17,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		RC_Loader::load_app_class('cart', 'cart', false);
 
 		$order = $options['order'];
-		
+
 		/* 获取用户收货地址*/
 		if ($options['address_id'] == 0) {
 			$consignee = cart::get_consignee($_SESSION['user_id']);
@@ -35,7 +35,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		} else {
 			return new ecjia_error('pls_fill_in_consinee_info', '请完善收货人信息！');
 		}
-		
+
 		/* 检查购物车中是否有商品 */
 		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $options['cart_id'], 'flow_type' => $options['flow_type'], 'store_group' => $store_id_group));
 
@@ -45,9 +45,9 @@ class cart_flow_done_api extends Component_Event_Api {
 		if (count($get_cart_goods['goods_list']) == 0) {
 			return new ecjia_error('not_found_cart_goods', '购物车中没有您选择的商品');
 		}
-		
+
 		$cart_goods = $get_cart_goods['goods_list'];
-		
+
 		/* 判断是不是实体商品  及店铺数量如有多家店铺返回错误*/
 		$store_group = array();
 		foreach ($cart_goods as $val) {
@@ -62,7 +62,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			return new ecjia_error('pls_single_shop_for_settlement', '请单个店铺进行结算!');
 		}
 		$order['store_id'] = $store_group[0];
-		
+
 		/* 检查收货人信息是否完整 */
 		if (!cart::check_consignee_info($consignee, $options['flow_type'])) {
 			/* 如果不完整则转向到收货人信息填写界面 */
@@ -138,8 +138,11 @@ class cart_flow_done_api extends Component_Event_Api {
 		/* 收货人信息 */
 		foreach ($consignee as $key => $value) {
 			$order[$key] = addslashes($value);
+			if($key == 'address_info'){
+				$order['address'] = $order['address'].$order[$key];
+			}
 		}
-
+	
 		if (isset($is_real_good)) {
 			$shipping_method = RC_Loader::load_app_class('shipping_method', 'shipping');
 			$data = $shipping_method->shipping_info($order['shipping_id']);
@@ -179,7 +182,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			$payment = $payment_method->payment_info_by_id($order['pay_id']);
 			$order['pay_name'] = addslashes($payment['pay_name']);
 			//如果是货到付款，状态设置为已确认。
-			if($payment['pay_code'] == 'pay_cod') { 
+			if($payment['pay_code'] == 'pay_cod') {
 				$order['order_status'] = 1;
 				$store_info = RC_DB::table('store_franchisee')->where('store_id', $store_group[0])->first();
 				/* 货到付款判断是否是自营*/
@@ -187,7 +190,7 @@ class cart_flow_done_api extends Component_Event_Api {
 					return new ecjia_error('pay_not_support', '货到付款不支持非自营商家！');
 				}
 			}
-			
+
 		}
 		$order['pay_fee']	= $total['pay_fee'];
 		$order['cod_fee']	= $total['cod_fee'];
@@ -213,10 +216,10 @@ class cart_flow_done_api extends Component_Event_Api {
 			$order['integral_money'] = 0;
 			$order['integral']		 = $total['exchange_integral'];
 		}
-		
+
 		$order['from_ad'] = ! empty($_SESSION['from_ad']) ? $_SESSION['from_ad'] : '0';
 		$order['referer'] = ! empty($options['device']['client']) ? $options['device']['client'] : 'mobile';
-		
+
 		/* 记录扩展信息 */
 		if ($options['flow_type'] != CART_GENERAL_GOODS) {
 			$order['extension_code'] = $_SESSION['extension_code'];
