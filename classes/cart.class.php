@@ -119,6 +119,37 @@ class cart {
 	}
 	
 	/**
+	 * 选中取消选中购物车中的商品
+	 *
+	 * @access  public
+	 * @param   array $options
+	 * @return  void
+	 */
+	public static function flow_check_cart_goods($options) {
+	    //$options['id'] 整数 或 数组
+	    $db_cart = RC_Model::model('cart/cart_model');
+	    $dbview  = RC_Model::model('cart/cart_group_goods_goods_viewmodel');
+	
+	    /* 取得商品id */
+	    $row = $db_cart->find(array('rec_id' => $options['id']));
+	    if ($row) {
+		    
+		    $db_cart->where(array('rec_id' => $options['id']))->update(array('is_checked' => $options['is_checked']));
+			//如果是超值礼包
+// 			if ($row['extension_code'] == 'package_buy') {
+				
+// 			} elseif ($row['parent_id'] == 0 && $row['is_gift'] == 0) {
+// 				//如果是普通商品，同时删除所有赠品及其配件
+// 			} else {
+// 				//如果不是普通商品，只删除该商品即可
+// 			}
+	
+		}
+        return true;
+// 		self::flow_clear_cart_alone();
+	}
+	
+	/**
 	 * 删除购物车中的商品
 	 *
 	 * @access  public

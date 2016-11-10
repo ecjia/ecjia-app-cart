@@ -38,7 +38,6 @@ class delete_module extends api_front implements api_interface {
 	   	}
 	    return $cart_goods['total'];
 	    
-	    
 	}
 }
 
