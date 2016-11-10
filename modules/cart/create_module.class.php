@@ -30,7 +30,8 @@ class create_module extends api_front implements api_interface {
 
 	    RC_Loader::load_app_func('cart', 'cart');
 	    
-		$time_temp = date('H:i',time());
+	    //TODO：营业时间判断暂时不考虑
+		/* $time_temp = date('H:i',time());
 		$time = explode(':', $time_temp);
 		$time = ($time[0]*60 + $time[1]);
 		$store_id = RC_DB::table('goods')->where('goods_id', $goods_id)->pluck('store_id');
@@ -45,7 +46,8 @@ class create_module extends api_front implements api_interface {
 		$end_time = ($end_time_temp[0]*60 + $end_time_temp[1]);
 		if($time > $end_time || $time < $start_time){
 			return new ecjia_error('商家已经休息');
-		}
+		} */
+	    
 // 	    $result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'location' => $location));
 
 // 	    RC_Loader::load_app_func('cart', 'cart');

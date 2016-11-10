@@ -1853,6 +1853,7 @@ function formated_cart_list($cart_result) {
     if (is_ecjia_error($cart_result)) {
         return $cart_result;
     }
+    recalculate_price();
     unset($_SESSION['flow_type']);
     $cart_goods = array('cart_list' => array(), 'total' => $cart_result['total']);
     if (!empty($cart_result['goods_list'])) {
