@@ -40,67 +40,8 @@ class list_module extends api_front implements api_interface {
 		}
 
 		$cart_result = RC_Api::api('cart', 'cart_list', array('store_group' => $store_id_group, 'flow_type' => CART_GENERAL_GOODS));
-		if (is_ecjia_error($cart_result)) {
-			return $cart_result;
-		}
-		unset($_SESSION['flow_type']);
-		$cart_goods = array('cart_list' => array(), 'total' => $cart_result['total']);
-		if (!empty($cart_result['goods_list'])) {
-			foreach ($cart_result['goods_list'] as $row) {
-				if (!isset($cart_goods['cart_list'][$row['store_id']])) {
-					$cart_goods['cart_list'][$row['store_id']] = array(
-							'seller_id'		=> intval($row['store_id']),
-							'seller_name'	=> $row['store_name'],
-    					    'promotions' => array(
-    					        'id'    => 1,
-    					        'title' => '全场商品促销，满100打9折',
-    					        'type'  => 'discount',
-    					    ),
-					);
-				}
-				$goods_attrs = null;
-				/* 查询规格 */
-				if (trim($row['goods_attr']) != '') {
-					$goods_attr = explode("\n", $row['goods_attr']);
-					$goods_attr = array_filter($goods_attr);
-					foreach ($goods_attr as $v) {
-						$a = explode(':', $v);
-						if (!empty($a[0]) && !empty($a[1])) {
-							$goods_attrs[] = array('name' => $a[0], 'value' => $a[1]);
-						}
-					}
-				}
-
-				$cart_goods['cart_list'][$row['store_id']]['goods_list'][] = array(
-						'rec_id'	=> intval($row['rec_id']),
-						'goods_id'	=> intval($row['goods_id']),
-						'goods_sn'	=> $row['goods_sn'],
-						'goods_name'	=> $row['goods_name'],
-						'goods_price'	=> $row['goods_price'],
-						'market_price'	=> $row['market_price'],
-						'formated_goods_price'	=> $row['formatted_goods_price'],
-						'formated_market_price' => $row['formatted_market_price'],
-						'goods_number'	=> intval($row['goods_number']),
-						'subtotal'		=> $row['subtotal'],
-						'goods_attr_id' => intval($row['goods_attr_id']),
-						'attr'			=> $row['goods_attr'],
-						'goods_attr'	=> $goods_attrs,
-				        'is_checked'	=> $row['is_checked'],
-				        'promotions' => array(
-				            'id'    => 1,
-				            'title' => '满9.90、19.90、29.90可换购商品',
-				            'type'  => 'discount',
-				        ),
-						'img' => array(
-							'thumb'	=> RC_Upload::upload_url($row['goods_img']),
-							'url'	=> RC_Upload::upload_url($row['original_img']),
-							'small'	=> RC_Upload::upload_url($row['goods_img']),
-						)
-				);
-			}
-		}
-		$cart_goods['cart_list'] = array_merge($cart_goods['cart_list']);
-
+		
+		return formated_cart_list($cart_result);
 // 		//购物车猜你喜欢  api2.4功能
 // 		$options = array(
 // 				'intro'		=> 'hot',
