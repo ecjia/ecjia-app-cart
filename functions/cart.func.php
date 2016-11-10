@@ -1863,9 +1863,11 @@ function formated_cart_list($cart_result) {
                     'seller_id'		=> intval($row['store_id']),
                     'seller_name'	=> $row['store_name'],
                     'promotions' => array(
-                        'id'    => 1,
-                        'title' => '全场商品促销，满100打9折',
-                        'type'  => 'discount',
+                        array(
+                            'id'    => 1,
+                            'title' => '全场商品促销，满100打9折',
+                            'type'  => 'discount',
+                        )
                     ),
                 );
             }
@@ -1898,9 +1900,11 @@ function formated_cart_list($cart_result) {
                 'goods_attr'	=> $goods_attrs,
                 'is_checked'	=> $row['is_checked'],
                 'promotions' => array(
-                    'id'    => 1,
-                    'title' => '满9.90、19.90、29.90可换购商品',
-                    'type'  => 'discount',
+                    array(
+                        'id'    => 1,
+                        'title' => '满9.90、19.90、29.90可换购商品',
+                        'type'  => 'discount',
+                    )
                 ),
                 'img' => array(
                     'thumb'	=> RC_Upload::upload_url($row['goods_img']),
