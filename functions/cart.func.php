@@ -1848,6 +1848,72 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 	$_SESSION['extension_id'] = $act_id;
 }
 
+//购物车格式 api返回
+function formated_cart_list($cart_result) {
+    if (is_ecjia_error($cart_result)) {
+        return $cart_result;
+    }
+    unset($_SESSION['flow_type']);
+    $cart_goods = array('cart_list' => array(), 'total' => $cart_result['total']);
+    if (!empty($cart_result['goods_list'])) {
+        foreach ($cart_result['goods_list'] as $row) {
+            if (!isset($cart_goods['cart_list'][$row['store_id']])) {
+                $cart_goods['cart_list'][$row['store_id']] = array(
+                    'seller_id'		=> intval($row['store_id']),
+                    'seller_name'	=> $row['store_name'],
+                    'promotions' => array(
+                        'id'    => 1,
+                        'title' => '全场商品促销，满100打9折',
+                        'type'  => 'discount',
+                    ),
+                );
+            }
+            $goods_attrs = null;
+            /* 查询规格 */
+            if (trim($row['goods_attr']) != '') {
+                $goods_attr = explode("\n", $row['goods_attr']);
+                $goods_attr = array_filter($goods_attr);
+                foreach ($goods_attr as $v) {
+                    $a = explode(':', $v);
+                    if (!empty($a[0]) && !empty($a[1])) {
+                        $goods_attrs[] = array('name' => $a[0], 'value' => $a[1]);
+                    }
+                }
+            }
+    
+            $cart_goods['cart_list'][$row['store_id']]['goods_list'][] = array(
+                'rec_id'	=> intval($row['rec_id']),
+                'goods_id'	=> intval($row['goods_id']),
+                'goods_sn'	=> $row['goods_sn'],
+                'goods_name'	=> $row['goods_name'],
+                'goods_price'	=> $row['goods_price'],
+                'market_price'	=> $row['market_price'],
+                'formated_goods_price'	=> $row['formatted_goods_price'],
+                'formated_market_price' => $row['formatted_market_price'],
+                'goods_number'	=> intval($row['goods_number']),
+                'subtotal'		=> $row['subtotal'],
+                'goods_attr_id' => intval($row['goods_attr_id']),
+                'attr'			=> $row['goods_attr'],
+                'goods_attr'	=> $goods_attrs,
+                'is_checked'	=> $row['is_checked'],
+                'promotions' => array(
+                    'id'    => 1,
+                    'title' => '满9.90、19.90、29.90可换购商品',
+                    'type'  => 'discount',
+                ),
+                'img' => array(
+                    'thumb'	=> RC_Upload::upload_url($row['goods_img']),
+                    'url'	=> RC_Upload::upload_url($row['original_img']),
+                    'small'	=> RC_Upload::upload_url($row['goods_img']),
+                )
+            );
+        }
+    }
+    $cart_goods['cart_list'] = array_merge($cart_goods['cart_list']);
+    
+    return $cart_goods;
+}
+
 //	TODO:以下func，api中暂未用到
 ///**
 // * 比较优惠活动的函数，用于排序（把可用的排在前面）
