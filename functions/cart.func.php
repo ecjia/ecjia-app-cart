@@ -1856,12 +1856,16 @@ function formated_cart_list($cart_result) {
     recalculate_price();
     unset($_SESSION['flow_type']);
     $cart_goods = array('cart_list' => array(), 'total' => $cart_result['total']);
+    
     if (!empty($cart_result['goods_list'])) {
         foreach ($cart_result['goods_list'] as $row) {
+            
             if (!isset($cart_goods['cart_list'][$row['store_id']])) {
                 $cart_goods['cart_list'][$row['store_id']] = array(
                     'seller_id'		=> intval($row['store_id']),
                     'seller_name'	=> $row['store_name'],
+                    'is_disabed'    => 1,
+                    'disabled_label'=> "欢迎选购",
                     'promotions' => array(
                         array(
                             'id'    => 1,
@@ -1884,6 +1888,7 @@ function formated_cart_list($cart_result) {
                 }
             }
     
+            //goods_list
             $cart_goods['cart_list'][$row['store_id']]['goods_list'][] = array(
                 'rec_id'	=> intval($row['rec_id']),
                 'goods_id'	=> intval($row['goods_id']),
@@ -1899,6 +1904,8 @@ function formated_cart_list($cart_result) {
                 'attr'			=> $row['goods_attr'],
                 'goods_attr'	=> $goods_attrs,
                 'is_checked'	=> $row['is_checked'],
+                'is_disabed'    => 1,
+                'disabled_label'=> "tips",
                 'promotions' => array(
                     array(
                         'id'    => 1,
@@ -1912,9 +1919,42 @@ function formated_cart_list($cart_result) {
                     'small'	=> RC_Upload::upload_url($row['goods_img']),
                 )
             );
+            
         }
     }
     $cart_goods['cart_list'] = array_merge($cart_goods['cart_list']);
+    
+    foreach ($cart_goods['cart_list'] as &$seller) {
+        /* 用于统计购物车中实体商品和虚拟商品的个数 */
+        $virtual_goods_count = 0;
+        $real_goods_count    = 0;
+        
+        $total = array(
+            'goods_price'  => 0, // 本店售价合计（有格式）
+            'market_price' => 0, // 市场售价合计（有格式）
+            'saving'       => 0, // 节省金额（有格式）
+            'save_rate'    => 0, // 节省百分比
+            'goods_amount' => 0, // 本店售价合计（无格式）
+        );
+        foreach ($seller['goods_list'] as $goods) {
+            if ($goods['is_checked'] == 1) {
+                $total['goods_price']  += $goods['goods_price'] * $goods['goods_number'];
+                $total['market_price'] += $goods['market_price'] * $goods['goods_number'];
+            }
+        }
+        $total['goods_amount'] = $total['goods_price'];
+        $total['saving']       = price_format($total['market_price'] - $total['goods_price'], false);
+        if ($total['market_price'] > 0) {
+            $total['save_rate'] = $total['market_price'] ? round(($total['market_price'] - $total['goods_price']) *
+                100 / $total['market_price']).'%' : 0;
+        }
+        $total['goods_price']  			= price_format($total['goods_price'], false);
+        $total['market_price'] 			= price_format($total['market_price'], false);
+        $total['real_goods_count']    	= $real_goods_count;
+        $total['virtual_goods_count'] 	= $virtual_goods_count;
+        
+        $seller['total'] = $total;
+    }
     
     return $cart_goods;
 }

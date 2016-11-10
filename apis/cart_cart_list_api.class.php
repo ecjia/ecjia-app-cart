@@ -73,8 +73,11 @@ class cart_cart_list_api extends Component_Event_Api {
 
 		if (!empty($data)) {
 			foreach ($data as $row) {
-				$total['goods_price']  += $row['goods_price'] * $row['goods_number'];
-				$total['market_price'] += $row['market_price'] * $row['goods_number'];
+			    //增加购物车选中状态判断  by hyy
+			    if ($row['is_checked'] == 1) {
+			        $total['goods_price']  += $row['goods_price'] * $row['goods_number'];
+			        $total['market_price'] += $row['market_price'] * $row['goods_number'];
+			    }
 				$row['subtotal']     	= $row['goods_price'] * $row['goods_number'];
 				$row['formatted_subtotal']     	= price_format($row['goods_price'] * $row['goods_number'], false);
 				/* 返回未格式化价格*/
