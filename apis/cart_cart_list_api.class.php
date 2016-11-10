@@ -39,6 +39,7 @@ class cart_cart_list_api extends Component_Event_Api {
 				'saving'       => 0, // 节省金额（有格式）
 				'save_rate'    => 0, // 节省百分比
 				'goods_amount' => 0, // 本店售价合计（无格式）
+		        'goods_number' => 0, // 商品总件数
 		);
 
 
@@ -78,6 +79,7 @@ class cart_cart_list_api extends Component_Event_Api {
 			        $total['goods_price']  += $row['goods_price'] * $row['goods_number'];
 			        $total['market_price'] += $row['market_price'] * $row['goods_number'];
 			    }
+			    $total['goods_number'] += $row['goods_number'];
 				$row['subtotal']     	= $row['goods_price'] * $row['goods_number'];
 				$row['formatted_subtotal']     	= price_format($row['goods_price'] * $row['goods_number'], false);
 				/* 返回未格式化价格*/

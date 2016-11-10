@@ -108,7 +108,7 @@ class list_module extends api_front implements api_interface {
 // 			}
 // 		}
 
-		return $cart_goods;
+// 		return $cart_goods;
 	}
 }
 

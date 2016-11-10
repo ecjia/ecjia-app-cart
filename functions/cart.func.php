@@ -1935,12 +1935,14 @@ function formated_cart_list($cart_result) {
             'saving'       => 0, // 节省金额（有格式）
             'save_rate'    => 0, // 节省百分比
             'goods_amount' => 0, // 本店售价合计（无格式）
+            'goods_number' => 0, // 商品总件数
         );
         foreach ($seller['goods_list'] as $goods) {
             if ($goods['is_checked'] == 1) {
                 $total['goods_price']  += $goods['goods_price'] * $goods['goods_number'];
                 $total['market_price'] += $goods['market_price'] * $goods['goods_number'];
             }
+            $total['goods_number'] += $goods['goods_number'];
         }
         $total['goods_amount'] = $total['goods_price'];
         $total['saving']       = price_format($total['market_price'] - $total['goods_price'], false);
