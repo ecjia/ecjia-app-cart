@@ -50,6 +50,11 @@ class list_module extends api_front implements api_interface {
 					$cart_goods['cart_list'][$row['store_id']] = array(
 							'seller_id'		=> intval($row['store_id']),
 							'seller_name'	=> $row['store_name'],
+    					    'promotions' => array(
+    					        'id'    => 1,
+    					        'title' => '全场商品促销，满100打9折',
+    					        'type'  => 'discount',
+    					    ),
 					);
 				}
 				$goods_attrs = null;
@@ -79,6 +84,12 @@ class list_module extends api_front implements api_interface {
 						'goods_attr_id' => intval($row['goods_attr_id']),
 						'attr'			=> $row['goods_attr'],
 						'goods_attr'	=> $goods_attrs,
+				        'is_checked'	=> $row['is_checked'],
+				        'promotions' => array(
+				            'id'    => 1,
+				            'title' => '满9.90、19.90、29.90可换购商品',
+				            'type'  => 'discount',
+				        ),
 						'img' => array(
 							'thumb'	=> RC_Upload::upload_url($row['goods_img']),
 							'url'	=> RC_Upload::upload_url($row['original_img']),

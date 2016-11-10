@@ -103,6 +103,7 @@ class cart_cart_list_api extends Component_Event_Api {
 // 				if ($row['extension_code'] == 'package_buy') {
 // 					$row['package_goods_list'] = get_package_goods($row['goods_id']);
 // 				}
+				$row['is_checked']	= $row['is_checked'];
 				$goods_list[] = $row;
 			}
 		}
