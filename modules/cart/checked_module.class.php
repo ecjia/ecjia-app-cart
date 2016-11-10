@@ -21,6 +21,7 @@ class checked_module extends api_front implements api_interface {
 // 		    'longitude' => '121.41641998291016',
 // 		);
 		RC_Loader::load_app_class('cart', 'cart', false);
+		RC_Loader::load_app_func('cart', 'cart');
 		
 		$rec_id = $this->requestData('rec_id', 0);
 		$rec_id = explode(',', $rec_id);
