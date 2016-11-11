@@ -17,7 +17,7 @@ class checkOrder_module extends api_front implements api_interface {
 		$rec_id		= $this->requestData('rec_id');
 
 		if (empty($address_id) || empty($rec_id)) {
-		    return new ecjia_error( 'invalid_parameter', RC_Lang::get ('system::system.invalid_parameter' ));
+		    return new ecjia_error( 'invalid_parameter', RC_Lang::get ('system::system.invalid_parameter'));
 		}
 		$cart_id = array();
 		if (!empty($rec_id)) {
@@ -31,7 +31,7 @@ class checkOrder_module extends api_front implements api_interface {
 		/* 团购标志 */
 		if ($flow_type == CART_GROUP_BUY_GOODS) {
 			$is_group_buy = 1;
-		} elseif ($flow_type == CART_EXCHANGE_GOODS){
+		} elseif ($flow_type == CART_EXCHANGE_GOODS) {
 			/* 积分兑换商品 */
 			$is_exchange_goods = 1;
 		} else {

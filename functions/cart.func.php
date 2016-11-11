@@ -1864,13 +1864,15 @@ function formated_cart_list($cart_result) {
                 $cart_goods['cart_list'][$row['store_id']] = array(
                     'seller_id'		=> intval($row['store_id']),
                     'seller_name'	=> $row['store_name'],
-                    'is_disabed'    => 1,
+                    'manage_mode'   => $row['manage_mode'],
+                    'is_disabled'   => 0,
                     'disabled_label'=> "欢迎选购",
                     'promotions' => array(
                         array(
                             'id'    => 1,
                             'title' => '全场商品促销，满100打9折',
                             'type'  => 'discount',
+                            'type_label' => '满折',
                         )
                     ),
                 );
@@ -1911,6 +1913,7 @@ function formated_cart_list($cart_result) {
                         'id'    => 1,
                         'title' => '满9.90、19.90、29.90可换购商品',
                         'type'  => 'discount',
+                        'type_label' => '满减',
                     )
                 ),
                 'img' => array(
@@ -1925,6 +1928,13 @@ function formated_cart_list($cart_result) {
     $cart_goods['cart_list'] = array_merge($cart_goods['cart_list']);
     
     foreach ($cart_goods['cart_list'] as &$seller) {
+        //优惠活动
+        $favourable = RC_Api::api('favourable', 'favourable_list', array('store_id' => array(0, $seller['seller_id']), 'type' => 'on_going', 'sort_by' => 'store_id', 'sort_order' => 'ASC'));
+        
+        $promotions = formated_favourable($favourable, $seller['goods_list']);
+//         _dump($promotions,1);
+        $seller['promotions'] = $promotions;
+        
         /* 用于统计购物车中实体商品和虚拟商品的个数 */
         $virtual_goods_count = 0;
         $real_goods_count    = 0;
@@ -1961,6 +1971,61 @@ function formated_cart_list($cart_result) {
     return $cart_goods;
 }
 
+function formated_favourable($favourable_result, $goods) {
+    if (is_ecjia_error($favourable_result) || empty($favourable_result)) {
+        return $favourable_result;
+    }
+//     _dump($goods);
+//     _dump($favourable_result,1);
+    foreach ($favourable_result as $val) {
+        if ($val['act_range'] == '0') {
+            $favourable_list[] = array(
+                'id'    => $val['act_id'],
+                'title' => $val['act_name'],
+                'type'  => $val['act_type'] == '1' ? 'price_reduction' : 'price_discount',
+                'type_label' => $val['act_type'] == '1' ? __('满减') : __('满折'),
+            );
+        } else {
+            $act_range_ext = explode(',', $val['act_range_ext']);
+            switch ($val['act_range']) {
+                case 1 :
+                    if (in_array($goods['cat_id'], $act_range_ext)) {
+                        $favourable_list[] = array(
+                            'id'    => $val['act_id'],
+                            'title' => $val['act_name'],
+                            'type'  => $val['act_type'] == '1' ? 'price_reduction' : 'price_discount',
+                            'type_label' => $val['act_type'] == '1' ? __('满减') : __('满折'),
+                        );
+                    }
+                    break;
+                case 2 :
+                    if (in_array($goods['brand_id'], $act_range_ext)) {
+                        $favourable_list[] = array(
+                            'id'    => $val['act_id'],
+                            'title' => $val['act_name'],
+                            'type' => $val['act_type'] == '1' ? 'price_reduction' : 'price_discount',
+                            'type_label' => $val['act_type'] == '1' ? __('满减') : __('满折'),
+                        );
+                    }
+                    break;
+                case 3 :
+                    if (in_array($goods['goods_id'], $act_range_ext)) {
+                        $favourable_list[] = array(
+                            'id'    => $val['act_id'],
+                            'title' => $val['act_name'],
+                            'type' => $val['act_type'] == '1' ? 'price_reduction' : 'price_discount',
+                            'type_label' => $val['act_type'] == '1' ? __('满减') : __('满折'),
+                        );
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    
+    return $favourable_list;
+}
 //	TODO:以下func，api中暂未用到
 ///**
 // * 比较优惠活动的函数，用于排序（把可用的排在前面）
