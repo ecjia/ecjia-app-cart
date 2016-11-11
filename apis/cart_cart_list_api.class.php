@@ -48,11 +48,13 @@ class cart_cart_list_api extends Component_Event_Api {
 
 		/* 符合店铺条件*/
 		if (!empty($store_group)) {
+		    RC_Logger::getlogger('error')->debug($store_group);
 			$dbview_cart->whereIn(RC_DB::raw('c.store_id'), $store_group);
 		}
 
 		/* 选择购买 */
 		if (!empty($cart_id)) {
+		    RC_Logger::getlogger('error')->debug($cart_id);
 			$dbview_cart->whereIn(RC_DB::raw('c.rec_id'), $cart_id);
 		}
 		if ($_SESSION['user_id']) {
@@ -124,7 +126,9 @@ class cart_cart_list_api extends Component_Event_Api {
 					if (!is_array($row['goods_attr_id'])) {
 					    $row['goods_attr_id'] = explode(',', $row['goods_attr_id']);
 					}
+					RC_Logger::getlogger('error')->debug($row['goods_attr_id']);
 					$attr_list = $db_goods_attr->select('attr_value')->whereIn('goods_attr_id', $row['goods_attr_id'])->get();
+					
 					foreach ($attr_list AS $attr) {
 						$row['goods_name'] .= ' [' . $attr['attr_value'] . '] ';
 					}
