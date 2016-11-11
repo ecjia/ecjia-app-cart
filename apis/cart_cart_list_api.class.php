@@ -49,11 +49,19 @@ class cart_cart_list_api extends Component_Event_Api {
 		/* 符合店铺条件*/
 		if (!empty($store_group)) {
 		    RC_Logger::getlogger('error')->debug($store_group);
+		    if (!is_array($store_group)) {
+		        $store_group = explode(',', $store_group);
+		    }
+		    RC_Logger::getlogger('error')->debug($store_group);
 			$dbview_cart->whereIn(RC_DB::raw('c.store_id'), $store_group);
 		}
 
 		/* 选择购买 */
 		if (!empty($cart_id)) {
+		    RC_Logger::getlogger('error')->debug($cart_id);
+		    if (!is_array($cart_id)) {
+		        $cart_id = explode(',', $cart_id);
+		    }
 		    RC_Logger::getlogger('error')->debug($cart_id);
 			$dbview_cart->whereIn(RC_DB::raw('c.rec_id'), $cart_id);
 		}
