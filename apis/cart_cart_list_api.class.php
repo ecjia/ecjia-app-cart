@@ -75,16 +75,16 @@ class cart_cart_list_api extends Component_Event_Api {
 		if (!empty($data)) {
 			foreach ($data as $row) {
 			    
-			    $row['is_disabed'] = 0;
+			    $row['is_disabled'] = 0;
 			    $row['disabled_label'] = '';
 			    //判断库存
 			    if ($row['g_goods_number'] < $row['goods_number'] || $row['g_goods_number'] < 1) {
-			        $row['is_disabed'] = 1;
+			        $row['is_disabled'] = 1;
 			        $row['disabled_label'] = '库存不足';
 			    }
 			    //判断上架状态
 			    if ($row['is_on_sale'] == 0) {
-			        $row['is_disabed'] = 1;
+			        $row['is_disabled'] = 1;
 			        $row['disabled_label'] = '商品已下架';
 			    }
 			    //不可用状态，取消选中

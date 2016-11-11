@@ -1904,7 +1904,7 @@ function formated_cart_list($cart_result) {
                 'attr'			=> $row['goods_attr'],
                 'goods_attr'	=> $goods_attrs,
                 'is_checked'	=> $row['is_checked'],
-                'is_disabed'    => $row['is_disabed'],
+                'is_disabled'   => $row['is_disabled'],
                 'disabled_label'=> $row['disabled_label'],
                 'promotions' => array(
                     array(
