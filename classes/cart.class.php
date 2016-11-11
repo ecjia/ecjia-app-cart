@@ -1023,18 +1023,18 @@ class cart {
 				if ($total_amount > 0 && $total_amount >= $favourable['min_amount'] &&
 				($total_amount <= $favourable['max_amount'] || $favourable['max_amount'] == 0)) {
 					if ($favourable['act_type'] == FAT_DISCOUNT) {
-						$discount += $total_amount * ($favourable['act_type_ext'] / 100);
+						$discount += $total_amount * (1 - $favourable['act_type_ext'] / 100);
                         $discount_temp[] = $discount;
 						$favourable_name[] = $favourable['act_name'];
 					} elseif ($favourable['act_type'] == FAT_PRICE) {
-						$discount = $total_amount - $favourable['act_type_ext'];
-                        $discount_temp[] = $discount;
+						// $discount += $favourable['act_type_ext'];
+                        $discount_temp[] = $favourable['act_type_ext'];
 						$favourable_name[] = $favourable['act_name'];
 					}
 				}
 			}
 		}
-        $discount = min($discount_temp);
+        $discount = max($discount_temp);
 		return array('discount' => $discount, 'name' => $favourable_name);
 	}
 
