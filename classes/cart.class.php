@@ -129,6 +129,10 @@ class cart {
 	    //$options['id'] 整数 或 数组
 	    $db_cart = RC_Model::model('cart/cart_model');
 	    $dbview  = RC_Model::model('cart/cart_group_goods_goods_viewmodel');
+	    
+	    if (!is_array($options['id'])) {
+	        $options['id'] = explode(',', $options['id']);
+	    }
 	
 	    /* 取得商品id */
 	    $row = $db_cart->find(array('rec_id' => $options['id']));

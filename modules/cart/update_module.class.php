@@ -3,7 +3,6 @@ defined('IN_ECJIA') or exit('No permission resources.');
 /**
  * 购物车更新商品数目
  * @author royalwang
- * TODO：更新数量选中此商品
  *
  */
 class update_module extends api_front implements api_interface {
@@ -35,6 +34,8 @@ class update_module extends api_front implements api_interface {
 		if (is_ecjia_error($result)) {
 			return new ecjia_error(10008, '库存不足');
 		}
+		//更新数量选中此商品
+		cart::flow_check_cart_goods(array('id' => $rec_id, 'is_checked' => 1));
 		
 		if (isset($location['latitude']) && !empty($location['latitude']) && isset($location['longitude']) && !empty($location['longitude'])) {
             $geohash = RC_Loader::load_app_class('geohash', 'store');

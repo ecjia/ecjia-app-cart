@@ -347,7 +347,8 @@ class cart_cart_manage_api extends Component_Event_Api {
                     $goods_price = goods_info::get_final_price($goods_id, $num, true, $spec);
                     $data =  array(
                             'goods_number' => $num,
-                            'goods_price'  => $goods_price
+                            'goods_price'  => $goods_price,
+                            'is_checked'   => 1,//增加已有商品，更新选中状态
                     );
                     $db_where = array(
                         'user_id' => $_SESSION['user_id'],
