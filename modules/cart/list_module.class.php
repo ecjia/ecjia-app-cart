@@ -17,7 +17,7 @@ class list_module extends api_front implements api_interface {
     	//recalculate_price(); //后续方法重新计算
 		$location = $this->requestData('location', array());
 
-		$seller_id		= $this->requestData('seller_id', 0);
+		$seller_id = $this->requestData('seller_id', 0);
 
 		//TODO:目前强制坐标
 // 	    $location = array(

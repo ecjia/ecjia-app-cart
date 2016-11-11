@@ -31,7 +31,7 @@ class cart {
 			}
 	
 			//查询：
-			$cart_w = array('rec_id' => $key , 'user_id' => $_SESSION['user_id']);
+			$cart_w = array('rec_id' => $key, 'user_id' => $_SESSION['user_id']);
 // 			if (defined('SESS_ID')) {
 // 				$cart_w['session_id'] = SESS_ID;
 // 			}

@@ -13,7 +13,7 @@ class delete_module extends api_front implements api_interface {
     		return new ecjia_error(100, 'Invalid session');
     	}
 	    $location = $this->requestData('location', array());
-	    $seller_id		= $this->requestData('seller_id', 0);
+	    $seller_id = $this->requestData('seller_id', 0);
 	    //TODO:目前强制坐标
 // 	    $location = array(
 // 	        'latitude'	=> '31.235450744628906',
