@@ -438,7 +438,8 @@ class checkOrder_module extends api_front implements api_interface {
 				unset($out['shipping_list'][$key]['shipping_desc']);
 			}
 		}
-		$device = $this->requestData('device', array());
+		
+		$device		= $this->device;
 		$device_code = $device['code'];
 		if (!empty($out['payment_list'])) {
 			foreach ($out['payment_list'] as $key => $value) {
