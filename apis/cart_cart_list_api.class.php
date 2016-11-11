@@ -63,7 +63,7 @@ class cart_cart_list_api extends Component_Event_Api {
 
 		/* 循环、统计 */
 		$data = $dbview_cart
-				->selectRaw("c.*,IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, s.merchants_name as store_name")
+				->selectRaw("c.*,IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, g.goods_number as g_goods_number, g.is_on_sale, s.merchants_name as store_name")
 				->orderBy('store_id', 'asc')
 				->orderBy('pid', 'asc')
 				->orderBy('parent_id', 'asc')
@@ -74,11 +74,33 @@ class cart_cart_list_api extends Component_Event_Api {
 
 		if (!empty($data)) {
 			foreach ($data as $row) {
+			    
+			    $row['is_disabed'] = 0;
+			    $row['disabled_label'] = '';
+			    //判断库存
+			    if ($row['g_goods_number'] < $row['goods_number'] || $row['g_goods_number'] < 1) {
+			        $row['is_disabed'] = 1;
+			        $row['disabled_label'] = '库存不足';
+			    }
+			    //判断上架状态
+			    if ($row['is_on_sale'] == 0) {
+			        $row['is_disabed'] = 1;
+			        $row['disabled_label'] = '商品已下架';
+			    }
+			    //不可用状态，取消选中
+			    if ($row['is_disabed'] == 1) {
+			        $row['is_checked'] == 0;
+			        
+			        RC_Loader::load_app_class('cart', 'cart', false);
+			        cart::flow_check_cart_goods(array('id' => $row['goods_id'], 'is_checked' => 0));
+			    }
+			    
 			    //增加购物车选中状态判断  by hyy
 			    if ($row['is_checked'] == 1) {
 			        $total['goods_price']  += $row['goods_price'] * $row['goods_number'];
 			        $total['market_price'] += $row['market_price'] * $row['goods_number'];
 			    }
+			    
 			    $total['goods_number'] += $row['goods_number'];
 				$row['subtotal']     	= $row['goods_price'] * $row['goods_number'];
 				$row['formatted_subtotal']     	= price_format($row['goods_price'] * $row['goods_number'], false);
