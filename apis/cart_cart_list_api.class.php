@@ -45,9 +45,10 @@ class cart_cart_list_api extends Component_Event_Api {
 
 		$dbview_cart->where(RC_DB::raw('c.rec_type'), '=', $flow_type);
 		$dbview_cart->where(RC_DB::raw('s.shop_close'), '=', '0');
-
+		RC_Logger::getlogger('error')->debug(__LINE__);
 		/* 符合店铺条件*/
 		if (!empty($store_group)) {
+		    RC_Logger::getlogger('error')->debug('store_group');
 		    RC_Logger::getlogger('error')->debug($store_group);
 		    if (!is_array($store_group)) {
 		        $store_group = explode(',', $store_group);
@@ -55,9 +56,10 @@ class cart_cart_list_api extends Component_Event_Api {
 		    RC_Logger::getlogger('error')->debug($store_group);
 			$dbview_cart->whereIn(RC_DB::raw('c.store_id'), $store_group);
 		}
-
+		RC_Logger::getlogger('error')->debug(__LINE__);
 		/* 选择购买 */
 		if (!empty($cart_id)) {
+		    RC_Logger::getlogger('error')->debug('cart_id');
 		    RC_Logger::getlogger('error')->debug($cart_id);
 		    if (!is_array($cart_id)) {
 		        $cart_id = explode(',', $cart_id);
@@ -70,7 +72,7 @@ class cart_cart_list_api extends Component_Event_Api {
 		} else {
 			$dbview_cart->where(RC_DB::raw('c.session_id'), RC_Session::session()->getSessionKey());
 		}
-
+		RC_Logger::getlogger('error')->debug(__LINE__);
 		/* 循环、统计 */
 		$data = $dbview_cart
 				->selectRaw("c.*,IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, g.goods_number as g_goods_number, g.is_on_sale, s.merchants_name as store_name, manage_mode")
@@ -81,7 +83,7 @@ class cart_cart_list_api extends Component_Event_Api {
 		/* 用于统计购物车中实体商品和虚拟商品的个数 */
 		$virtual_goods_count = 0;
 		$real_goods_count    = 0;
-
+		RC_Logger::getlogger('error')->debug(__LINE__);
 		if (!empty($data)) {
 			foreach ($data as $row) {
 			    
@@ -134,6 +136,7 @@ class cart_cart_list_api extends Component_Event_Api {
 					if (!is_array($row['goods_attr_id'])) {
 					    $row['goods_attr_id'] = explode(',', $row['goods_attr_id']);
 					}
+					RC_Logger::getlogger('error')->debug('goods_attr_id');
 					RC_Logger::getlogger('error')->debug($row['goods_attr_id']);
 					$attr_list = $db_goods_attr->select('attr_value')->whereIn('goods_attr_id', $row['goods_attr_id'])->get();
 					
@@ -149,6 +152,7 @@ class cart_cart_list_api extends Component_Event_Api {
 				$goods_list[] = $row;
 			}
 		}
+		RC_Logger::getlogger('error')->debug(__LINE__);
 		$total['goods_amount'] = $total['goods_price'];
 		$total['saving']       = price_format($total['market_price'] - $total['goods_price'], false);
 		if ($total['market_price'] > 0) {
