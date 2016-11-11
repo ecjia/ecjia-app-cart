@@ -1931,9 +1931,9 @@ function formated_cart_list($cart_result) {
         //优惠活动
         $favourable = RC_Api::api('favourable', 'favourable_list', array('store_id' => array(0, $seller['seller_id']), 'type' => 'on_going', 'sort_by' => 'store_id', 'sort_order' => 'ASC'));
         
-//         $promotions = formated_favourable($favourable, $seller['goods_list']);
-// //         _dump($promotions,1);
-//         $seller['promotions'] = $promotions;
+        $promotions = formated_favourable($favourable, $seller['goods_list']);
+//         _dump($promotions,1);
+        $seller['promotions'] = $promotions;
         
         /* 用于统计购物车中实体商品和虚拟商品的个数 */
         $virtual_goods_count = 0;
