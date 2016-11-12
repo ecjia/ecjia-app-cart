@@ -1943,6 +1943,7 @@ function formated_cart_list($cart_result) {
         $virtual_goods_count = 0;
         $real_goods_count    = 0;
         
+        //店铺小计
         $total = array(
             'goods_price'  => 0, // 本店售价合计（有格式）
             'market_price' => 0, // 市场售价合计（有格式）
@@ -1965,7 +1966,10 @@ function formated_cart_list($cart_result) {
             $total['save_rate'] = $total['market_price'] ? round(($total['market_price'] - $total['goods_price']) *
                 100 / $total['market_price']).'%' : 0;
         }
+        
+        $total['unformatted_goods_price']  			= $total['goods_price'];
         $total['goods_price']  			= price_format($total['goods_price'], false);
+        $total['unformatted_market_price'] 			= $total['market_price'];
         $total['market_price'] 			= price_format($total['market_price'], false);
         $total['real_goods_count']    	= $real_goods_count;
         $total['virtual_goods_count'] 	= $virtual_goods_count;
