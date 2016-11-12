@@ -1970,7 +1970,7 @@ function formated_cart_list($cart_result) {
         $total['real_goods_count']    	= $real_goods_count;
         $total['virtual_goods_count'] 	= $virtual_goods_count;
         $discount['discount']       = number_format($discount['discount'], 2, '.', '');
-        $total['discount']			= $discount['discount'] > $total['goods_amount'] ? $total['goods_amount'] : $discount['discount'];//用户享受折扣数
+        $total['discount']			= $discount['discount'];//用户享受折扣数
         $total['discount_formated']	= price_format($total['discount']);
         
         $seller['total'] = $total;

@@ -972,6 +972,8 @@ class cart {
 		/* 循环计算每个优惠活动的折扣 */
 		if (!empty($favourable_list)) {
 			foreach ($favourable_list as $favourable) {
+			    /* 初始化折扣 */
+			    $discount = 0;
 				$total_amount = 0;
 				//优惠活动类型-全部商品
 				if ($favourable['act_range'] == FAR_ALL) {
@@ -1023,6 +1025,9 @@ class cart {
 				}
 
 				/* 如果金额满足条件，累计折扣 */
+				(float) $favourable['min_amount'];
+				(float) $favourable['max_amount'];
+				(float) $favourable['act_type_ext'];
 				if ($total_amount > 0 && $total_amount >= $favourable['min_amount'] &&
 				($total_amount <= $favourable['max_amount'] || $favourable['max_amount'] == 0)) {
 					if ($favourable['act_type'] == FAT_DISCOUNT) {
@@ -1030,18 +1035,18 @@ class cart {
                         $discount_temp[] = $discount;
 						$favourable_name[] = $favourable['act_name'];
 					} elseif ($favourable['act_type'] == FAT_PRICE) {
-						// $discount += $favourable['act_type_ext'];
-						if ($favourable['act_type_ext'] > $total_amount) {
-						    $favourable['act_type_ext'] = $total_amount;
-						}
+						$discount += $favourable['act_type_ext'];
                         $discount_temp[] = $favourable['act_type_ext'];
 						$favourable_name[] = $favourable['act_name'];
+					}
+					//优惠金额不能超过订单本身
+					if ($discount > $total_amount) {
+					    $discount = $total_amount;
 					}
 				}
 			}
 		}
         $discount = max($discount_temp);
-        
 		return array('discount' => $discount, 'name' => $favourable_name);
 	}
 	
@@ -1165,12 +1170,13 @@ class cart {
 	                        $discount_temp[] = $discount;
 	                        $favourable_name[] = $favourable['act_name'];
 	                    } elseif ($favourable['act_type'] == FAT_PRICE) {
-	                        // $discount += $favourable['act_type_ext'];
-	                        if ($favourable['act_type_ext'] > $total_amount) {
-	                            $favourable['act_type_ext'] = $total_amount;
-	                        }
+	                        $discount += $favourable['act_type_ext'];
 	                        $discount_temp[] = $favourable['act_type_ext'];
 	                        $favourable_name[] = $favourable['act_name'];
+	                    }
+	                    //优惠金额不能超过订单本身
+	                    if ($discount > $total_amount) {
+	                        $discount = $total_amount;
 	                    }
 	                }
 	        }
