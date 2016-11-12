@@ -30,7 +30,7 @@ class delete_module extends api_front implements api_interface {
 	    		cart::flow_drop_cart_goods($val);
 	    	}
 	    } else {
-	    	cart::flow_drop_cart_goods($val);
+	    	cart::flow_drop_cart_goods($rec_id);
 	    }
 	    
 // 	    $cart_goods = EM_get_cart_goods();
