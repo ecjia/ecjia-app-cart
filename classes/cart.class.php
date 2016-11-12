@@ -947,7 +947,8 @@ class cart {
 				'c.user_id'		=> $_SESSION['user_id'],
 				'c.parent_id'	=> 0,
 				'c.is_gift'		=> 0,
-				'rec_type' 		=> CART_GENERAL_GOODS
+				'rec_type' 		=> CART_GENERAL_GOODS,
+		        'c.is_checked'  => 1, // 增加选中状态条件
 		);
 
 		if (!empty($cart_id)) {
@@ -963,7 +964,7 @@ class cart {
 		if (!$goods_list) {
 			return 0;
 		}
-
+		
 		/* 初始化折扣 */
 		$discount = 0;
 		$favourable_name = array();
@@ -972,15 +973,19 @@ class cart {
 		if (!empty($favourable_list)) {
 			foreach ($favourable_list as $favourable) {
 				$total_amount = 0;
+				//优惠活动类型-全部商品
 				if ($favourable['act_range'] == FAR_ALL) {
 					foreach ($goods_list as $goods) {
 // 						if ($favourable['user_id'] == $goods['user_id']) {
-						if ($favourable['store_id'] == $goods['store_id']) {
+					    //判断店铺和平台活动
+						if ($favourable['store_id'] == $goods['store_id'] || $favourable['store_id'] == 0) {
 							$total_amount += $goods['subtotal'];
 						}
 					}
+				//优惠活动类型-分类
 				} elseif ($favourable['act_range'] == FAR_CATEGORY) {
 					/* 找出分类id的子分类id */
+// 				    TODO：分类未判断商家分类
 					$id_list = array();
 					$raw_id_list = explode(',', $favourable['act_range_ext']);
 					foreach ($raw_id_list as $id) {
@@ -989,27 +994,25 @@ class cart {
 					$ids = join(',', array_unique($id_list));
 
 					foreach ($goods_list as $goods) {
-// 						if ($favourable['user_id'] == $goods['user_id']) {
-						if ($favourable['store_id'] == $goods['store_id']) {
+					    if ($favourable['store_id'] == $goods['store_id'] || $favourable['store_id'] == 0) {
 							if (strpos(',' . $ids . ',', ',' . $goods['cat_id'] . ',') !== false) {
 								$total_amount += $goods['subtotal'];
 							}
 						}
 					}
+				//优惠活动类型-品牌
 				} elseif ($favourable['act_range'] == FAR_BRAND) {
 					foreach ($goods_list as $goods) {
-// 						if ($favourable['user_id'] == $goods['user_id']) {
-						if ($favourable['store_id'] == $goods['store_id']) {
+					    if ($favourable['store_id'] == $goods['store_id'] || $favourable['store_id'] == 0) {
 							if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['brand_id'] . ',') !== false) {
 								$total_amount += $goods['subtotal'];
 							}
 						}
 					}
+				//优惠活动类型-指定商品
 				} elseif ($favourable['act_range'] == FAR_GOODS) {
 					foreach ($goods_list as $goods) {
-// 						if ($favourable['user_id'] == $goods['user_id']) {
-						if ($favourable['store_id'] == $goods['store_id']) {
-// 							if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
+					    if ($favourable['store_id'] == $goods['store_id'] || $favourable['store_id'] == 0) {
 							if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
 								$total_amount += $goods['subtotal'];
 							}
@@ -1028,6 +1031,9 @@ class cart {
 						$favourable_name[] = $favourable['act_name'];
 					} elseif ($favourable['act_type'] == FAT_PRICE) {
 						// $discount += $favourable['act_type_ext'];
+						if ($favourable['act_type_ext'] > $total_amount) {
+						    $favourable['act_type_ext'] = $total_amount;
+						}
                         $discount_temp[] = $favourable['act_type_ext'];
 						$favourable_name[] = $favourable['act_name'];
 					}
@@ -1035,7 +1041,142 @@ class cart {
 			}
 		}
         $discount = max($discount_temp);
+        
 		return array('discount' => $discount, 'name' => $favourable_name);
+	}
+	
+	/**
+	 * 计算折扣：根据购物车和优惠活动-单个商店
+	 * @return  float   折扣
+	 */
+	public static function compute_discount_store($store_id = 0) {
+	    $db = RC_Model::model('favourable/favourable_activity_model');
+	    $db_cartview = RC_Model::model('cart/cart_good_member_viewmodel');
+	
+	    /* 查询优惠活动 */
+	    $now = RC_Time::gmtime();
+	    $user_rank = ',' . $_SESSION['user_rank'] . ',';
+	
+	    $favourable_list = $db->where("start_time <= '$now' AND end_time >= '$now' AND CONCAT(',', user_rank, ',') LIKE '%" . $user_rank . "%' AND (store_id = 0 or store_id = $store_id)")->in(array('act_type'=>array(FAT_DISCOUNT, FAT_PRICE)))->select();
+	    if (!$favourable_list) {
+	        return 0;
+	    }
+	
+	    /* 查询购物车商品 */
+	    $db_cartview->view = array(
+	        'goods' => array(
+	            'type'  => Component_Model_View::TYPE_LEFT_JOIN,
+	            'alias' => 'g',
+	            'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.store_id",
+	            'on'   	=> 'c.goods_id = g.goods_id'
+	        )
+	    );
+	
+	    $where = array(
+	        'c.user_id'		=> $_SESSION['user_id'],
+	        'c.parent_id'	=> 0,
+	        'c.is_gift'		=> 0,
+	        'rec_type' 		=> CART_GENERAL_GOODS,
+	        'c.is_checked'  => 1, // 增加选中状态条件
+	        'c.store_id'    => $store_id,
+	    );
+	
+// 	    if (!empty($cart_id)) {
+// 	        $where['rec_id'] = $cart_id;
+// 	    }
+	
+	    // 		if (defined('SESS_ID')) {
+	    // 			$where['c.session_id'] = SESS_ID;
+	    // 		}
+	
+	    $goods_list = $db_cartview->where($where)->select();
+	
+	    if (!$goods_list) {
+	        return 0;
+	    }
+	
+	    /* 初始化折扣 */
+	    $discount = 0;
+	    $favourable_name = array();
+	    RC_Loader::load_app_class('goods_category', 'goods', false);
+	    /* 循环计算每个优惠活动的折扣 */
+	    if (!empty($favourable_list)) {
+	        foreach ($favourable_list as $favourable) {
+	            /* 初始化折扣 */
+	            $discount = 0;
+	            $total_amount = 0;
+	            //优惠活动类型-全部商品
+	            if ($favourable['act_range'] == FAR_ALL) {
+	                foreach ($goods_list as $goods) {
+	                    // 						if ($favourable['user_id'] == $goods['user_id']) {
+	                    //判断店铺和平台活动
+	                    if ($favourable['store_id'] == $goods['store_id'] || $favourable['store_id'] == 0) {
+	                        $total_amount += $goods['subtotal'];
+	                    }
+	                }
+	                //优惠活动类型-分类
+	            } elseif ($favourable['act_range'] == FAR_CATEGORY) {
+	                /* 找出分类id的子分类id */
+	                // 				    TODO：分类未判断商家分类
+	                $id_list = array();
+	                $raw_id_list = explode(',', $favourable['act_range_ext']);
+	                foreach ($raw_id_list as $id) {
+	                    $id_list = array_merge($id_list, array_keys(goods_category::cat_list($id, 0, false)));
+	                }
+	                $ids = join(',', array_unique($id_list));
+	
+	                foreach ($goods_list as $goods) {
+	                    if ($favourable['store_id'] == $goods['store_id'] || $favourable['store_id'] == 0) {
+	                        if (strpos(',' . $ids . ',', ',' . $goods['cat_id'] . ',') !== false) {
+	                            $total_amount += $goods['subtotal'];
+	                        }
+	                    }
+	                }
+	                //优惠活动类型-品牌
+	            } elseif ($favourable['act_range'] == FAR_BRAND) {
+	                foreach ($goods_list as $goods) {
+	                    if ($favourable['store_id'] == $goods['store_id'] || $favourable['store_id'] == 0) {
+	                        if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['brand_id'] . ',') !== false) {
+	                            $total_amount += $goods['subtotal'];
+	                        }
+	                    }
+	                }
+	                //优惠活动类型-指定商品
+	            } elseif ($favourable['act_range'] == FAR_GOODS) {
+	                foreach ($goods_list as $goods) {
+	                    if ($favourable['store_id'] == $goods['store_id'] || $favourable['store_id'] == 0) {
+	                        if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
+	                            $total_amount += $goods['subtotal'];
+	                        }
+	                    }
+	                }
+	            } else {
+	                continue;
+	            }
+	
+	            /* 如果金额满足条件，累计折扣 */
+	            (float) $favourable['min_amount'];
+	            (float) $favourable['max_amount'];
+	            (float) $favourable['act_type_ext'];
+	            if ($total_amount > 0 && $total_amount >= $favourable['min_amount'] &&
+	                ($total_amount <= $favourable['max_amount'] || $favourable['max_amount'] == 0)) {
+	                    if ($favourable['act_type'] == FAT_DISCOUNT) {
+	                        $discount += $total_amount * (1 - $favourable['act_type_ext'] / 100);
+	                        $discount_temp[] = $discount;
+	                        $favourable_name[] = $favourable['act_name'];
+	                    } elseif ($favourable['act_type'] == FAT_PRICE) {
+	                        // $discount += $favourable['act_type_ext'];
+	                        if ($favourable['act_type_ext'] > $total_amount) {
+	                            $favourable['act_type_ext'] = $total_amount;
+	                        }
+	                        $discount_temp[] = $favourable['act_type_ext'];
+	                        $favourable_name[] = $favourable['act_name'];
+	                    }
+	                }
+	        }
+	    }
+	    $discount = max($discount_temp);
+	    return array('discount' => $discount, 'name' => $favourable_name);
 	}
 
 	/**

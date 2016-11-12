@@ -1935,6 +1935,10 @@ function formated_cart_list($cart_result) {
 //         _dump($promotions,1);
         $seller['promotions'] = $promotions;
         
+        RC_Loader::load_app_class('cart', 'cart', false);
+        //优惠价格
+        $discount = cart::compute_discount_store($seller['seller_id']);
+        
         /* 用于统计购物车中实体商品和虚拟商品的个数 */
         $virtual_goods_count = 0;
         $real_goods_count    = 0;
@@ -1946,6 +1950,7 @@ function formated_cart_list($cart_result) {
             'save_rate'    => 0, // 节省百分比
             'goods_amount' => 0, // 本店售价合计（无格式）
             'goods_number' => 0, // 商品总件数
+            'discount'     => 0,
         );
         foreach ($seller['goods_list'] as $goods) {
             if ($goods['is_checked'] == 1) {
@@ -1964,6 +1969,9 @@ function formated_cart_list($cart_result) {
         $total['market_price'] 			= price_format($total['market_price'], false);
         $total['real_goods_count']    	= $real_goods_count;
         $total['virtual_goods_count'] 	= $virtual_goods_count;
+        $discount['discount']       = number_format($discount['discount'], 2, '.', '');
+        $total['discount']			= $discount['discount'] > $total['goods_amount'] ? $total['goods_amount'] : $discount['discount'];//用户享受折扣数
+        $total['discount_formated']	= price_format($total['discount']);
         
         $seller['total'] = $total;
     }
