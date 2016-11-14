@@ -71,10 +71,9 @@ class cart_cart_manage_api extends Component_Event_Api {
             $db_cart->where('goods_id', $parent);
             $db_cart->where('user_id', $_SESSION['user_id']);
             $db_cart->where('extension_code', '<>', 'package_buy');
-            if (defined('SESS_ID')) {
-                //$parent_w['session_id'] = SESS_ID;
-                $db_cart->where('session_id', SESS_ID);
-            }
+//             if (defined('SESS_ID')) {
+//                 $db_cart->where('session_id', SESS_ID);
+//             }
             $count = $db_cart->count();
 
             if ($count == 0) {
@@ -92,12 +91,14 @@ class cart_cart_manage_api extends Component_Event_Api {
         }
 
         /* 如果商品有规格则取规格商品信息 配件除外 */
-
-        //$prod = RC_Model::model('goods/products_model')->find(array('goods_id' => $goods_id));
         $prod = RC_DB::table('products')->where('goods_id', $goods_id)->first();
 
+        //商品存在规格 是货品 检查该货品库存
         if (goods_info::is_spec($spec) && !empty($prod)) {
             $product_info = goods_info::get_products_info($goods_id, $spec);
+            $is_spec = true;
+        } else {
+        	$is_spec = false;
         }
         if (!isset($product_info) || empty($product_info)) {
             $product_info = array('product_number' => 0, 'product_id' => 0 , 'goods_attr'=>'');
@@ -110,7 +111,8 @@ class cart_cart_manage_api extends Component_Event_Api {
                 return new ecjia_error('low_stocks', __('库存不足'));
             }
             //商品存在规格 是货品 检查该货品库存
-            if (goods_info::is_spec($spec) && !empty($prod)) {
+//             if (goods_info::is_spec($spec) && !empty($prod)) {
+			if ($is_spec) {
                 if (!empty($spec)) {
                     /* 取规格的货品库存 */
                     if ($num > $product_info['product_number']) {
@@ -132,7 +134,7 @@ class cart_cart_manage_api extends Component_Event_Api {
         $parent = array(
                 'user_id'       => $_SESSION['user_id'],
                 'goods_id'      => $goods_id,
-                'goods_sn'      => addslashes($goods['goods_sn']),
+                'goods_sn'      => $product_info['product_id'] > 0 ? addslashes($product_info['product_sn']) : addslashes($goods['goods_sn']),
                 'product_id'    => $product_info['product_id'],
                 'goods_name'    => addslashes($goods['goods_name']),
                 'market_price'  => $goods['market_price'],
