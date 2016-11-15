@@ -113,7 +113,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		/* 检查红包是否存在 */
 		if ($order['bonus_id'] > 0) {
 			$bonus = RC_Api::api('bonus', 'bonus_info', array('bonus_id' => $order['bonus_id']));
-			if (empty($bonus) || $bonus['store_id'] != $order['store_id'] || $bonus['user_id'] != $user_id || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart::cart_amount(true, $options['flow_type'])) {
+			if (empty($bonus) || ($bonus['store_id'] != 0 && $bonus['store_id'] != $order['store_id']) || $bonus['user_id'] != $user_id || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart::cart_amount(true, $options['flow_type'])) {
 				$order['bonus_id'] = 0;
 			}
 		} elseif (isset($options['bonus_sn'])) {
