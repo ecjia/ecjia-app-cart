@@ -1064,7 +1064,7 @@ class cart {
 	
 	    $favourable_list = $db->where("start_time <= '$now' AND end_time >= '$now' AND CONCAT(',', user_rank, ',') LIKE '%" . $user_rank . "%' AND (store_id = 0 or store_id = $store_id)")->in(array('act_type'=>array(FAT_DISCOUNT, FAT_PRICE)))->select();
 	    if (!$favourable_list) {
-	        return 0;
+	        return array('discount' => 0, 'name' => '');
 	    }
 	
 	    /* 查询购物车商品 */
@@ -1097,7 +1097,7 @@ class cart {
 	    $goods_list = $db_cartview->where($where)->select();
 	
 	    if (!$goods_list) {
-	        return 0;
+	        return array('discount' => 0, 'name' => '');
 	    }
 	
 	    /* 初始化折扣 */

@@ -1867,14 +1867,6 @@ function formated_cart_list($cart_result) {
                     'manage_mode'   => $row['manage_mode'],
                     'is_disabled'   => 0,
                     'disabled_label'=> "欢迎选购",
-                    'promotions' => array(
-                        array(
-                            'id'    => 1,
-                            'title' => '全场商品促销，满100打9折',
-                            'type'  => 'discount',
-                            'type_label' => '满折',
-                        )
-                    ),
                 );
             }
             $goods_attrs = null;
@@ -1908,14 +1900,6 @@ function formated_cart_list($cart_result) {
                 'is_checked'	=> $row['is_checked'],
                 'is_disabled'   => $row['is_disabled'],
                 'disabled_label'=> $row['disabled_label'],
-                'promotions' => array(
-                    array(
-                        'id'    => 1,
-                        'title' => '满9.90、19.90、29.90可换购商品',
-                        'type'  => 'discount',
-                        'type_label' => '满减',
-                    )
-                ),
                 'img' => array(
                     'thumb'	=> RC_Upload::upload_url($row['goods_img']),
                     'url'	=> RC_Upload::upload_url($row['original_img']),
