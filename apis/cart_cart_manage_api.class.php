@@ -16,7 +16,7 @@ class cart_cart_manage_api extends Component_Event_Api {
     public function call(&$options) {
 
         if (!isset($options['store_group']) || empty($options['store_group'])) {
-            return new ecjia_error('location_error', '请选择有效的收货地址！');
+            return new ecjia_error('location_error', '当前定位地址超出服务范围！');
         }
 
         if (!isset($options['goods_id']) || empty($options['goods_id'])) {
