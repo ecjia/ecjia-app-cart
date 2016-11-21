@@ -315,9 +315,14 @@ class checkOrder_module extends api_front implements api_interface {
     		   		'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
     			 	'alias'	=> 'bt',
     			 	'on'   	=> 'ub.bonus_type_id = bt.type_id'
-    			)
+    			),
+                'store_franchisee' => array(
+                    'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
+                    'alias'	=> 'sf',
+                    'on'   	=> 'sf.store_id = bt.store_id'
+                )
             );
-			$user_bonus = $db_user_bonus_view->join('bonus_type')->field('bt.type_id, bt.type_name, bt.send_type, bt.type_money, ub.bonus_id, bt.use_start_date, bt.use_end_date, min_goods_amount')
+			$user_bonus = $db_user_bonus_view->join('bonus_type,store_franchisee')->field('bt.type_id, bt.type_name, bt.send_type, bt.type_money, ub.bonus_id, bt.use_start_date, bt.use_end_date, min_goods_amount,bt.store_id,merchants_name')
 					->where(array(
 						'bt.use_start_date' => array('elt' => RC_Time::gmtime()),
 						'bt.use_end_date' => array('egt' => RC_Time::gmtime()),
@@ -352,6 +357,8 @@ class checkOrder_module extends api_front implements api_interface {
 					$user_bonus_list[$key]['end_date']                 = $val['use_end_date'];
 					$user_bonus_list[$key]['formatted_start_date']     = RC_Time::local_date(ecjia::config('date_format'), $val['use_start_date']);
 					$user_bonus_list[$key]['formatted_end_date']       = RC_Time::local_date(ecjia::config('date_format'), $val['use_end_date']);
+					$user_bonus_list[$key]['seller_id']                = $val['store_id'];
+					$user_bonus_list[$key]['seller_name']              = $val['merchants_name'];
 				}
 				$bonus_list = array_merge($user_bonus_list);
 			}
