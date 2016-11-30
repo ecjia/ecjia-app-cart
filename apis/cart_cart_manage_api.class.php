@@ -145,7 +145,8 @@ class cart_cart_manage_api extends Component_Event_Api {
                 'is_gift'       => 0,
                 'is_shipping'   => $goods['is_shipping'],
                 'rec_type'      => CART_GENERAL_GOODS,
-                'store_id'      => $goods['store_id']
+                'store_id'      => $goods['store_id'],
+                'add_time'      => RC_Time::gmtime(),
         );
 
         if (defined('SESS_ID')) {
