@@ -506,6 +506,7 @@ class cart_flow_done_api extends Component_Event_Api {
 				'order_info' => array(
 						'pay_code' => $payment_info['pay_code'],
 						'order_amount' => $order['order_amount'],
+				        'formatted_order_amount' => price_format($order['order_amount']),
 						'order_id' => $order['order_id'],
 						'subject' => $subject,
 						'desc' => $subject,
