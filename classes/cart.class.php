@@ -379,9 +379,9 @@ class cart {
 				continue;
 			}
 			$cart_where = array('rec_id' => $key , 'user_id' => $_SESSION['user_id']);
-			if (defined($name)) {
-				$cart_where['session_id'] = SESS_ID;
-			}
+// 			if (defined($name)) {
+// 				$cart_where['session_id'] = SESS_ID;
+// 			}
 			$goods = RC_Model::model('cart/cart_model')->field('goods_id, goods_attr_id, extension_code, product_id')->find($cart_where);
 
 // 			$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
