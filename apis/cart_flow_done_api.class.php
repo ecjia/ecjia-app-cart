@@ -236,7 +236,6 @@ class cart_flow_done_api extends Component_Event_Api {
 		/*过滤没有的字段*/
 		unset($order['need_inv']);
 		unset($order['need_insure']);
-		unset($order['expect_shipping_time']);
 		unset($order['address_id']);
 		unset($order['address_name']);
 		unset($order['audit']);
