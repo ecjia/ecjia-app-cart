@@ -201,8 +201,8 @@ class checkOrder_module extends api_front implements api_interface {
 
 			/* o2o*/
 			if ($val['shipping_code'] == 'ship_o2o_express') {
-				/* 获取最后可送的时间*/
-				$time = RC_Time::local_date('H:i', RC_Time::gmtime());
+				/* 获取最后可送的时间（当前时间+需提前下单时间）*/
+				$time = RC_Time::local_date('H:i', RC_Time::gmtime() + $shipping_cfg['last_order_time'] * 60);
 
 				if (empty($shipping_cfg['ship_time'])) {
 					unset($shipping_list[$key]);
@@ -213,6 +213,7 @@ class checkOrder_module extends api_front implements api_interface {
 
 				while ($shipping_cfg['ship_days']) {
 					foreach ($shipping_cfg['ship_time'] as $k => $v) {
+						
 						if ($v['end'] > $time || $ship_date > 0) {
 							$shipping_list[$key]['shipping_date'][$ship_date]['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$ship_date.' day'));
 							$shipping_list[$key]['shipping_date'][$ship_date]['time'][] = array(
