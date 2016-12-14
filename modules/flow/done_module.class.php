@@ -65,7 +65,7 @@ class done_module extends api_front implements api_interface {
 //     					$consignee['district']
 //     			))
     			'agency_id'		=> 0,
-    			'expect_shipping_time' =>  $this->requestData('expect_shipping_time'),
+    			'expect_shipping_time' =>  $this->requestData('expect_shipping_time', 0),
     	);
     	
     	$result = RC_Api::api('cart', 'flow_done', array('cart_id' => $cart_id, 'order' => $order, 'address_id' => $address_id, 'flow_type' => $flow_type, 'bonus_sn' => $this->requestData('bonus_sn'), 'location' => $location, 'device' => $this->device));
