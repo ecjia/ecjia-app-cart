@@ -1638,7 +1638,7 @@ class cart {
 
 		/* by will.chen start*/
 		$goods_number = $db_goods->where(array('goods_id' => $goods_id))->get_field('goods_number');
-		if ($goods_number < $number) {
+		if ($goods_number < abs($number) ) {
 			return new ecjia_error('low_stocks', __('库存不足'));
 		}
 		/* end*/
