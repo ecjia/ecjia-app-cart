@@ -519,7 +519,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		//	'add_time'		=> RC_Time::gmtime(),
 		//));
 		RC_DB::table('order_status_log')->insert(array(
-			'order_status'	=> '订单提交成功',
+			'order_status'	=> RC_Lang::get('cart::shopping_flow.label_place_order'),
 			'order_id'		=> $order['order_id'],
 			'message'		=> '下单成功，订单号：'.$order['order_sn'],
 			'add_time'		=> RC_Time::gmtime(),
@@ -533,7 +533,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			//	'add_time'		=> RC_Time::gmtime(),
 			//));
 			RC_DB::table('order_status_log')->insert(array(
-				'order_status'	=> '待付款',
+				'order_status'	=> RC_Lang::get('cart::shopping_flow.unpay'),
 				'order_id'		=> $order['order_id'],
 				'message'		=> '请尽快支付该订单，超时将会自动取消订单',
 				'add_time'		=> RC_Time::gmtime(),

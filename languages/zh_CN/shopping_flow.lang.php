@@ -176,6 +176,9 @@ return array(
 	'shopping_myship' 	=> '我的配送',
 	'shopping_activity'	=> '活动列表',
 	'shopping_package' 	=> '超值礼包列表',
+	
+	'label_place_order'		=> '订单提交成功',
+	'unpay'					=> '待付款',
 );
 
 // end
