@@ -552,7 +552,7 @@ class cart {
 		/* 折扣 */
 		if ($order['extension_code'] != 'group_buy') {
 			$discount = self::compute_discount($cart_id);
-			$total['discount'] = $discount['discount'];
+			$total['discount'] = round($discount['discount'], 2);
 			if ($total['discount'] > $total['goods_price']) {
 				$total['discount'] = $total['goods_price'];
 			}
