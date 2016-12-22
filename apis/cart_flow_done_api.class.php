@@ -512,12 +512,6 @@ class cart_flow_done_api extends Component_Event_Api {
 						'order_sn' => $order['order_sn']
 				)
 		);
-		//RC_Model::model('orders/order_status_log_model')->insert(array(
-		//	'order_status'	=> '订单提交成功',
-		//	'order_id'		=> $order['order_id'],
-		//	'message'		=> '下单成功，订单号：'.$order['order_sn'],
-		//	'add_time'		=> RC_Time::gmtime(),
-		//));
 		RC_DB::table('order_status_log')->insert(array(
 			'order_status'	=> RC_Lang::get('cart::shopping_flow.label_place_order'),
 			'order_id'		=> $order['order_id'],
@@ -526,16 +520,19 @@ class cart_flow_done_api extends Component_Event_Api {
 		));
 
 		if (!$payment_info['is_cod'] && $order['order_amount'] > 0) {
-			//RC_Model::model('orders/order_status_log_model')->insert(array(
-			//	'order_status'	=> '待付款',
-			//	'order_id'		=> $order['order_id'],
-			//	'message'		=> '请尽快支付该订单，超时将会自动取消订单',
-			//	'add_time'		=> RC_Time::gmtime(),
-			//));
 			RC_DB::table('order_status_log')->insert(array(
 				'order_status'	=> RC_Lang::get('cart::shopping_flow.unpay'),
 				'order_id'		=> $order['order_id'],
 				'message'		=> '请尽快支付该订单，超时将会自动取消订单',
+				'add_time'		=> RC_Time::gmtime(),
+			));
+		}
+		
+		if ($payment_info['is_cod']) {
+			RC_DB::table('order_status_log')->insert(array(
+				'order_status'	=> RC_Lang::get('cart::shopping_flow.merchant_process'),
+				'order_id'		=> $order['order_id'],
+				'message'		=> '订单已通知商家，等待商家处理',
 				'add_time'		=> RC_Time::gmtime(),
 			));
 		}

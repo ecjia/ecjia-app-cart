@@ -179,6 +179,7 @@ return array(
 	
 	'label_place_order'		=> '订单提交成功',
 	'unpay'					=> '待付款',
+	'merchant_process'		=> '等待商家接单',
 );
 
 // end
