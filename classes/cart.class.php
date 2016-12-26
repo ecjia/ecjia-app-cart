@@ -878,8 +878,10 @@ class cart {
 				'rec_type'		=> $type ,
 				'g.is_shipping' => 0 ,
 				'c.extension_code' => array('neq' => 'package_buy')
-
 		);
+		if (!empty($cart_id)) {
+			$where['rec_id'] = $cart_id;
+		}
 // 		if (defined('SESS_ID')) {
 // 			$where['session_id'] = SESS_ID;
 // 		}
