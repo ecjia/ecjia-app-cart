@@ -406,7 +406,7 @@ class cart_cart_manage_api extends Component_Event_Api {
 //         $db_products     = RC_Loader::load_app_model('products_model', 'goods');
 //         $db_group         = RC_Loader::load_app_model('group_goods_model', 'goods');
 
-//         RC_Loader::load_app_func('order', 'orders');
+//         RC_Loader::load_app_func('admin_order', 'orders');
 //         RC_Loader::load_app_func('admin_goods', 'goods');
 //         RC_Loader::load_app_func('global', 'goods');
 //         /* 取得商品信息 */

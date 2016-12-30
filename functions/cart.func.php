@@ -98,7 +98,7 @@ function flow_update_cart($arr) {
 	$db_products = RC_Loader::load_app_model('products_model', 'goods');
 	$dbview = RC_Loader::load_app_model('goods_cart_viewmodel', 'goods');   
 	
-	RC_Loader::load_app_func('order', 'orders');
+	RC_Loader::load_app_func('admin_order', 'orders');
 	RC_Loader::load_app_func('global', 'goods');
     /* 处理 */
     foreach ($arr AS $key => $val) {
@@ -346,7 +346,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
 	$db_products 	= RC_Loader::load_app_model('products_model', 'goods');
 	$db_group 		= RC_Loader::load_app_model('group_goods_model', 'goods');
     $_parent_id 	= $parent;
-	RC_Loader::load_app_func('order', 'orders');
+	RC_Loader::load_app_func('admin_order', 'orders');
 	RC_Loader::load_app_func('admin_goods', 'goods');
 	RC_Loader::load_app_func('global', 'goods');
 	
@@ -654,7 +654,7 @@ function flow_available_points($cart_id = array()) {
 		$data = $db_view->join('goods')->where($cart_where)->sum('g.integral * c.goods_number');
 	}
 	$val = intval($data);
-	RC_Loader::load_app_func('order','orders');
+	RC_Loader::load_app_func('admin_order','orders');
 	return integral_of_value($val);
 }
 
@@ -739,7 +739,7 @@ function recalculate_price()
 	}
 
 	if (! empty($res)) {
-		RC_Loader::load_app_func('global','goods');
+		RC_Loader::load_app_func('global', 'goods');
 		foreach ($res as $row) {
 			$attr_id = empty($row['goods_attr_id']) ? array() : explode(',', $row['goods_attr_id']);
 			$goods_price = get_final_price($row['goods_id'], $row['goods_number'], true, $attr_id);
@@ -993,7 +993,7 @@ function clear_cart($type = CART_GENERAL_GOODS, $cart_id = array()) {
  * @return  array
  */
 function get_cart_goods($cart_id = array()) {
-	RC_Loader::load_app_func('global','goods');
+	RC_Loader::load_app_func('global', 'goods');
 	$db_cart 		= RC_Loader::load_app_model('cart_model', 'cart');
 	$db_goods_attr 	= RC_Loader::load_app_model('goods_attr_model','goods');
 	$db_goods 		= RC_Loader::load_app_model('goods_model','goods');
@@ -1417,7 +1417,7 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 	$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
 	/* 查询：取得团购活动信息 */
 	RC_Loader::load_app_func('admin_goods', 'goods');
-	RC_Loader::load_app_func('order', 'orders');
+	RC_Loader::load_app_func('admin_order', 'orders');
 	$group_buy = group_buy_info($act_id, $number);
 	if (empty($group_buy)) {
 		return new ecjia_error('gb_error', __('对不起，该团购活动不存在！'));
