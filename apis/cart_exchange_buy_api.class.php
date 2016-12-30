@@ -63,7 +63,7 @@ class cart_exchange_buy_api extends Component_Event_Api {
 	    if (!empty($specs)) {
 // 	        $_specs = explode(',', $specs);
 	    	$_specs = $specs;
-	        RC_Loader::load_app_func('goods', 'goods');
+	        RC_Loader::load_app_func('admin_goods', 'goods');
 	        $product_info = get_products_info($goods_id, $_specs);
 	    }
 	    

@@ -91,7 +91,7 @@ class create_module extends api_front implements api_interface {
 // 			/* 循环、统计 */
 // 			$cart_dbview = RC_Model::model('cart/cart_viewmodel');
 // 			$db_goods_attr = RC_Model::model('goods/goods_attr_model');
-// 			RC_Loader::load_app_func('common', 'goods');
+// 			RC_Loader::load_app_func('global', 'goods');
 
 // 			$field = 'c.*, goods_thumb, goods_img, original_img, s.merchants_name as store_name';
 // 			$row = $cart_dbview->join(array('goods', 'store_franchisee'))
