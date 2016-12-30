@@ -21,7 +21,7 @@ function EM_get_cart_goods() {
 	$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
 	$db_goods_attr = RC_Loader::load_app_model('goods_attr_model', 'goods');
 	$db_goods = RC_Loader::load_app_model('goods_model', 'goods');
-	RC_Loader::load_app_func('common', 'goods');
+	RC_Loader::load_app_func('global', 'goods');
 	if ($_SESSION['user_id']) {
 		$data = $db_cart->field('*, IF(parent_id, parent_id, goods_id) AS pid')->where(array('user_id' => $_SESSION['user_id'] , 'rec_type' =>  CART_GENERAL_GOODS))->order(array('pid' => 'asc', 'parent_id' => 'asc'))->select();
 	} else {
@@ -118,7 +118,7 @@ function flow_update_cart($arr) {
 	$db_products = RC_Loader::load_app_model('products_model', 'goods');
 	$dbview = RC_Loader::load_app_model('goods_cart_viewmodel', 'goods');   
 	RC_Loader::load_app_func('order', 'orders');
-	RC_Loader::load_app_func('common', 'goods');
+	RC_Loader::load_app_func('global', 'goods');
     /* 处理 */
     foreach ($arr AS $key => $val) {
 		$val = intval(make_semiangle($val));
@@ -471,8 +471,8 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
 	$db_group 		= RC_Loader::load_app_model('group_goods_model', 'goods');
     $_parent_id 	= $parent;
 	RC_Loader::load_app_func('order', 'orders');
-	RC_Loader::load_app_func('goods', 'goods');
-	RC_Loader::load_app_func('common', 'goods');
+	RC_Loader::load_app_func('admin_goods', 'goods');
+	RC_Loader::load_app_func('global', 'goods');
 	
 	$field = "g.goods_id, wg.w_id, g.goods_name, g.goods_sn, g.is_on_sale, g.is_real, g.user_id as ru_id, g.model_inventory, g.model_attr, ".
 			"g.is_xiangou, g.xiangou_start_date, g.xiangou_end_date, g.xiangou_num, ".
@@ -991,7 +991,7 @@ function recalculate_price()
 	}
 
 	if (! empty($res)) {
-		RC_Loader::load_app_func('common','goods');
+		RC_Loader::load_app_func('global','goods');
 		foreach ($res as $row) {
 			$attr_id = empty($row['goods_attr_id']) ? array() : explode(',', $row['goods_attr_id']);
 			$goods_price = get_final_price($row['goods_id'], $row['goods_number'], true, $attr_id);
@@ -1199,7 +1199,7 @@ function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
 				}
 			}
 		}
-		RC_Loader::load_app_func('common', 'goods');
+		RC_Loader::load_app_func('global', 'goods');
 		$arr[$key]['img'] = array(
 				'thumb'	=> get_image_path($value['goods_id'], $value['goods_img'], true),
 				'url'	=> get_image_path($value['goods_id'], $value['original_img'], true),
@@ -1293,7 +1293,7 @@ function clear_cart($type = CART_GENERAL_GOODS, $cart_id = array()) {
  * @return  array
  */
 function get_cart_goods($cart_id = array()) {
-	RC_Loader::load_app_func('common','goods');
+	RC_Loader::load_app_func('global','goods');
 	$db_cart 		= RC_Loader::load_app_model('cart_model', 'cart');
 	$db_goods_attr 	= RC_Loader::load_app_model('goods_attr_model','goods');
 	$db_goods 		= RC_Loader::load_app_model('goods_model','goods');
@@ -1501,7 +1501,7 @@ function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $us
 	/* 初始化折扣 */
 	$discount = 0;
 	$favourable_name = array();
-	RC_Loader::load_app_func('category', 'goods');
+	RC_Loader::load_app_func('admin_category', 'goods');
 	/* 循环计算每个优惠活动的折扣 */
 	foreach ($favourable_list as $favourable) {
 		$total_amount = 0;
@@ -1769,7 +1769,7 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 {
 	$db_cart 		= RC_Loader::load_app_model('cart_model', 'cart');
 	/* 查询：取得团购活动信息 */
-	RC_Loader::load_app_func('goods', 'goods');
+	RC_Loader::load_app_func('admin_goods', 'goods');
 	RC_Loader::load_app_func('order', 'orders');
 	$group_buy = group_buy_info($act_id, $number);
 	if (empty($group_buy)) {

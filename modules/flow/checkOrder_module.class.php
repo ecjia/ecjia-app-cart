@@ -250,7 +250,7 @@ class checkOrder_module extends api_front implements api_interface {
  					if ($group_buy_id <= 0) {
  						return new ecjia_error('groupbuy_not_support_cod', '如果是团购，且保证金大于0，不能使用货到付款');
  					}
- 					RC_Loader::load_app_func('goods', 'goods');
+ 					RC_Loader::load_app_func('admin_goods', 'goods');
  					$group_buy = group_buy_info($group_buy_id);
  					if (empty($group_buy)) {
  						return new ecjia_error( 'invalid_parameter', RC_Lang::get ('system::system.invalid_parameter' ));

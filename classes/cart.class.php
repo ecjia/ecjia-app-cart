@@ -22,7 +22,7 @@ class cart {
 		$db_products = RC_Model::model('goods/products_model');
 
 		RC_Loader::load_app_func('order', 'orders');
-		RC_Loader::load_app_func('common', 'goods');
+		RC_Loader::load_app_func('global', 'goods');
 		/* 处理 */
 		foreach ($arr AS $key => $val) {
 			$val = intval(make_semiangle($val));

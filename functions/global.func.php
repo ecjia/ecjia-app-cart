@@ -525,7 +525,7 @@ function cmp_favourable($a, $b)
  */
 function em_favourable_list($user_rank)
 {
-	RC_Loader::load_app_func('common','goods');
+	RC_Loader::load_app_func('global', 'goods');
 	$db_favourable_activity = RC_Loader::load_app_model('favourable_activity_model','favourable');
 	$db_goods = RC_Loader::load_app_model('goods_model','goods');
     /* 购物车中已有的优惠活动及数量 */
@@ -800,8 +800,8 @@ function cart_favourable_amount($favourable)
     	$where = array_merge(array('c.session_id' => SESS_ID));
     }
 	$sum = 'c.goods_price * c.goods_number';
-	RC_Loader::load_app_func('common', 'goods');
-	RC_Loader::load_app_func('category', 'goods');
+	RC_Loader::load_app_func('global', 'goods');
+	RC_Loader::load_app_func('admin_category', 'goods');
 	
     /* 根据优惠范围修正sql */
     if ($favourable['act_range'] == FAR_ALL) {
