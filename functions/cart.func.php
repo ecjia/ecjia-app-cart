@@ -1563,6 +1563,7 @@ function formated_cart_list($cart_result) {
         RC_Loader::load_app_class('cart', 'cart', false);
         //优惠价格
         $discount = cart::compute_discount_store($seller['seller_id']);
+        $discount['discount']       = number_format($discount['discount'], 2, '.', '');
         
         /* 用于统计购物车中实体商品和虚拟商品的个数 */
         $virtual_goods_count = 0;
@@ -1585,6 +1586,7 @@ function formated_cart_list($cart_result) {
             }
             $total['goods_number'] += $goods['goods_number'];
         }
+        $total['goods_price'] -= $discount['discount'];
         $total['goods_amount'] = $total['goods_price'];
         $total['saving']       = price_format($total['market_price'] - $total['goods_price'], false);
         if ($total['market_price'] > 0) {
@@ -1592,13 +1594,13 @@ function formated_cart_list($cart_result) {
                 100 / $total['market_price']).'%' : 0;
         }
         
-        $total['unformatted_goods_price']  			= $total['goods_price'];
-        $total['goods_price']  			= price_format($total['goods_price'], false);
-        $total['unformatted_market_price'] 			= $total['market_price'];
+        $total['unformatted_goods_price']     = $total['goods_price'];
+        $total['goods_price']  			      = price_format($total['goods_price'], false);
+        $total['unformatted_market_price']    = $total['market_price'];
         $total['market_price'] 			= price_format($total['market_price'], false);
         $total['real_goods_count']    	= $real_goods_count;
         $total['virtual_goods_count'] 	= $virtual_goods_count;
-        $discount['discount']       = number_format($discount['discount'], 2, '.', '');
+        
         $total['discount']			= $discount['discount'];//用户享受折扣数
         $total['discount_formated']	= price_format($total['discount']);
         
