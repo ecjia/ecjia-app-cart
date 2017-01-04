@@ -1,10 +1,12 @@
 <?php
 defined('IN_ECJIA') or exit('No permission resources.');
+
 /**
  * 购物流检查订单
  * @author royalwang
  *
  */
+ 
 class checkOrder_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
 
@@ -60,10 +62,10 @@ class checkOrder_module extends api_front implements api_interface {
 		$store_id_group = array();
 		/* 根据经纬度查询附近店铺id*/
 		if (!empty($consignee['latitude']) && !empty($consignee['longitude'])) {
-			$geohash = RC_Loader::load_app_class('geohash', 'store');
-			$geohash_code = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
-			$geohash_code = substr($geohash_code, 0, 5);
-			$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code));
+			$geohash         = RC_Loader::load_app_class('geohash', 'store');
+			$geohash_code    = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
+			$geohash_code    = substr($geohash_code, 0, 5);
+			$store_id_group  = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code));
 		}
 
 		/* 检查购物车中是否有商品 */
@@ -90,7 +92,7 @@ class checkOrder_module extends api_front implements api_interface {
 		/* 取得订单信息*/
 		$order = cart::flow_order_info();
 		$store_group = array();
-		$cart_goods = array();
+		$cart_goods  = array();
 		foreach ($get_cart_goods['goods_list'] as $row) {
 			$store_group[] = $row['store_id'];
 			if (!empty($row['goods_attr'])) {
@@ -166,10 +168,10 @@ class checkOrder_module extends api_front implements api_interface {
 		// 查看购物车中是否全为免运费商品，若是则把运费赋为零
 		if ($_SESSION['user_id']) {
 			$shipping_count_where = array_merge($shipping_count_where, array('user_id' => $_SESSION['user_id']));
-			$shipping_count = $db_cart->where($shipping_count_where)->count();
+			$shipping_count       = $db_cart->where($shipping_count_where)->count();
 		} else {
 			$shipping_count_where = array_merge($shipping_count_where, array('session_id' => SESS_ID));
-			$shipping_count = $db_cart->where($shipping_count_where)->count();
+			$shipping_count       = $db_cart->where($shipping_count_where)->count();
 		}
 
 
@@ -242,7 +244,7 @@ class checkOrder_module extends api_front implements api_interface {
 			$cod_fee    = 0;
 		} else {
 			$shipping = $shipping_method->shipping_info($order['shipping_id']);
-			$cod = $shipping['support_cod'];
+			$cod      = $shipping['support_cod'];
 			if ($cod){
  				/* 如果是团购，且保证金大于0，不能使用货到付款 */
  				if ($flow_type == CART_GROUP_BUY_GOODS) {
@@ -264,7 +266,7 @@ class checkOrder_module extends api_front implements api_interface {
  				}
 				if ($cod) {
 					$shipping_area_info = $shipping_method->shipping_area_info($order['shipping_id'], $region, $order['store_id']);
-					$cod_fee = $shipping_area_info['pay_fee'];
+					$cod_fee            = $shipping_area_info['pay_fee'];
 				}
 			}
 		}
@@ -313,9 +315,9 @@ class checkOrder_module extends api_front implements api_interface {
 			$db_user_bonus_view	= RC_Model::model('bonus/user_bonus_type_viewmodel');
             $db_user_bonus_view->view = array(
                 'bonus_type' => array(
-    		   		'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
-    			 	'alias'	=> 'bt',
-    			 	'on'   	=> 'ub.bonus_type_id = bt.type_id'
+    		   		'type' 	 => Component_Model_View::TYPE_LEFT_JOIN,
+    			 	'alias'	 => 'bt',
+    			 	'on'   	 => 'ub.bonus_type_id = bt.type_id'
     			),
                 'store_franchisee' => array(
                     'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
@@ -325,14 +327,14 @@ class checkOrder_module extends api_front implements api_interface {
             );
 			$user_bonus = $db_user_bonus_view->join('bonus_type,store_franchisee')->field('bt.type_id, bt.type_name, bt.send_type, bt.type_money, ub.bonus_id, bt.use_start_date, bt.use_end_date, min_goods_amount,bt.store_id,merchants_name')
 					->where(array(
-						'bt.use_start_date' => array('elt' => RC_Time::gmtime()),
-						'bt.use_end_date' => array('egt' => RC_Time::gmtime()),
-						'ub.user_id' => array('neq' => 0),
-						'ub.user_id' => $_SESSION['user_id'],
-						'ub.order_id' => 0,
+						'bt.use_start_date'   => array('elt' => RC_Time::gmtime()),
+						'bt.use_end_date'     => array('egt' => RC_Time::gmtime()),
+						'ub.user_id'          => array('neq' => 0),
+						'ub.user_id'          => $_SESSION['user_id'],
+						'ub.order_id'         => 0,
 						'bt.min_goods_amount' => array('lt' => $total['goods_price']),
 					))
-                    ->in(array('bt.store_id' => array($order['store_id'], '0')))
+                    ->in(array('bt.store_id'  => array($order['store_id'], '0')))
 					->select();
 
 			$user_bonus_list = array();
@@ -378,13 +380,13 @@ class checkOrder_module extends api_front implements api_interface {
 		{
 			$inv_content_list = explode("\n", str_replace("\r", '', ecjia::config('invoice_content')));
 			$inv_type_list = array();
-			$invoice_type = ecjia::config('invoice_type');
+			$invoice_type  = ecjia::config('invoice_type');
 			foreach ($invoice_type['type'] as $key => $type) {
 				if (!empty($type)) {
 					$inv_type_list[$type] = array(
-							'label' => $type . ' [' . floatval($invoice_type['rate'][$key]) . '%]',
+							'label'      => $type . ' [' . floatval($invoice_type['rate'][$key]) . '%]',
 							'label_type' => $type,
-							'rate' => floatval($invoice_type['rate'][$key])
+							'rate'       => floatval($invoice_type['rate'][$key])
 					);
 				}
 			}
@@ -405,7 +407,7 @@ class checkOrder_module extends api_front implements api_interface {
 			$ids = array_filter($ids);
 
 			$db_region = RC_Model::model('shipping/region_model');
-			$data = $db_region->in(array('region_id' => implode(',', $ids)))->select();
+			$data      = $db_region->in(array('region_id' => implode(',', $ids)))->select();
 
 			$a_out = array();
 			foreach ($data as $key => $val) {
@@ -430,10 +432,10 @@ class checkOrder_module extends api_front implements api_interface {
 			$i = 1;
 			foreach ($out['inv_type_list'] as $key => $value) {
 				$temp[] = array(
-						'id'	=> $i,
-						'value'	=> $value['label'],
-						'label_value' => $value['label_type'],
-						'rate'	=> $value['rate']);
+						'id'	       => $i,
+						'value'	       => $value['label'],
+						'label_value'  => $value['label_type'],
+						'rate'	       => $value['rate']);
 				$i++;
 			}
 			$out['inv_type_list'] = $temp;
@@ -447,7 +449,7 @@ class checkOrder_module extends api_front implements api_interface {
 			}
 		}
 		
-		$device		= $this->device;
+		$device		 = $this->device;
 		$device_code = $device['code'];
 		if (!empty($out['payment_list'])) {
 			foreach ($out['payment_list'] as $key => $value) {
@@ -514,6 +516,5 @@ class checkOrder_module extends api_front implements api_interface {
 
 	}
 }
-
 
 // end

@@ -1,6 +1,7 @@
 <?php
-use Ecjia\System\Notifications\OrderPlaced;
 defined('IN_ECJIA') or exit('No permission resources.');
+use Ecjia\System\Notifications\OrderPlaced;
+
 /**
  *
  * @author will.chen
@@ -91,7 +92,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			$order['extension_id']		= $_SESSION['extension_id'];
 		} else {
 			$order['extension_code'] = '';
-			$order['extension_id'] = 0;
+			$order['extension_id']   = 0;
 		}
 
 		/* 检查积分余额是否合法 */
@@ -107,7 +108,7 @@ class cart_flow_done_api extends Component_Event_Api {
 				$order['integral'] = 0;
 			}
 		} else {
-			$order['surplus'] = 0;
+			$order['surplus']  = 0;
 			$order['integral'] = 0;
 		}
 
@@ -487,16 +488,16 @@ class cart_flow_done_api extends Component_Event_Api {
 		unset($_SESSION['direct_shopping']);
 		$subject = $cart_goods[0]['goods_name'] . '等' . count($cart_goods) . '种商品';
 		$order_info = array(
-				'order_sn' => $order['order_sn'],
-				'order_id' => $order['order_id'],
+				'order_sn'   => $order['order_sn'],
+				'order_id'   => $order['order_id'],
 				'order_info' => array(
-						'pay_code' => $payment_info['pay_code'],
-						'order_amount' => $order['order_amount'],
-				        'formatted_order_amount' => price_format($order['order_amount']),
-						'order_id' => $order['order_id'],
-						'subject' => $subject,
-						'desc' => $subject,
-						'order_sn' => $order['order_sn']
+					'pay_code'               => $payment_info['pay_code'],
+					'order_amount'           => $order['order_amount'],
+			        'formatted_order_amount' => price_format($order['order_amount']),
+					'order_id'               => $order['order_id'],
+					'subject'                => $subject,
+					'desc'                   => $subject,
+					'order_sn'               => $order['order_sn']
 				)
 		);
 		RC_DB::table('order_status_log')->insert(array(
@@ -544,14 +545,14 @@ class cart_flow_done_api extends Component_Event_Api {
 						'title'	=> '客户下单',
 						'body'	=> '您有一笔新订单，订单号为：'.$order['order_sn'],
 						'data'	=> array(
-								'order_id'		=> $order['order_id'],
-								'order_sn'		=> $order['order_sn'],
-								'order_amount'	=> $order['order_amount'],
-								'formatted_order_amount' => price_format($order['order_amount']),
-								'consignee'		=> $order['consignee'],
-								'mobile'		=> $order['mobile'],
-								'address'		=> $order['address'],
-								'order_time'	=> RC_Time::local_date(ecjia::config('time_format'), $order['add_time']),
+							'order_id'		         => $order['order_id'],
+							'order_sn'		         => $order['order_sn'],
+							'order_amount'	         => $order['order_amount'],
+							'formatted_order_amount' => price_format($order['order_amount']),
+							'consignee'		         => $order['consignee'],
+							'mobile'		         => $order['mobile'],
+							'address'		         => $order['address'],
+							'order_time'	         => RC_Time::local_date(ecjia::config('time_format'), $order['add_time']),
 						),
 				);
 				
@@ -596,8 +597,6 @@ class cart_flow_done_api extends Component_Event_Api {
 
 		return $order_info;
 	}
-
-
 }
 
 // end

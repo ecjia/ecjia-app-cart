@@ -1,10 +1,12 @@
 <?php
 defined('IN_ECJIA') or exit('No permission resources.');
+
 /**
  *
  * @author will.chen
  *
  */
+ 
 class cart_cart_list_api extends Component_Event_Api {
 
 

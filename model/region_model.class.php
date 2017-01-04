@@ -1,5 +1,6 @@
 <?php
 defined ( 'IN_ECJIA' ) or exit ( 'No permission resources.' );
+
 class region_model extends Component_Model_Model {
 	public $table_name = '';
 	public function __construct() {
@@ -18,7 +19,7 @@ class region_model extends Component_Model_Model {
 	function get_regions($type = 0, $parent = 0) {
 		return $this->field ( 'region_id, region_name' )->where ( array (
 				'region_type' => $type,
-				'parent_id' => $parent 
+				'parent_id'   => $parent 
 		) )->select ();
 	}
 }

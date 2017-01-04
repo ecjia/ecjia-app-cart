@@ -1,10 +1,12 @@
 <?php
 defined('IN_ECJIA') or exit('No permission resources.');
+
 /**
  * 添加到购物车
  * @author royalwang
  *
  */
+ 
 class create_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
 
@@ -74,10 +76,10 @@ class create_module extends api_front implements api_interface {
 	    	$store_id_group = array();
 	    	/* 根据经纬度查询附近店铺id*/
 	    	if (isset($location['latitude']) && !empty($location['latitude']) && isset($location['longitude']) && !empty($location['longitude'])) {
-	    		$geohash = RC_Loader::load_app_class('geohash', 'store');
-	    		$geohash_code = $geohash->encode($location['latitude'] , $location['longitude']);
-	    		$geohash_code = substr($geohash_code, 0, 5);
-	    		$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code));
+	    		$geohash         = RC_Loader::load_app_class('geohash', 'store');
+	    		$geohash_code    = $geohash->encode($location['latitude'] , $location['longitude']);
+	    		$geohash_code    = substr($geohash_code, 0, 5);
+	    		$store_id_group  = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code));
 	    	} else {
 	    		return new ecjia_error('location_error', '请定位您当前所在地址！');
 	    	}
@@ -151,9 +153,9 @@ class create_module extends api_front implements api_interface {
 // 	        return $goods_list;
 
 	        if (isset($location['latitude']) && !empty($location['latitude']) && isset($location['longitude']) && !empty($location['longitude'])) {
-	            $geohash = RC_Loader::load_app_class('geohash', 'store');
-	            $geohash_code = $geohash->encode($location['latitude'] , $location['longitude']);
-	            $geohash_code = substr($geohash_code, 0, 5);
+	            $geohash        = RC_Loader::load_app_class('geohash', 'store');
+	            $geohash_code   = $geohash->encode($location['latitude'] , $location['longitude']);
+	            $geohash_code   = substr($geohash_code, 0, 5);
 	            $store_id_group = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code));
 	            if (!empty($seller_id) && !in_array($seller_id, $store_id_group)) {
 	                return new ecjia_error('location_beyond', '店铺距离过远！');

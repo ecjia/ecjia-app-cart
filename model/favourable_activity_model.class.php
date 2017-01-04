@@ -9,3 +9,5 @@ class favourable_activity_model extends Component_Model_Model {
 	}
 
 }
+
+//end

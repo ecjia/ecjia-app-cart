@@ -5,7 +5,7 @@ class bonus_type_viewmodel extends Component_Model_View {
 	public $table_name = '';
 	public  $view = array();
 	public function __construct() {
-		$this->table_name = 'bonus_type';
+		$this->table_name       = 'bonus_type';
 		$this->table_alias_name = 't';
 		
 		$this->view = array(

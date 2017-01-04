@@ -1,10 +1,12 @@
 <?php
 defined('IN_ECJIA') or exit('No permission resources.');
+
 /**
  * 购物车更新商品数目
  * @author royalwang
  *
  */
+ 
 class update_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
     		
@@ -12,7 +14,7 @@ class update_module extends api_front implements api_interface {
     	if ($_SESSION['user_id'] <= 0) {
     		return new ecjia_error(100, 'Invalid session');
     	}
-		$location = $this->requestData('location',array());
+		$location       = $this->requestData('location',array());
 		$seller_id		= $this->requestData('seller_id', 0);
 		//TODO:目前强制坐标
 // 		$location = array(
@@ -22,7 +24,7 @@ class update_module extends api_front implements api_interface {
 		RC_Loader::load_app_class('cart', 'cart', false);
 		RC_Loader::load_app_func('cart', 'cart');
 		
-		$rec_id = $this->requestData('rec_id', 0);
+		$rec_id     = $this->requestData('rec_id', 0);
 		$new_number = $this->requestData('new_number', 0);
 		
 		if ($new_number < 1 || $rec_id < 1) {
@@ -38,9 +40,9 @@ class update_module extends api_front implements api_interface {
 		cart::flow_check_cart_goods(array('id' => $rec_id, 'is_checked' => 1));
 		
 		if (isset($location['latitude']) && !empty($location['latitude']) && isset($location['longitude']) && !empty($location['longitude'])) {
-            $geohash = RC_Loader::load_app_class('geohash', 'store');
-            $geohash_code = $geohash->encode($location['latitude'] , $location['longitude']);
-            $geohash_code = substr($geohash_code, 0, 5);
+            $geohash        = RC_Loader::load_app_class('geohash', 'store');
+            $geohash_code   = $geohash->encode($location['latitude'] , $location['longitude']);
+            $geohash_code   = substr($geohash_code, 0, 5);
             $store_id_group = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code));
             if (!empty($seller_id) && !in_array($seller_id, $store_id_group)) {
                 return new ecjia_error('location_beyond', '店铺距离过远！');

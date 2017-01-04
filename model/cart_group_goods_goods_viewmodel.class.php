@@ -10,15 +10,15 @@ class cart_group_goods_goods_viewmodel extends Component_Model_View {
 		
 		//定义视图选项
 		$this->view = array(
-				'group_goods' => array(
+				'group_goods'   => array(
 						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
 						'alias' => 'gg',
 						'on'    => 'c.goods_id = gg.goods_id'
 				),	
     		    'goods' => array(
-    		        'type'  => Component_Model_View::TYPE_LEFT_JOIN,
-    		        'alias' => 'g',
-    		        'on'    => 'c.goods_id = g.goods_id'
+    		        'type'      => Component_Model_View::TYPE_LEFT_JOIN,
+    		        'alias'     => 'g',
+    		        'on'        => 'c.goods_id = g.goods_id'
     		    )
 		);	
 		parent::__construct();

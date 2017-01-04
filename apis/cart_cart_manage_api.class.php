@@ -1,12 +1,13 @@
 <?php
 defined('IN_ECJIA') or exit('No permission resources.');
+
 /**
  *
  * @author will.chen
  *
  */
+ 
 class cart_cart_manage_api extends Component_Event_Api {
-
 
     /**
      * @param
@@ -177,10 +178,10 @@ class cart_cart_manage_api extends Component_Event_Api {
             $where_gr .= "parent_id = '$_parent_id'";
         }
         $data = $db_group_goods
-        ->select('parent_id, goods_price')
-        ->whereRaw($where_gr)
-        ->orderBy('goods_price', 'asc')
-        ->select();
+            ->select('parent_id, goods_price')
+            ->whereRaw($where_gr)
+            ->orderBy('goods_price', 'asc')
+            ->select();
 
         if(!empty($data)) {
             foreach ($data as $row) {

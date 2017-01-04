@@ -9,3 +9,5 @@ class cart_goods_model extends Component_Model_Model {
 	}
 
 }
+
+//end

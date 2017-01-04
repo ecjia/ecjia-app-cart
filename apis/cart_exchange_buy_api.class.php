@@ -1,10 +1,12 @@
 <?php
 defined('IN_ECJIA') or exit('No permission resources.');
+
 /**
  * 获取积分兑换添加购物车
  * @author will.chen
  *
  */
+ 
 class cart_exchange_buy_api extends Component_Event_Api {
     
     public function call(&$options) {

@@ -37,13 +37,13 @@ function EM_get_cart_goods() {
         $total['goods_price']  += $row['goods_price'] * $row['goods_number'];
         $total['market_price'] += $row['market_price'] * $row['goods_number'];
         
-        $total['saving'] += $row['market_price'] > $row['goods_price'] ? ($row['market_price'] - $row['goods_price']) : 0;
+        $total['saving']       += $row['market_price'] > $row['goods_price'] ? ($row['market_price'] - $row['goods_price']) : 0;
         
         
-        $row['subtotal']     = $row['goods_price'] * $row['goods_number'];
+        $row['subtotal']              = $row['goods_price'] * $row['goods_number'];
         $row['formated_subtotal']     = price_format($row['goods_price'] * $row['goods_number'], false);
-        $row['goods_price']  = $total['goods_price'] > 0 ? price_format($row['goods_price'], false) : __('免费');
-        $row['market_price'] = price_format($row['market_price'], false);
+        $row['goods_price']           = $total['goods_price'] > 0 ? price_format($row['goods_price'], false) : __('免费');
+        $row['market_price']          = price_format($row['market_price'], false);
 
         /* 统计实体商品和虚拟商品的个数 */
         if ($row['is_real']) {
@@ -73,12 +73,12 @@ function EM_get_cart_goods() {
         $goods_list[] = $row;
     }
     $total['goods_amount'] = $total['goods_price'];
-    $total['saving'] = price_format($total['saving'], false);
+    $total['saving']       = price_format($total['saving'], false);
     if ($total['market_price'] > 0) {
         $total['save_rate'] = $total['market_price'] ? round(($total['market_price'] - $total['goods_price']) * 100 / $total['market_price']).'%' : 0;
     }
-    $total['goods_price']  = price_format($total['goods_price'], false);
-    $total['market_price'] = price_format($total['market_price'], false);
+    $total['goods_price']         = price_format($total['goods_price'], false);
+    $total['market_price']        = price_format($total['market_price'], false);
     $total['real_goods_count']    = $real_goods_count;
     $total['virtual_goods_count'] = $virtual_goods_count;
 
@@ -370,9 +370,9 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
    			'on'   	=> "g.goods_id = wag.goods_id and wag.region_id = '$area_id'"
    		),
    		'member_price' => array(
-   			'type'  => Component_Model_View::TYPE_LEFT_JOIN,
-   			'alias' => 'mp',
-   			'on'   	=> "mp.goods_id = g.goods_id AND mp.user_rank = '$_SESSION[user_rank]'"
+   			'type'     => Component_Model_View::TYPE_LEFT_JOIN,
+   			'alias'    => 'mp',
+   			'on'   	   => "mp.goods_id = g.goods_id AND mp.user_rank = '$_SESSION[user_rank]'"
    		)   					
 	); 
    	
@@ -459,7 +459,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
   
     /* 计算商品的促销价格 */
     $warehouse_area['warehouse_id'] = $warehouse_id;
-    $warehouse_area['area_id'] = $area_id;
+    $warehouse_area['area_id']      = $area_id;
     
     $spec_price             = spec_price($spec, $goods_id, $warehouse_area);
     $goods_price            = get_final_price($goods_id, $num, true, $spec, $warehouse_id, $area_id);
@@ -865,10 +865,10 @@ function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
 	$field = 'goods_img, original_img, goods_thumb, c.rec_id, c.user_id, c.goods_id, c.goods_name, c.goods_sn, c.goods_number, c.market_price, c.goods_price, c.goods_attr, c.is_real, c.extension_code, c.parent_id, c.is_gift, c.is_shipping, c.goods_price * c.goods_number|subtotal, goods_weight as goodsWeight, c.goods_attr_id';
 	if ($_SESSION['user_id']) {
 		$cart_where = array_merge($cart_where, array('c.user_id' => $_SESSION['user_id']));
-		$arr = $db->field($field)->where($cart_where)->select();
+		$arr        = $db->field($field)->where($cart_where)->select();
 	} else {
 		$cart_where = array_merge($cart_where, array('session_id' => SESS_ID));
-		$arr = $db->field($field)->where($cart_where)->select();
+		$arr        = $db->field($field)->where($cart_where)->select();
 	}
 
 	$db_goods_attr = RC_Loader::load_app_model('goods_attr_model', 'goods');
@@ -876,9 +876,9 @@ function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
 	$order_info_viewdb = RC_Loader::load_app_model('order_info_viewmodel', 'orders');
 	$order_info_viewdb->view = array(
 		'order_goods' => array(
-			'type'	=> Component_Model_View::TYPE_LEFT_JOIN,
-			'alias' => 'g',
-			'on'	=> 'oi.order_id = g.order_id '
+			'type'	  => Component_Model_View::TYPE_LEFT_JOIN,
+			'alias'   => 'g',
+			'on'	  => 'oi.order_id = g.order_id '
 		)
 	);
 	/* 格式化价格及礼包商品 */
@@ -1527,22 +1527,22 @@ function formated_cart_list($cart_result) {
     
             //goods_list
             $cart_goods['cart_list'][$row['store_id']]['goods_list'][] = array(
-                'rec_id'	=> intval($row['rec_id']),
-                'goods_id'	=> intval($row['goods_id']),
-                'goods_sn'	=> $row['goods_sn'],
-                'goods_name'	=> $row['goods_name'],
-                'goods_price'	=> $row['goods_price'],
-                'market_price'	=> $row['market_price'],
+                'rec_id'	            => intval($row['rec_id']),
+                'goods_id'	            => intval($row['goods_id']),
+                'goods_sn'	            => $row['goods_sn'],
+                'goods_name'	        => $row['goods_name'],
+                'goods_price'	        => $row['goods_price'],
+                'market_price'	        => $row['market_price'],
                 'formated_goods_price'	=> $row['formatted_goods_price'],
                 'formated_market_price' => $row['formatted_market_price'],
-                'goods_number'	=> intval($row['goods_number']),
-                'subtotal'		=> $row['subtotal'],
-                'goods_attr_id' => intval($row['goods_attr_id']),
-                'attr'			=> $row['goods_attr'],
-                'goods_attr'	=> $goods_attrs,
-                'is_checked'	=> $row['is_checked'],
-                'is_disabled'   => $row['is_disabled'],
-                'disabled_label'=> $row['disabled_label'],
+                'goods_number'	        => intval($row['goods_number']),
+                'subtotal'		        => $row['subtotal'],
+                'goods_attr_id'         => intval($row['goods_attr_id']),
+                'attr'			        => $row['goods_attr'],
+                'goods_attr'	        => $goods_attrs,
+                'is_checked'	        => $row['is_checked'],
+                'is_disabled'           => $row['is_disabled'],
+                'disabled_label'        => $row['disabled_label'],
                 'img' => array(
                     'thumb'	=> RC_Upload::upload_url($row['goods_img']),
                     'url'	=> RC_Upload::upload_url($row['original_img']),
@@ -1556,13 +1556,13 @@ function formated_cart_list($cart_result) {
     
     foreach ($cart_goods['cart_list'] as &$seller) {
         //优惠活动
-        $favourable = RC_Api::api('favourable', 'favourable_list', array('store_id' => array(0, $seller['seller_id']), 'type' => 'on_going', 'sort_by' => 'store_id', 'sort_order' => 'ASC'));
-        $promotions = formated_favourable($favourable, $seller['goods_list']);
-        $seller['promotions'] = $promotions;
+        $favourable             = RC_Api::api('favourable', 'favourable_list', array('store_id' => array(0, $seller['seller_id']), 'type' => 'on_going', 'sort_by' => 'store_id', 'sort_order' => 'ASC'));
+        $promotions             = formated_favourable($favourable, $seller['goods_list']);
+        $seller['promotions']   = $promotions;
         
         RC_Loader::load_app_class('cart', 'cart', false);
         //优惠价格
-        $discount = cart::compute_discount_store($seller['seller_id']);
+        $discount                   = cart::compute_discount_store($seller['seller_id']);
         $discount['discount']       = number_format($discount['discount'], 2, '.', '');
         
         /* 用于统计购物车中实体商品和虚拟商品的个数 */

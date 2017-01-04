@@ -9,13 +9,13 @@ class package_goods_viewmodel extends Component_Model_View {
 		$this->table_alias_name = 'pg';
 		
 		$this->view = array(
-				'goods' => array(
+				'goods'         => array(
 						'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
 						'alias' => 'g',
 						'field' => "pg.package_id, pg.goods_id, pg.goods_number, pg.admin_id, p.goods_attr, g.goods_sn, g.goods_name, g.market_price, g.goods_thumb, IFNULL(mp.user_price, g.shop_price * '$_SESSION[discount]') AS rank_price",
 						'on' 	=> 'g.goods_id = pg.goods_id'
 				),
-				'products' => array(
+				'products'      => array(
 						'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
 						'alias' => 'p',
 						'on' 	=> 'p.product_id = pg.product_id'

@@ -14,14 +14,13 @@ class cart_sessions_viewmodel extends Component_Model_View {
 						'type'  =>Component_Model_View::TYPE_LEFT_JOIN,
 						'alias' => 's',
 						'field' => 'DISTINCT session_id',
-						'on'   => 'c.session_id = s.sesskey'
+						'on'    => 'c.session_id = s.sesskey'
 				)		
 		);
 		
 		
 		parent::__construct();
 	}
-
 }
 
 // end

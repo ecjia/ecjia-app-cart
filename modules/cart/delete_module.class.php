@@ -1,10 +1,12 @@
 <?php
 defined('IN_ECJIA') or exit('No permission resources.');
+
 /**
  * 从购物车中删除一商品
  * @author royalwang
  *
  */
+ 
 class delete_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
     		
@@ -12,7 +14,7 @@ class delete_module extends api_front implements api_interface {
     	if ($_SESSION['user_id'] <= 0) {
     		return new ecjia_error(100, 'Invalid session');
     	}
-	    $location = $this->requestData('location', array());
+	    $location  = $this->requestData('location', array());
 	    $seller_id = $this->requestData('seller_id', 0);
 	    //TODO:目前强制坐标
 // 	    $location = array(
@@ -35,9 +37,9 @@ class delete_module extends api_front implements api_interface {
 	    
 // 	    $cart_goods = EM_get_cart_goods();
 	   	if (isset($location['latitude']) && !empty($location['latitude']) && isset($location['longitude']) && !empty($location['longitude'])) {
-            $geohash = RC_Loader::load_app_class('geohash', 'store');
-            $geohash_code = $geohash->encode($location['latitude'] , $location['longitude']);
-            $geohash_code = substr($geohash_code, 0, 5);
+            $geohash        = RC_Loader::load_app_class('geohash', 'store');
+            $geohash_code   = $geohash->encode($location['latitude'] , $location['longitude']);
+            $geohash_code   = substr($geohash_code, 0, 5);
             $store_id_group = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code));
             if (!empty($seller_id) && !in_array($seller_id, $store_id_group)) {
                 return new ecjia_error('location_beyond', '店铺距离过远！');

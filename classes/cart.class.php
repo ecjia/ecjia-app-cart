@@ -5,6 +5,7 @@
  * @author will.chen
  *
  */
+ 
 class cart {
 
 	/**
@@ -15,11 +16,11 @@ class cart {
 	 * @return  void
 	 */
 	public static function flow_update_cart($arr) {
-		$db_cart	= RC_Model::model('cart/cart_model');
-		$dbview		= RC_Model::model('goods/goods_cart_viewmodel');
+		$db_cart	  = RC_Model::model('cart/cart_model');
+		$dbview		  = RC_Model::model('goods/goods_cart_viewmodel');
 
 		$db_cart_view = RC_Model::model('cart/cart_cart_viewmodel');
-		$db_products = RC_Model::model('goods/products_model');
+		$db_products  = RC_Model::model('goods/products_model');
 
 		RC_Loader::load_app_func('admin_order', 'orders');
 		RC_Loader::load_app_func('global', 'goods');

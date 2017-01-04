@@ -5,7 +5,7 @@ class attribute_viewmodel extends Component_Model_View {
 	public $table_name = '';
 	public $view = array();
 	public function __construct() {
-		$this->table_name = 'attribute';
+		$this->table_name       = 'attribute';
 		$this->table_alias_name = 'a';
 		
 		$this->view =array(
@@ -22,10 +22,10 @@ class attribute_viewmodel extends Component_Model_View {
 						'on'    => 'ga.attr_id = a.attr_id'
 				),
 				'goods' => array (
-					'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
-					'alias' => 'g',
-// 					'field' => 'attr_group',
-					'on' 	=> 'gt.cat_id = g.goods_type' 
+					'type' 	    => Component_Model_View::TYPE_LEFT_JOIN,
+					'alias'     => 'g',
+// 					'field'     => 'attr_group',
+					'on' 	    => 'gt.cat_id = g.goods_type' 
 				)
 		);
 		

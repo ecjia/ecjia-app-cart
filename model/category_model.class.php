@@ -9,3 +9,5 @@ class category_model extends Component_Model_Model {
 	}
 
 }
+
+//end
