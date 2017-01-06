@@ -7,21 +7,14 @@ defined('IN_ECJIA') or exit('No permission resources.');
  * @param   array   $b      优惠活动b
  * @return  int     相等返回0，小于返回-1，大于返回1
  */
-function cmp_favourable($a, $b)
-{
-    if ($a['available'] == $b['available'])
-    {
-        if ($a['sort_order'] == $b['sort_order'])
-        {
+function cmp_favourable($a, $b) {
+    if ($a['available'] == $b['available']) {
+        if ($a['sort_order'] == $b['sort_order']) {
             return 0;
-        }
-        else
-        {
+        } else {
             return $a['sort_order'] < $b['sort_order'] ? -1 : 1;
         }
-    }
-    else
-    {
+    } else {
         return $a['available'] ? -1 : 1;
     }
 }
@@ -31,8 +24,7 @@ function cmp_favourable($a, $b)
  * @param   int     $user_rank      用户等级id，0表示非会员
  * @return  array
  */
-function em_favourable_list($user_rank)
-{
+function em_favourable_list($user_rank) {
 	RC_Loader::load_app_func('global', 'goods');
 	$db_favourable_activity = RC_Loader::load_app_model('favourable_activity_model','favourable');
 	$db_goods = RC_Loader::load_app_model('goods_model','goods');
@@ -153,8 +145,7 @@ function act_range_desc($favourable)
  * 取得购物车中已有的优惠活动及数量
  * @return  array
  */
-function cart_favourable()
-{
+function cart_favourable() {
 	$db_cart = RC_Loader::load_app_model('cart_model','cart');
     $list = array();
 
@@ -175,8 +166,7 @@ function cart_favourable()
  * @param   array   $favourable     优惠活动
  * @param   array   $cart_favourable购物车中已有的优惠活动及数量
  */
-function favourable_used($favourable, $cart_favourable)
-{
+function favourable_used($favourable, $cart_favourable) {
     if ($favourable['act_type'] == FAT_GOODS)
     {
         return isset($cart_favourable[$favourable['act_id']]) &&
@@ -195,8 +185,7 @@ function favourable_used($favourable, $cart_favourable)
  * @param   int     $id         赠品id
  * @param   float   $price      赠品价格
  */
-function add_gift_to_cart($act_id, $id, $price)
-{
+function add_gift_to_cart($act_id, $id, $price) {
 	$db_goods = RC_Loader::load_app_model('goods_model','goods');
 	$db_cart = RC_Loader::load_app_model('cart_model','cart');
 
@@ -226,8 +215,7 @@ function add_gift_to_cart($act_id, $id, $price)
  * @param   string  $act_name   优惠活动name
  * @param   float   $amount     优惠金额
  */
-function add_favourable_to_cart($act_id, $act_name, $amount)
-{
+function add_favourable_to_cart($act_id, $act_name, $amount) {
 	$db_cart = RC_Loader::load_app_model('cart_model','cart');
 
 	$data = array(
@@ -302,4 +290,5 @@ function cart_favourable_amount($favourable) {
 	$row = $db_cartview->where($where)->sum($sum);
   	return $row;
 }
+
 // end

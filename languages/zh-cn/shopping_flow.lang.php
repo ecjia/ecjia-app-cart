@@ -4,7 +4,6 @@ defined('IN_ECJIA') or exit('No permission resources.');
 /**
  * ECJIA 购物流程相关语言
  */
-
 $LANG['flow_login_register']['username_not_null'] = '请您输入用户名。';
 $LANG['flow_login_register']['username_invalid'] = '您输入了一个无效的用户名。';
 $LANG['flow_login_register']['password_not_null'] = '请您输入密码。';

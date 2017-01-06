@@ -3,7 +3,6 @@ defined('IN_ECJIA') or exit('No permission resources.');
 
 /**
  * 获得购物车中的商品
- *
  * @access  public
  * @return  array
  */
@@ -87,7 +86,6 @@ function EM_get_cart_goods() {
 
 /**
  * 更新购物车中的商品数量
- *
  * @access  public
  * @param   array   $arr
  * @return  void
@@ -141,7 +139,6 @@ function flow_update_cart($arr) {
 			$offers_accessories_res = $db_cart_view->join('cart')->where(array('a.rec_id' => $key , 'a.session_id' => SESS_ID , 'a.extension_code' => array('neq' => 'package_buy') , 'b.session_id' => SESS_ID ))->select();
 		}
         
-
         //订货数量大于0
         if ($val > 0) {
             /* 判断是否为超出数量的优惠价格的配件 删除*/
@@ -211,7 +208,6 @@ function flow_update_cart($arr) {
 
 /**
  * 删除购物车中的商品
- *
  * @access  public
  * @param   integer $id
  * @return  void
@@ -263,7 +259,6 @@ function flow_drop_cart_goods($id) {
 
 /**
  * 删除购物车中不能单独销售的商品
- *
  * @access  public
  * @return  void
  */
@@ -711,12 +706,10 @@ function flow_cart_stock($arr) {
 /**
  * 重新计算购物车中的商品价格：目的是当用户登录时享受会员价格，当用户退出登录时不享受会员价格
  * 如果商品有促销，价格不变
- *
  * @access public
  * @return void
  */
-function recalculate_price()
-{
+function recalculate_price() {
 	// 链接数据库
 	$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
 	$dbview = RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
@@ -764,7 +757,6 @@ function recalculate_price()
 
 /**
  * 获得购物车中商品的总重量、总价格、总数量
- *
  * @access  public
  * @param   int	 $type   类型：默认普通商品
  * @return  array
@@ -988,7 +980,6 @@ function clear_cart($type = CART_GENERAL_GOODS, $cart_id = array()) {
 
 /**
  * 获得购物车中的商品
- *
  * @access  public
  * @return  array
  */
@@ -1076,7 +1067,6 @@ function get_cart_goods($cart_id = array()) {
 
 /**
  * 获得订单信息
- *
  * @access  private
  * @return  array
  */
@@ -1133,7 +1123,6 @@ function flow_order_info() {
 /**
  * 计算折扣：根据购物车和优惠活动
  * @return  float   折扣
- * 
  */
 function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $user_type = 0) {
 	$db 			= RC_Loader::load_app_model('favourable_activity_model', 'favourable');
@@ -1148,15 +1137,15 @@ function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $us
 		return 0;
 	}
 
-	if($type == 0){
+	if ($type == 0) {
 		/* 查询购物车商品 */
 		$db_cartview->view = array(
-				'goods' => array(
-						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
-						'alias' => 'g',
-						'field' => " c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id",
-						'on'   	=> 'c.goods_id = g.goods_id'
-				)
+			'goods' => array(
+				'type'  => Component_Model_View::TYPE_LEFT_JOIN,
+				'alias' => 'g',
+				'field' => " c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id",
+				'on'   	=> 'c.goods_id = g.goods_id'
+			)
 		);
 		$where = empty($cart_id) ? '' : array('rec_id' => $cart_id);
 		if ($_SESSION['user_id']) {
@@ -1164,10 +1153,10 @@ function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $us
 		} else {
 			$goods_list = $db_cartview->where(array_merge($where, array('c.session_id' => SESS_ID , 'c.parent_id' => 0 , 'c.is_gift' => 0 , 'rec_type' => CART_GENERAL_GOODS)))->select();
 		}
-	}elseif($type == 2){
+	} elseif ($type == 2) {
 		$db_goods = RC_Loader::load_app_model('goods_model', 'goods');
 		$goods_list = array();
-		foreach($newInfo as $key=>$row){
+		foreach ($newInfo as $key => $row) {
 			$order_goods = $db_goods->field('cat_id, brand_id')->where(array('goods_id' => $row['goods_id']))->find();
 			$goods_list[$key]['goods_id'] = $row['goods_id'];
 			$goods_list[$key]['cat_id'] = $order_goods['cat_id'];
@@ -1460,29 +1449,27 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 	/* 更新：加入购物车 */
 	$goods_price = $group_buy['deposit'] > 0 ? $group_buy['deposit'] : $group_buy['cur_price'];
 	$cart = array(
-			'user_id'        => $_SESSION['user_id'],
-// 			'session_id'     => SESS_ID,
-			'goods_id'       => $group_buy['goods_id'],
-			'product_id'     => $product_info['product_id'],
-			'goods_sn'       => addslashes($goods['goods_sn']),
-			'goods_name'     => addslashes($goods['goods_name']),
-			'market_price'   => $goods['market_price'],
-			'goods_price'    => $goods_price,
-			'goods_number'   => $number,
-			'goods_attr'     => addslashes($goods_attr),
-// 			'goods_attr_id'  => $specs,
-			'goods_attr_id'  => $goods_attr_id,
-			//ecmoban模板堂 --zhuo start
-// 			'ru_id'			 => $goods['user_id'],
-			'seller_id'		 => $goods['seller_id'],
-			'warehouse_id'   => $warehouse_id,
-			'area_id'  		 => $area_id,
-			//ecmoban模板堂 --zhuo end
-			'is_real'        => $goods['is_real'],
-			'extension_code' => addslashes($goods['extension_code']),
-			'parent_id'      => 0,
-			'rec_type'       => CART_GROUP_BUY_GOODS,
-			'is_gift'        => 0
+		'user_id'        => $_SESSION['user_id'],
+// 		'session_id'     => SESS_ID,
+		'goods_id'       => $group_buy['goods_id'],
+		'product_id'     => $product_info['product_id'],
+		'goods_sn'       => addslashes($goods['goods_sn']),
+		'goods_name'     => addslashes($goods['goods_name']),
+		'market_price'   => $goods['market_price'],
+		'goods_price'    => $goods_price,
+		'goods_number'   => $number,
+		'goods_attr'     => addslashes($goods_attr),
+// 		'goods_attr_id'  => $specs,
+		'goods_attr_id'  => $goods_attr_id,
+// 		'ru_id'			 => $goods['user_id'],
+		'seller_id'		 => $goods['seller_id'],
+		'warehouse_id'   => $warehouse_id,
+		'area_id'  		 => $area_id,
+		'is_real'        => $goods['is_real'],
+		'extension_code' => addslashes($goods['extension_code']),
+		'parent_id'      => 0,
+		'rec_type'       => CART_GROUP_BUY_GOODS,
+		'is_gift'        => 0
 	);
 	$db_cart->insert($cart);
 	
@@ -1544,7 +1531,7 @@ function formated_cart_list($cart_result) {
                 'is_disabled'           => $row['is_disabled'],
                 'disabled_label'        => $row['disabled_label'],
                 'img' => array(
-                    'thumb'	=> RC_Upload::upload_url($row['goods_img']),
+					'thumb'	=> RC_Upload::upload_url($row['goods_img']),
                     'url'	=> RC_Upload::upload_url($row['original_img']),
                     'small'	=> RC_Upload::upload_url($row['goods_img']),
                 )
@@ -1663,470 +1650,5 @@ function formated_favourable($favourable_result, $goods) {
     
     return $favourable_list;
 }
-//	TODO:以下func，api中暂未用到
-///**
-// * 比较优惠活动的函数，用于排序（把可用的排在前面）
-// * @param   array   $a      优惠活动a
-// * @param   array   $b      优惠活动b
-// * @return  int     相等返回0，小于返回-1，大于返回1
-// */
-//function cmp_favourable($a, $b)
-//{
-//    if ($a['available'] == $b['available'])
-//    {
-//        if ($a['sort_order'] == $b['sort_order'])
-//        {
-//            return 0;
-//        }
-//        else
-//        {
-//            return $a['sort_order'] < $b['sort_order'] ? -1 : 1;
-//        }
-//    }
-//    else
-//    {
-//        return $a['available'] ? -1 : 1;
-//    }
-//}
-
-///**
-// * 取得某用户等级当前时间可以享受的优惠活动
-// * @param   int     $user_rank      用户等级id，0表示非会员
-// * @return  array
-// */
-//function favourable_list($user_rank)
-//{
-//    $db = RC_Loader::load_app_model('favourable_activity_model' , 'favourable');
-//    $db_goods = RC_Loader::load_app_model('goods_model' , 'goods');
-//    /* 购物车中已有的优惠活动及数量 */
-//    $used_list = cart_favourable();
-//
-//    /* 当前用户可享受的优惠活动 */
-//    $favourable_list = array();
-//    $user_rank = ',' . $user_rank . ',';
-//    $now = RC_Time::gmtime();
-////     $sql = "SELECT * " .
-////         "FROM " . $GLOBALS['ecs']->table('favourable_activity') .
-////         " WHERE CONCAT(',', user_rank, ',') LIKE '%" . $user_rank . "%'" .
-////         " AND start_time <= '$now' AND end_time >= '$now'" .
-////         " AND act_type = '" . FAT_GOODS . "'" .
-////         " ORDER BY sort_order";
-////     $res = $GLOBALS['db']->query($sql);
-//
-//    $data = $db->where(array("CONCAT(',', user_rank, ',')" => array('like' => "%" . $user_rank . "%") , 'start_time' => array('elt' => $now) , 'end_time' => array('egt' => $now) , 'act_type' => FAT_GOODS))->order(array('sort_order' => 'asc'))->select(); 
-//    
-////     while (($favourable = $GLOBALS['db']->fetchRow($res)) != false)
-//    if (!empty($data)) {
-//        foreach ($data as $favourable)
-//        {
-//            $favourable['start_time'] = RC_Time::local_date(ecjia::config('time_format'), $favourable['start_time']);
-//            $favourable['end_time']   = RC_Time::local_date(ecjia::config('time_format'), $favourable['end_time']);
-//            $favourable['formated_min_amount'] = price_format($favourable['min_amount'], false);
-//            $favourable['formated_max_amount'] = price_format($favourable['max_amount'], false);
-//            $favourable['gift']       = unserialize($favourable['gift']);
-//        
-//            foreach ($favourable['gift'] as $key => $value)
-//            {
-//                $favourable['gift'][$key]['formated_price'] = price_format($value['price'], false);
-////                 $sql = "SELECT COUNT(*) FROM " . $GLOBALS['ecs']->table('goods') . " WHERE is_on_sale = 1 AND goods_id = ".$value['id'];
-////                 $is_sale = $GLOBALS['db']->getOne($sql);
-//
-//                $is_sale = $db_goods->where(array('is_on_sale' => 1 , 'goods_id' => $value['id']))->count();
-//                if(!$is_sale)
-//                {
-//                    unset($favourable['gift'][$key]);
-//                }
-//            }
-//        
-//            $favourable['act_range_desc'] = act_range_desc($favourable);
-//            $favourable['act_type_desc'] = sprintf($GLOBALS['_LANG']['fat_ext'][$favourable['act_type']], $favourable['act_type_ext']);
-//        
-//            /* 是否能享受 */
-//            $favourable['available'] = favourable_available($favourable);
-//            if ($favourable['available'])
-//            {
-//                /* 是否尚未享受 */
-//                $favourable['available'] = !favourable_used($favourable, $used_list);
-//            }
-//        
-//            $favourable_list[] = $favourable;
-//        }
-//    }
-//    
-//    return $favourable_list;
-//}
-//
-///**
-// * 根据购物车判断是否可以享受某优惠活动
-// * @param   array   $favourable     优惠活动信息
-// * @return  bool
-// */
-//function favourable_available($favourable)
-//{
-//    /* 会员等级是否符合 */
-//    $user_rank = $_SESSION['user_rank'];
-//    if (strpos(',' . $favourable['user_rank'] . ',', ',' . $user_rank . ',') === false)
-//    {
-//        return false;
-//    }
-//
-//    /* 优惠范围内的商品总额 */
-//    $amount = cart_favourable_amount($favourable);
-//
-//    /* 金额上限为0表示没有上限 */
-//    return $amount >= $favourable['min_amount'] &&
-//    ($amount <= $favourable['max_amount'] || $favourable['max_amount'] == 0);
-//}
-//
-///**
-// * 取得优惠范围描述
-// * @param   array   $favourable     优惠活动
-// * @return  string
-// */
-//function act_range_desc($favourable)
-//{
-//    
-//    $db_brand = RC_Loader::load_app_model('brand_model' , 'goods');
-//    $db_category = RC_Loader::load_app_model('category_model' , 'goods');
-//    $db_goods = RC_Loader::load_app_model('goods_model' , 'goods');
-//    
-//    if ($favourable['act_range'] == FAR_BRAND)
-//    {
-////         $sql = "SELECT brand_name FROM " . $GLOBALS['ecs']->table('brand') .
-////         " WHERE brand_id " . db_create_in($favourable['act_range_ext']);
-////         return join(',', $GLOBALS['db']->getCol($sql));
-//           
-//        $data = $db_brand->field('brand_name')->in(array('brand_id' => $favourable['act_range_ext']))->select();
-//        return join(',', $data);
-//        
-//    }
-//    elseif ($favourable['act_range'] == FAR_CATEGORY)
-//    {
-////         $sql = "SELECT cat_name FROM " . $GLOBALS['ecs']->table('category') .
-////         " WHERE cat_id " . db_create_in($favourable['act_range_ext']);
-////         return join(',', $GLOBALS['db']->getCol($sql));
-//
-//        $data = $db_brand->field('cat_name')->in(array('cat_id' => $favourable['act_range_ext']))->select();
-//        return join(',', $data);
-//    }
-//    elseif ($favourable['act_range'] == FAR_GOODS)
-//    {
-////         $sql = "SELECT goods_name FROM " . $GLOBALS['ecs']->table('goods') .
-////         " WHERE goods_id " . db_create_in($favourable['act_range_ext']);
-////         return join(',', $GLOBALS['db']->getCol($sql));
-//
-//        $data = $db_brand->field('goods_name')->in(array('goods_id' => $favourable['act_range_ext']))->select();
-//        return join(',', $data);
-//    }
-//    else
-//    {
-//        return '';
-//    }
-//}
-//
-///**
-// * 取得购物车中已有的优惠活动及数量
-// * @return  array
-// */
-//function cart_favourable()
-//{
-//    $db_cart = RC_Loader::load_app_model('cart_model' , 'flow');
-//    
-//    $list = array();
-////     $sql = "SELECT is_gift, COUNT(*) AS num " .
-////         "FROM " . $GLOBALS['ecs']->table('cart') .
-////         " WHERE session_id = '" . SESS_ID . "'" .
-////         " AND rec_type = '" . CART_GENERAL_GOODS . "'" .
-////         " AND is_gift > 0" .
-////         " GROUP BY is_gift";
-////     $res = $GLOBALS['db']->query($sql);
-//	if ($_SESSION['user_id']) {
-//		$data = $db_cart->field('is_gift, COUNT(*) AS num')->where(array('user_id' => $_SESSION['user_id'] , 'rec_type' => CART_GENERAL_GOODS , 'is_gift' => array('gt' => 0)))->group('is_gift')->select();
-//	} else {
-//		$data = $db_cart->field('is_gift, COUNT(*) AS num')->where(array('session_id' => SESS_ID , 'rec_type' => CART_GENERAL_GOODS , 'is_gift' => array('gt' => 0)))->group('is_gift')->select();
-//	}
-//    
-//    
-////     while (($row = $GLOBALS['db']->fetchRow($res)) != false)
-//    if (!empty($data)) {
-//        foreach ($data as $row)
-//        {
-//            $list[$row['is_gift']] = $row['num'];
-//        }
-//    }
-//    return $list;
-//}
-//
-///**
-// * 购物车中是否已经有某优惠
-// * @param   array   $favourable     优惠活动
-// * @param   array   $cart_favourable购物车中已有的优惠活动及数量
-// */
-//function favourable_used($favourable, $cart_favourable)
-//{
-//    if ($favourable['act_type'] == FAT_GOODS)
-//    {
-//        return isset($cart_favourable[$favourable['act_id']]) &&
-//        $cart_favourable[$favourable['act_id']] >= $favourable['act_type_ext'] &&
-//        $favourable['act_type_ext'] > 0;
-//    }
-//    else
-//    {
-//        return isset($cart_favourable[$favourable['act_id']]);
-//    }
-//}
-//
-///**
-// * 添加优惠活动（赠品）到购物车
-// * @param   int     $act_id     优惠活动id
-// * @param   int     $id         赠品id
-// * @param   float   $price      赠品价格
-// */
-//function add_gift_to_cart($act_id, $id, $price)
-//{
-////     $sql = "INSERT INTO " . $GLOBALS['ecs']->table('cart') . " (" .
-////         "user_id, session_id, goods_id, goods_sn, goods_name, market_price, goods_price, ".
-////         "goods_number, is_real, extension_code, parent_id, is_gift, rec_type ) ".
-////         "SELECT '$_SESSION[user_id]', '" . SESS_ID . "', goods_id, goods_sn, goods_name, market_price, ".
-////         "'$price', 1, is_real, extension_code, 0, '$act_id', '" . CART_GENERAL_GOODS . "' " .
-////         "FROM " . $GLOBALS['ecs']->table('goods') .
-////         " WHERE goods_id = '$id'";
-////     $GLOBALS['db']->query($sql);
-//
-//    $db_cart = RC_Loader::load_app_model('cart_model' , 'flow');
-//    $db_goods = RC_Loader::load_app_model('goods_model' , 'goods');
-//    
-//    $goods_row = $db_goods->field('goods_id, goods_sn, goods_name, market_price,is_real, extension_code,')->find(array('goods_id' => $id));
-//    $data = array(
-//        'user_id'        => $_SESSION['user_id'],
-//        'session_id'     => SESS_ID,
-//        'goods_id'       => $goods_row['user_id'],
-//        'goods_sn'       => $goods_row['goods_sn'],
-//        'goods_name'     => $goods_row['goods_name'],
-//        'market_price'   => $goods_row['market_price'],
-//        'goods_price'    => $price,
-//        'goods_number'   => 1,
-//        'is_real'        => $goods_row['is_real'],
-//        'extension_code' => $goods_row['extension_code'],
-//        'parent_id'      => 0,
-//        'is_gift'        => $act_id,
-//        'rec_type'       => CART_GENERAL_GOODS
-//    );
-//    
-//    $db_cart->insert($data);
-//}
-//
-///**
-// * 添加优惠活动（非赠品）到购物车
-// * @param   int     $act_id     优惠活动id
-// * @param   string  $act_name   优惠活动name
-// * @param   float   $amount     优惠金额
-// */
-//function add_favourable_to_cart($act_id, $act_name, $amount)
-//{
-////     $sql = "INSERT INTO " . $GLOBALS['ecs']->table('cart') . "(" .
-////         "user_id, session_id, goods_id, goods_sn, goods_name, market_price, goods_price, ".
-////         "goods_number, is_real, extension_code, parent_id, is_gift, rec_type ) ".
-////         "VALUES('$_SESSION[user_id]', '" . SESS_ID . "', 0, '', '$act_name', 0, ".
-////         "'" . (-1) * $amount . "', 1, 0, '', 0, '$act_id', '" . CART_GENERAL_GOODS . "')";
-////     $GLOBALS['db']->query($sql);
-//
-//    $db_cart = RC_Loader::load_app_model('cart_model');
-//    $data = array(
-//        'user_id'        => $_SESSION['user_id'],
-//        'session_id'     => SESS_ID,
-//        'goods_id'       => 0,
-//        'goods_sn'       => '',
-//        'goods_name'     => $act_name,
-//        'market_price'   => 0,
-//        'goods_price'    => (-1) * $amount,
-//        'goods_number'   => 1,
-//        'is_real'        => 0,
-//        'extension_code' => '',
-//        'parent_id'      => 0,
-//        'is_gift'        => $act_id,
-//        'rec_type'       => CART_GENERAL_GOODS
-//    );
-//    
-//    $db_cart->insert($data);
-//}
-//
-///**
-// * 取得购物车中某优惠活动范围内的总金额
-// * @param   array   $favourable     优惠活动
-// * @return  float
-// */
-//function cart_favourable_amount($favourable)
-//{
-//    $dbview = RC_Loader::load_app_model('cart_goods_viewmodel','flow');
-//    
-//    /* 查询优惠范围内商品总额的sql */
-////     $sql = "SELECT SUM(c.goods_price * c.goods_number) " .
-////         "FROM " . $GLOBALS['ecs']->table('cart') . " AS c, " . $GLOBALS['ecs']->table('goods') . " AS g " .
-////         "WHERE c.goods_id = g.goods_id " .
-////         "AND c.session_id = '" . SESS_ID . "' " .
-////         "AND c.rec_type = '" . CART_GENERAL_GOODS . "' " .
-////         "AND c.is_gift = 0 " .
-////         "AND c.goods_id > 0 ";
-//
-//    /* 根据优惠范围修正sql */
-//    if ($favourable['act_range'] == FAR_ALL)
-//    {
-//        // sql do not change
-//    }
-//    elseif ($favourable['act_range'] == FAR_CATEGORY)
-//    {
-//        /* 取得优惠范围分类的所有下级分类 */
-//        $id_list = array();
-//        $cat_list = explode(',', $favourable['act_range_ext']);
-//        foreach ($cat_list as $id)
-//        {
-//            $id_list = array_merge($id_list, array_keys(cat_list(intval($id), 0, false)));
-//        }
-//
-////         $sql .= "AND g.cat_id " . db_create_in($id_list);
-//        $where = "AND g.cat_id " . db_create_in($id_list);
-//    }
-//    elseif ($favourable['act_range'] == FAR_BRAND)
-//    {
-//        $id_list = explode(',', $favourable['act_range_ext']);
-////         $sql .= "AND g.brand_id " . db_create_in($id_list);
-//        $where .= "AND g.brand_id " . db_create_in($id_list);
-//    }
-//    else
-//    {
-//        $id_list = explode(',', $favourable['act_range_ext']);
-////         $sql .= "AND g.goods_id " . db_create_in($id_list);
-//        $where .= "AND g.goods_id " . db_create_in($id_list);
-//    }
-//
-//    /* 优惠范围内的商品总额 */
-////     return $GLOBALS['db']->getOne($sql);
-//	if ($_SESSION['user_id']) {
-//		return $dbview->join('goods')->where(array('c.user_id' => $_SESSION['user_id'] , 'c.rec_type' => CART_GENERAL_GOODS , 'c.is_gift' => 0 , 'c.goods_id' => array('gt' => 0)))->sum('c.goods_price * c.goods_number');
-//	} else {
-//		return $dbview->join('goods')->where(array('c.session_id' => SESS_ID , 'c.rec_type' => CART_GENERAL_GOODS , 'c.is_gift' => 0 , 'c.goods_id' => array('gt' => 0)))->sum('c.goods_price * c.goods_number');
-//	}
-//    
-//    
-//}
-
-
-
-
-
-//	TODO：在api下的order.fun.php中
-// /**
-//  * 获得指定的商品属性
-//  * @access      public
-//  * @param       array       $arr        规格、属性ID数组
-//  * @param       type        $type       设置返回结果类型：pice，显示价格，默认；no，不显示价格
-//  * @return      string
-//  */
-// function get_goods_attr_info($arr, $type = 'pice') {
-// // 	$sql = "SELECT a.attr_name, ga.attr_value, ga.attr_price ".
-// // 			"FROM ".$GLOBALS['ecs']->table('goods_attr')." AS ga, ".
-// // 			$GLOBALS['ecs']->table('attribute')." AS a ".
-// // 			"WHERE " .db_create_in($arr, 'ga.goods_attr_id')." AND a.attr_id = ga.attr_id";
-// // 	$res = $GLOBALS['db']->query($sql);
-// // 	while ($row = $GLOBALS['db']->fetchRow($res))
-	
-	
-	
-// 	$dbview = RC_Loader::load_app_model('goods_attr_viewmodel','goods');
-//     $attr   = '';
-//     if (!empty($arr)) {
-//         $fmt = "%s:%s[%s] \n";
-        
-//        $dbview->view =array(
-// 				'attribute' => array(
-// 				     'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
-// 					 'alias' 	=> 'a',
-// 					 'field' 	=> 'a.attr_name, ga.attr_value, ga.attr_price',
-// 					 'on' 		=> 'a.attr_id = ga.attr_id'
-// 				)
-// 		);   
-//         $data = $dbview->in(array('ga.goods_attr_id'=> $arr))->select();
-
-//         if(!empty($data)) {
-// 	        foreach ($data as $row) {
-// 	            $attr_price = round(floatval($row['attr_price']), 2);
-// 	            $attr .= sprintf($fmt, $row['attr_name'], $row['attr_value'], $attr_price);
-// 	        }
-//         }
-//         $attr = str_replace('[0]', '', $attr);
-//     }
-//     return $attr;
-// }
-
-//	TODO： 已在flow.fun.php中
-///**
-// * 检查订单中商品库存 
-// *
-// * @access  public
-// * @param   array   $arr
-// *
-// * @return  void
-// */
-//function flow_cart_stock($arr)
-//{
-//    foreach ($arr AS $key => $val)
-//    {
-//        $val = intval(make_semiangle($val));
-//        if ($val <= 0 || !is_numeric($key))
-//        {
-//            continue;
-//        }
-//
-////         $sql = "SELECT `goods_id`, `goods_attr_id`, `extension_code` FROM" .$GLOBALS['ecs']->table('cart').
-////         " WHERE rec_id='$key' AND session_id='" . SESS_ID . "'";
-////         $goods = $GLOBALS['db']->getRow($sql);
-//
-////         $sql = "SELECT g.goods_name, g.goods_number, c.product_id ".
-////             "FROM " .$GLOBALS['ecs']->table('goods'). " AS g, ".
-////             $GLOBALS['ecs']->table('cart'). " AS c ".
-////             "WHERE g.goods_id = c.goods_id AND c.rec_id = '$key'";
-////         $row = $GLOBALS['db']->getRow($sql);
-//
-//        $db_cart = RC_Loader::load_app_model('cart_model');
-//        $db_products = RC_Loader::load_app_model('products_model','goods');
-//        $dbview = RC_Loader::load_app_model('goods_cart_viewmodel','goods');
-//
-//        $goods = $db_cart->field('goods_id,goods_attr_id,extension_code')->find(array('rec_id' => $key , 'session_id' => SESS_ID));
-//        $row   = $dbview->join('cart')->find(array('c.rec_id' => $key));
-//        //系统启用了库存，检查输入的商品数量是否有效
-//        if (intval(ecjia::config('use_storage')) > 0 && $goods['extension_code'] != 'package_buy')
-//        {
-//            if ($row['goods_number'] < $val)
-//            {
-//                EM_Api::outPut(10008);
-//                exit;
-//            }
-//
-//            /* 是货品 */
-//            $row['product_id'] = trim($row['product_id']);
-//            if (!empty($row['product_id']))
-//            {
-////                 $sql = "SELECT product_number FROM " .$GLOBALS['ecs']->table('products'). " WHERE goods_id = '" . $goods['goods_id'] . "' AND product_id = '" . $row['product_id'] . "'";
-////                 $product_number = $GLOBALS['db']->getOne($sql);
-//                $product_number = $db_products->where(array('goods_id' => $goods['goods_id'] , 'product_id' => $goods['product_id']))->get_field('product_number');
-//                if ($product_number < $val)
-//                {
-//                    EM_Api::outPut(10005);
-//                    exit;
-//                }
-//            }
-//        }
-//        elseif (intval(ecjia::config('use_storage')) > 0 && $goods['extension_code'] == 'package_buy')
-//        {
-//            if (judge_package_stock($goods['goods_id'], $val))
-//            {
-//                EM_Api::outPut(10005);
-//                exit;
-//            }
-//        }
-//    }
-//
-//}
 
 // end

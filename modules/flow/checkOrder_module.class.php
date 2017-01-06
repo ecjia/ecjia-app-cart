@@ -4,9 +4,7 @@ defined('IN_ECJIA') or exit('No permission resources.');
 /**
  * 购物流检查订单
  * @author royalwang
- *
  */
- 
 class checkOrder_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
 
@@ -109,29 +107,29 @@ class checkOrder_module extends api_front implements api_interface {
 			}
 
 			$cart_goods[] = array(
-					'seller_id'		=> intval($row['store_id']),
-					'seller_name'	=> $row['store_name'],
-					'store_id'		=> intval($row['store_id']),
-					'store_name'	=> $row['store_name'],
-					'rec_id'		=> intval($row['rec_id']),
-					'goods_id'		=> intval($row['goods_id']),
-					'goods_sn'		=> $row['goods_sn'],
-					'goods_name'	=> $row['goods_name'],
-					'goods_price'	=> $row['goods_price'],
-					'market_price'	=> $row['market_price'],
-					'formated_goods_price'	=> $row['formatted_goods_price'],
-					'formated_market_price' => $row['formatted_market_price'],
-					'goods_number'	=> intval($row['goods_number']),
-					'subtotal'		=> $row['subtotal'],
-					'goods_attr_id' => $row['goods_attr_id'],
-					'attr'			=> $row['goods_attr'],
-					'is_real'		=> $row['is_real'],
-					'goods_attr'	=> $goods_attr_gourp,
-					'img' => array(
-							'thumb'	=> RC_Upload::upload_url($row['goods_img']),
-							'url'	=> RC_Upload::upload_url($row['original_img']),
-							'small'	=> RC_Upload::upload_url($row['goods_img']),
-					)
+				'seller_id'		=> intval($row['store_id']),
+				'seller_name'	=> $row['store_name'],
+				'store_id'		=> intval($row['store_id']),
+				'store_name'	=> $row['store_name'],
+				'rec_id'		=> intval($row['rec_id']),
+				'goods_id'		=> intval($row['goods_id']),
+				'goods_sn'		=> $row['goods_sn'],
+				'goods_name'	=> $row['goods_name'],
+				'goods_price'	=> $row['goods_price'],
+				'market_price'	=> $row['market_price'],
+				'formated_goods_price'	=> $row['formatted_goods_price'],
+				'formated_market_price' => $row['formatted_market_price'],
+				'goods_number'	=> intval($row['goods_number']),
+				'subtotal'		=> $row['subtotal'],
+				'goods_attr_id' => $row['goods_attr_id'],
+				'attr'			=> $row['goods_attr'],
+				'is_real'		=> $row['is_real'],
+				'goods_attr'	=> $goods_attr_gourp,
+				'img' => array(
+					'thumb'	=> RC_Upload::upload_url($row['goods_img']),
+					'url'	=> RC_Upload::upload_url($row['original_img']),
+					'small'	=> RC_Upload::upload_url($row['goods_img']),
+				)
 			);
 		}
 
@@ -219,8 +217,8 @@ class checkOrder_module extends api_front implements api_interface {
 						if ($v['end'] > $time || $ship_date > 0) {
 							$shipping_list[$key]['shipping_date'][$ship_date]['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$ship_date.' day'));
 							$shipping_list[$key]['shipping_date'][$ship_date]['time'][] = array(
-									'start_time' 	=> $v['start'],
-									'end_time'		=> $v['end'],
+								'start_time' 	=> $v['start'],
+								'end_time'		=> $v['end'],
 							);
 						}
 					}
@@ -325,17 +323,18 @@ class checkOrder_module extends api_front implements api_interface {
                     'on'   	=> 'sf.store_id = bt.store_id'
                 )
             );
-			$user_bonus = $db_user_bonus_view->join('bonus_type,store_franchisee')->field('bt.type_id, bt.type_name, bt.send_type, bt.type_money, ub.bonus_id, bt.use_start_date, bt.use_end_date, min_goods_amount,bt.store_id,merchants_name')
-					->where(array(
-						'bt.use_start_date'   => array('elt' => RC_Time::gmtime()),
-						'bt.use_end_date'     => array('egt' => RC_Time::gmtime()),
-						'ub.user_id'          => array('neq' => 0),
-						'ub.user_id'          => $_SESSION['user_id'],
-						'ub.order_id'         => 0,
-						'bt.min_goods_amount' => array('lt' => $total['goods_price']),
-					))
-                    ->in(array('bt.store_id'  => array($order['store_id'], '0')))
-					->select();
+			$user_bonus = $db_user_bonus_view->join('bonus_type,store_franchisee')
+				->field('bt.type_id, bt.type_name, bt.send_type, bt.type_money, ub.bonus_id, bt.use_start_date, bt.use_end_date, min_goods_amount,bt.store_id,merchants_name')
+				->where(array(
+					'bt.use_start_date'   => array('elt' => RC_Time::gmtime()),
+					'bt.use_end_date'     => array('egt' => RC_Time::gmtime()),
+					'ub.user_id'          => array('neq' => 0),
+					'ub.user_id'          => $_SESSION['user_id'],
+					'ub.order_id'         => 0,
+					'bt.min_goods_amount' => array('lt' => $total['goods_price']),
+				))
+        		->in(array('bt.store_id'  => array($order['store_id'], '0')))
+				->select();
 
 			$user_bonus_list = array();
 			if (!empty($user_bonus)) {
@@ -384,9 +383,9 @@ class checkOrder_module extends api_front implements api_interface {
 			foreach ($invoice_type['type'] as $key => $type) {
 				if (!empty($type)) {
 					$inv_type_list[$type] = array(
-							'label'      => $type . ' [' . floatval($invoice_type['rate'][$key]) . '%]',
-							'label_type' => $type,
-							'rate'       => floatval($invoice_type['rate'][$key])
+						'label'      => $type . ' [' . floatval($invoice_type['rate'][$key]) . '%]',
+						'label_type' => $type,
+						'rate'       => floatval($invoice_type['rate'][$key])
 					);
 				}
 			}
@@ -432,10 +431,10 @@ class checkOrder_module extends api_front implements api_interface {
 			$i = 1;
 			foreach ($out['inv_type_list'] as $key => $value) {
 				$temp[] = array(
-						'id'	       => $i,
-						'value'	       => $value['label'],
-						'label_value'  => $value['label_type'],
-						'rate'	       => $value['rate']);
+					'id'	       => $i,
+					'value'	       => $value['label'],
+					'label_value'  => $value['label_type'],
+					'rate'	       => $value['rate']);
 				$i++;
 			}
 			$out['inv_type_list'] = $temp;
@@ -469,51 +468,7 @@ class checkOrder_module extends api_front implements api_interface {
 			}
 			$out['payment_list'] = array_values($out['payment_list']);
 		}
-
-// 		if (!empty($out['goods_list'])) {
-// 			foreach ($out['goods_list'] as $key => $value) {
-// 				if (!empty($value['goods_attr'])) {
-// 					$goods_attr = explode("\n", $value['goods_attr']);
-// 					$goods_attr = array_filter($goods_attr);
-// 					$out['goods_list'][$key]['goods_attr'] = array();
-// 					foreach ($goods_attr as  $v) {
-// 						$a = explode(':',$v);
-// 						if (!empty($a[0]) && !empty($a[1])) {
-// 							$out['goods_list'][$key]['goods_attr'][] = array('name'=>$a[0], 'value'=>$a[1]);
-// 						}
-// 					}
-// 				}
-// 			}
-// 		}
-
-
-// 		/* 取得优惠活动 */
-// 		RC_Loader::load_app_func('global', 'cart');
-// 		$favourable_list = em_favourable_list($_SESSION['user_rank']);
-// 		usort($favourable_list, 'cmp_favourable');
-// 		$favourable_list_a = array();
-// 		if (!empty($favourable_list)) {
-// 			foreach ($favourable_list as $key => $row) {
-// 				if (!$row['available']) {
-// 					unset($favourable_list[$key]);
-// 				}
-// 				$favourable_list_a[$key]['act_id']		= $row['act_id'];
-// 				$favourable_list_a[$key]['act_name']	= $row['act_name'];
-// 				$favourable_list_a[$key]['start_time']	= $row['start_time'];
-// 				$favourable_list_a[$key]['end_time']	= $row['end_time'];
-// 				$favourable_list_a[$key]['act_type']	= $row['act_type'];
-// 				$favourable_list_a[$key]['act_type_ext'] = $row['act_type_ext'];
-// 				$favourable_list_a[$key]['gift'] = $row['gift'];
-// 				$favourable_list_a[$key]['formated_start_time'] = $row['formated_start_time'];
-// 				$favourable_list_a[$key]['formated_end_time']	= $row['formated_end_time'];
-// 				$favourable_list_a[$key]['formated_min_amount'] = $row['formated_min_amount'];
-// 				$favourable_list_a[$key]['formated_max_amount'] = $row['formated_max_amount'];
-// 			}
-// 		}
-// 		$out['favourable_list'] = $favourable_list_a;
-
 		return $out;
-
 	}
 }
 

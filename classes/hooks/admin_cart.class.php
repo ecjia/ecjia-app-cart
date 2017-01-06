@@ -2,7 +2,6 @@
 defined('IN_ECJIA') or exit('No permission resources.');
 
 class flow_hooks {
-	
 	/**
 	 * 清除购物车中过期的数据
 	 */
@@ -30,9 +29,7 @@ class flow_hooks {
 	        RC_Cache::app_cache_set('clean_cart_session', 'clean_cart_session', 'cart', 1440);
 	    }
 	}
-	
 }
-
 
 RC_Hook::add_action( 'ecjia_admin_finish_launching', array('flow_hooks', 'clear_cart') );
 

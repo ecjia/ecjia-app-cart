@@ -2,24 +2,18 @@
 defined('IN_ECJIA') or exit('No permission resources.');
 
 /**
- *
  * @author will.chen
- *
  */
  
 class cart_cart_list_api extends Component_Event_Api {
-
-
     /**
      * @param
      *
      * @return array
      */
-	public function call(&$options)
-	{
+	public function call(&$options) {
 		return $this->get_cart_goods($options['cart_id'], $options['flow_type'], $options['store_group']);
 	}
-
 
 	/**
 	 * 获得购物车中的商品
@@ -36,15 +30,13 @@ class cart_cart_list_api extends Component_Event_Api {
 		/* 初始化 */
 		$goods_list = array();
 		$total = array(
-				'goods_price'  => 0, // 本店售价合计（有格式）
-				'market_price' => 0, // 市场售价合计（有格式）
-				'saving'       => 0, // 节省金额（有格式）
-				'save_rate'    => 0, // 节省百分比
-				'goods_amount' => 0, // 本店售价合计（无格式）
-		        'goods_number' => 0, // 商品总件数
+			'goods_price'  => 0, // 本店售价合计（有格式）
+			'market_price' => 0, // 市场售价合计（有格式）
+			'saving'       => 0, // 节省金额（有格式）
+			'save_rate'    => 0, // 节省百分比
+			'goods_amount' => 0, // 本店售价合计（无格式）
+	        'goods_number' => 0, // 商品总件数
 		);
-
-
 		$dbview_cart->where(RC_DB::raw('c.rec_type'), '=', $flow_type);
 		$dbview_cart->where(RC_DB::raw('s.shop_close'), '=', '0');
 
@@ -65,19 +57,18 @@ class cart_cart_list_api extends Component_Event_Api {
 
 		/* 循环、统计 */
 		$data = $dbview_cart
-				->selectRaw("c.*,IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, g.goods_number as g_goods_number, g.is_on_sale, s.merchants_name as store_name, manage_mode")
-				->orderBy('add_time', 'desc')
-				/*->orderBy('store_id', 'asc')
-				 ->orderBy('pid', 'asc')
-				->orderBy('parent_id', 'asc') */
-				->get();
+			->selectRaw("c.*,IF(c.parent_id, c.parent_id, c.goods_id) AS pid, goods_thumb, goods_img, original_img, g.goods_number as g_goods_number, g.is_on_sale, s.merchants_name as store_name, manage_mode")
+			->orderBy('add_time', 'desc')
+			/*->orderBy('store_id', 'asc')
+			 ->orderBy('pid', 'asc')
+			->orderBy('parent_id', 'asc') */
+			->get();
 		/* 用于统计购物车中实体商品和虚拟商品的个数 */
 		$virtual_goods_count = 0;
 		$real_goods_count    = 0;
 
 		if (!empty($data)) {
 			foreach ($data as $row) {
-			    
 			    $row['is_disabled'] = 0;
 			    $row['disabled_label'] = '';
 			    //判断库存
@@ -143,20 +134,17 @@ class cart_cart_list_api extends Component_Event_Api {
 		$total['goods_amount'] = $total['goods_price'];
 		$total['saving']       = price_format($total['market_price'] - $total['goods_price'], false);
 		if ($total['market_price'] > 0) {
-			$total['save_rate'] = $total['market_price'] ? round(($total['market_price'] - $total['goods_price']) *
-					100 / $total['market_price']).'%' : 0;
+			$total['save_rate'] = $total['market_price'] ? round(($total['market_price'] - $total['goods_price']) * 100 / $total['market_price']).'%' : 0;
 		}
-		$total['unformatted_goods_price']  			= $total['goods_price'];
-		$total['goods_price']  			= price_format($total['goods_price'], false);
-		$total['unformatted_market_price'] 			= $total['market_price'];
-		$total['market_price'] 			= price_format($total['market_price'], false);
-		$total['real_goods_count']    	= $real_goods_count;
-		$total['virtual_goods_count'] 	= $virtual_goods_count;
+		$total['unformatted_goods_price']  	= $total['goods_price'];
+		$total['goods_price']  				= price_format($total['goods_price'], false);
+		$total['unformatted_market_price'] 	= $total['market_price'];
+		$total['market_price'] 				= price_format($total['market_price'], false);
+		$total['real_goods_count']    		= $real_goods_count;
+		$total['virtual_goods_count'] 		= $virtual_goods_count;
 
 		return array('goods_list' => $goods_list, 'total' => $total);
-
 	}
-
 }
 
 // end

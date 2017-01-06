@@ -4,7 +4,6 @@ defined('IN_ECJIA') or exit('No permission resources.');
 /**
  * ECJIA 购物流程相关语言
  */
-
 return array(
 	'flow_login_register' => array(
 		'username_not_null' => '请您输入用户名。',

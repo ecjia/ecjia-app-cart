@@ -4,9 +4,7 @@ defined('IN_ECJIA') or exit('No permission resources.');
 /**
  * 购物车更新商品数目
  * @author royalwang
- *
  */
- 
 class update_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
     		
@@ -16,11 +14,7 @@ class update_module extends api_front implements api_interface {
     	}
 		$location       = $this->requestData('location',array());
 		$seller_id		= $this->requestData('seller_id', 0);
-		//TODO:目前强制坐标
-// 		$location = array(
-// 		    'latitude'	=> '31.235450744628906',
-// 		    'longitude' => '121.41641998291016',
-// 		);
+
 		RC_Loader::load_app_class('cart', 'cart', false);
 		RC_Loader::load_app_func('cart', 'cart');
 		

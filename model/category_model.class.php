@@ -7,7 +7,6 @@ class category_model extends Component_Model_Model {
 		$this->table_name = 'category';
 		parent::__construct();
 	}
-
 }
 
 //end

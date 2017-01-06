@@ -7,7 +7,6 @@ class favourable_activity_model extends Component_Model_Model {
 		$this->table_name = 'favourable_activity';
 		parent::__construct();
 	}
-
 }
 
 //end

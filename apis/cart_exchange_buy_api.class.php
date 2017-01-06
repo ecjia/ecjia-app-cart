@@ -4,7 +4,6 @@ defined('IN_ECJIA') or exit('No permission resources.');
 /**
  * 获取积分兑换添加购物车
  * @author will.chen
- *
  */
  
 class cart_exchange_buy_api extends Component_Event_Api {
@@ -21,8 +20,7 @@ class cart_exchange_buy_api extends Component_Event_Api {
 	 * @param   array	 $options（包含当前页码，每页显示条数）
 	 * @return  array   商家活动数组
 	 */
-	private function exchange_buy($options) 
-	{
+	private function exchange_buy($options) {
 		$goods_id = $options['goods_id'];
 		
 		/* 查询：取得兑换商品信息 */

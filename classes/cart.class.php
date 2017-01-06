@@ -3,11 +3,8 @@
 /**
  * 购物流类
  * @author will.chen
- *
  */
- 
 class cart {
-
 	/**
 	 * 更新购物车中的商品数量
 	 *
@@ -171,7 +168,6 @@ class cart {
 			//如果是超值礼包
 			if ($row['extension_code'] == 'package_buy') {
 				$where = array('user_id' => $_SESSION['user_id'] , 'rec_id' => $id);
-
 // 				if (defined('SESS_ID')) {
 // 					$where['session_id'] = SESS_ID;
 // 				}
@@ -208,9 +204,7 @@ class cart {
 
 				$db_cart->where($where)->delete();
 			}
-
 		}
-
 		self::flow_clear_cart_alone();
 	}
 
@@ -226,10 +220,10 @@ class cart {
 		$dbview  = RC_Model::model('cart/cart_group_goods_goods_viewmodel');
 
 		$where = array(
-				'c.user_id'			=> $_SESSION['user_id'],
-				'c.extension_code'	=> array('neq' => 'package_buy'),
-				'gg.parent_id'		=> array('gt' => 0) ,
-				'g.is_alone_sale'	=> 0
+			'c.user_id'			=> $_SESSION['user_id'],
+			'c.extension_code'	=> array('neq' => 'package_buy'),
+			'gg.parent_id'		=> array('gt' => 0) ,
+			'g.is_alone_sale'	=> 0
 		);
 
 // 		if (defined('SESS_ID')) {
@@ -385,11 +379,6 @@ class cart {
 // 			}
 			$goods = RC_Model::model('cart/cart_model')->field('goods_id, goods_attr_id, extension_code, product_id')->find($cart_where);
 
-// 			$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
-// 			$db_products = RC_Loader::load_app_model('products_model', 'goods');
-// 			$dbview = RC_Loader::load_app_model('goods_cart_viewmodel', 'goods');
-
-
 			$row   = RC_Model::model('goods/goods_cart_viewmodel')->field('c.product_id')->join('cart')->find(array('c.rec_id' => $key));
 			//系统启用了库存，检查输入的商品数量是否有效
 			if (intval(ecjia::config('use_storage')) > 0 && $goods['extension_code'] != 'package_buy') {
@@ -511,22 +500,21 @@ class cart {
 //     }
 
 		$total  = array(
-				'real_goods_count' => 0,
-				'gift_amount'      => 0,
-				'goods_price'      => 0,
-				'market_price'     => 0,
-				'discount'         => 0,
-				'pack_fee'         => 0,
-				'card_fee'         => 0,
-				'shipping_fee'     => 0,
-				'shipping_insure'  => 0,
-				'integral_money'   => 0,
-				'bonus'            => 0,
-				'surplus'          => 0,
-				'cod_fee'          => 0,
-				'pay_fee'          => 0,
-				'tax'              => 0
-
+			'real_goods_count' => 0,
+			'gift_amount'      => 0,
+			'goods_price'      => 0,
+			'market_price'     => 0,
+			'discount'         => 0,
+			'pack_fee'         => 0,
+			'card_fee'         => 0,
+			'shipping_fee'     => 0,
+			'shipping_insure'  => 0,
+			'integral_money'   => 0,
+			'bonus'            => 0,
+			'surplus'          => 0,
+			'cod_fee'          => 0,
+			'pay_fee'          => 0,
+			'tax'              => 0
 		);
 		$weight		= 0;
 		$store_id	= 0;
@@ -540,7 +528,6 @@ class cart {
 
 			$total['goods_price']  += $val['goods_price'] * $val['goods_number'];
 			$total['market_price'] += $val['market_price'] * $val['goods_number'];
-
 		}
 
 		$total['saving']    = $total['market_price'] - $total['goods_price'];
@@ -741,9 +728,6 @@ class cart {
 // 			}
 // 			$total['exchange_integral'] = $exchange_integral;
 // 		}
-
-
-
 		return $total;
 	}
 
@@ -779,19 +763,19 @@ class cart {
 	public static function get_give_integral($cart_id = array()) {
 		$db_cartview = RC_Model::model('cart/cart_good_member_viewmodel');
 		$db_cartview->view = array(
-				'goods' => array(
-						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
-						'alias' => 'g',
-						'field' => "c.rec_id, c.goods_id, c.goods_attr_id, g.promote_price, g.promote_start_date, c.goods_number,g.promote_end_date, IFNULL(mp.user_price, g.shop_price * '$_SESSION[discount]') AS member_price",
-						'on'    => 'g.goods_id = c.goods_id'
-				),
+			'goods' => array(
+				'type'  => Component_Model_View::TYPE_LEFT_JOIN,
+				'alias' => 'g',
+				'field' => "c.rec_id, c.goods_id, c.goods_attr_id, g.promote_price, g.promote_start_date, c.goods_number,g.promote_end_date, IFNULL(mp.user_price, g.shop_price * '$_SESSION[discount]') AS member_price",
+				'on'    => 'g.goods_id = c.goods_id'
+			),
 		);
 		$where = array(
-				'c.user_id'		=> $_SESSION['user_id'] ,
-				'c.goods_id'	=> array('gt' => 0) ,
-				'c.parent_id'	=> 0 ,
-				'c.rec_type'	=> 0 ,
-				'c.is_gift'		=> 0
+			'c.user_id'		=> $_SESSION['user_id'] ,
+			'c.goods_id'	=> array('gt' => 0) ,
+			'c.parent_id'	=> 0 ,
+			'c.rec_type'	=> 0 ,
+			'c.is_gift'		=> 0
 		);
 		if (!empty($cart_id)) {
 			$where['rec_id'] = $cart_id;
@@ -799,7 +783,6 @@ class cart {
 // 		if (defined('SESS_ID')) {
 // 			$where['c.session_id'] = SESS_ID;
 // 		}
-
 		$integral = $db_cartview->where($where)->sum('c.goods_number * IF(g.give_integral > -1, g.give_integral, c.goods_price)');
 
 		return intval($integral);
@@ -835,23 +818,23 @@ class cart {
 			foreach ($row as $val) {
 				// 如果商品全为免运费商品，设置一个标识变量
 				$dbview->view = array(
-						'goods' => array(
-								'type'  => Component_Model_View::TYPE_LEFT_JOIN,
-								'alias' => 'g',
-								'on'    => 'g.goods_id = pg.goods_id ',
-						)
+					'goods' => array(
+						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
+						'alias' => 'g',
+						'on'    => 'g.goods_id = pg.goods_id ',
+					)
 				);
 
 				$shipping_count = $dbview->where(array('g.is_shipping' => 0 , 'pg.package_id' => $val['goods_id']))->count();
 				if ($shipping_count > 0) {
 					// 循环计算每个超值礼包商品的重量和数量，注意一个礼包中可能包换若干个同一商品
 					$dbview->view = array(
-							'goods' => array(
-									'type'  => Component_Model_View::TYPE_LEFT_JOIN,
-									'alias' => 'g',
-									'field' => 'SUM(g.goods_weight * pg.goods_number)|weight,SUM(pg.goods_number)|number',
-									'on'    => 'g.goods_id = pg.goods_id',
-							)
+						'goods' => array(
+							'type'  => Component_Model_View::TYPE_LEFT_JOIN,
+							'alias' => 'g',
+							'field' => 'SUM(g.goods_weight * pg.goods_number)|weight,SUM(pg.goods_number)|number',
+							'on'    => 'g.goods_id = pg.goods_id',
+						)
 					);
 					$goods_row = $dbview->find(array('g.is_shipping' => 0 , 'pg.package_id' => $val['goods_id']));
 
@@ -867,18 +850,18 @@ class cart {
 
 		/* 获得购物车中非超值礼包商品的总重量 */
 		$db_cartview->view =array(
-				'goods' => array(
-						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
-						'alias' => 'g',
-						'field' => 'SUM(g.goods_weight * c.goods_number)|weight,SUM(c.goods_price * c.goods_number)|amount,SUM(c.goods_number)|number',
-						'on'    => 'g.goods_id = c.goods_id'
-				)
+			'goods' => array(
+				'type'  => Component_Model_View::TYPE_LEFT_JOIN,
+				'alias' => 'g',
+				'field' => 'SUM(g.goods_weight * c.goods_number)|weight,SUM(c.goods_price * c.goods_number)|amount,SUM(c.goods_number)|number',
+				'on'    => 'g.goods_id = c.goods_id'
+			)
 		);
 		$where = array(
-				'c.user_id'		=> $_SESSION['user_id'] ,
-				'rec_type'		=> $type ,
-				'g.is_shipping' => 0 ,
-				'c.extension_code' => array('neq' => 'package_buy')
+			'c.user_id'		=> $_SESSION['user_id'] ,
+			'rec_type'		=> $type ,
+			'g.is_shipping' => 0 ,
+			'c.extension_code' => array('neq' => 'package_buy')
 		);
 		if (!empty($cart_id)) {
 			$where['rec_id'] = $cart_id;
@@ -903,8 +886,7 @@ class cart {
 	 *        	重量
 	 * @return string 格式化后的重量
 	 */
-	public static function formated_weight($weight)
-	{
+	public static function formated_weight($weight) {
 		$weight = round(floatval($weight), 3);
 		if ($weight > 0) {
 			if ($weight < 1) {
@@ -938,20 +920,20 @@ class cart {
 
 		/* 查询购物车商品 */
 		$db_cartview->view = array(
-				'goods' => array(
-						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
-						'alias' => 'g',
-						'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.store_id",
-						'on'   	=> 'c.goods_id = g.goods_id'
-				)
+			'goods' => array(
+				'type'  => Component_Model_View::TYPE_LEFT_JOIN,
+				'alias' => 'g',
+				'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.store_id",
+				'on'   	=> 'c.goods_id = g.goods_id'
+			)
 		);
 
 		$where = array(
-				'c.user_id'		=> $_SESSION['user_id'],
-				'c.parent_id'	=> 0,
-				'c.is_gift'		=> 0,
-				'rec_type' 		=> CART_GENERAL_GOODS,
-		        'c.is_checked'  => 1, // 增加选中状态条件
+			'c.user_id'		=> $_SESSION['user_id'],
+			'c.parent_id'	=> 0,
+			'c.is_gift'		=> 0,
+			'rec_type' 		=> CART_GENERAL_GOODS,
+	        'c.is_checked'  => 1, // 增加选中状态条件
 		);
 
 		if (!empty($cart_id)) {
@@ -1207,13 +1189,13 @@ class cart {
 
 		/* 查询购物车商品 */
 		$db_cartview->view = array(
-				'goods' => array(
-						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
-						'alias' => 'g',
-// 						'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.user_id",
-						'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.store_id",
-						'on'    => 'c.goods_id = g.goods_id'
-				)
+			'goods' => array(
+				'type'  => Component_Model_View::TYPE_LEFT_JOIN,
+				'alias' => 'g',
+// 				'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.user_id",
+				'field' => "c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id, g.store_id",
+				'on'    => 'c.goods_id = g.goods_id'
+			)
 		);
 		$cart_where = array('c.parent_id' => 0 , 'c.is_gift' => 0 , 'rec_type' => CART_GENERAL_GOODS);
 		if (!empty($cart_id)) {
@@ -1333,12 +1315,12 @@ class cart {
 		/* 检查商品库存 */
 		if ($goods['goods_ids'] != '') {
 			$db_goods_view->view = array(
-					'package_goods' => array(
-							'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
-							'alias'	=> 'pg',
-							'field' => 'g.goods_id',
-							'on' 	=> 'pg.goods_id = g.goods_id'
-					)
+				'package_goods' => array(
+					'type' 	=> Component_Model_View::TYPE_LEFT_JOIN,
+					'alias'	=> 'pg',
+					'field' => 'g.goods_id',
+					'on' 	=> 'pg.goods_id = g.goods_id'
+				)
 			);
 			$row = $db_goods_view->where(array('pg.goods_number' * $package_num => array('gt' => 'g.goods_number')  , 'pg.package_id' => $package_id))->in(array('pg.goods_id' => trim($goods['goods_ids'] , ',')))->select();
 			if (!empty($row)) {
@@ -1394,8 +1376,7 @@ class cart {
 	 *
 	 * @return 商品最终购买价格
 	 */
-	public static function get_final_price($goods_id, $goods_num = '1', $is_spec_price = false, $spec = array())
-	{
+	public static function get_final_price($goods_id, $goods_num = '1', $is_spec_price = false, $spec = array()) {
 		$dbview = RC_Model::model ( 'goods/sys_goods_member_viewmodel');
 
 		$final_price = '0'; // 商品最终购买价格
@@ -1421,11 +1402,11 @@ class cart {
 // 				"IFNULL(mp.user_price, IF(g.model_price < 1, g.shop_price, IF(g.model_price < 2, wg.warehouse_price, wag.region_price)) * '$_SESSION[discount]') AS shop_price ";
 		/* 取得商品信息 */
 		$dbview->view = array(
-				'member_price' => array(
-						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
-						'alias' => 'mp',
-						'on'   	=> "mp.goods_id = g.goods_id AND mp.user_rank = '$_SESSION[user_rank]'"
-				)
+			'member_price' => array(
+				'type'  => Component_Model_View::TYPE_LEFT_JOIN,
+				'alias' => 'mp',
+				'on'   	=> "mp.goods_id = g.goods_id AND mp.user_rank = '$_SESSION[user_rank]'"
+			)
 		);
 		// 取得商品促销价格列表
 		$goods = $dbview->join (array('member_price'))->find (array('g.goods_id' => $goods_id, 'g.is_delete' => 0));
@@ -1459,10 +1440,10 @@ class cart {
 		$mobilebuy_db = RC_Model::model('goods/goods_activity_model');
 		$mobilebuy_ext_info = array();
 		$mobilebuy = $mobilebuy_db->find(array(
-				'goods_id'	 => $goods_id,
-				'start_time' => array('elt' => RC_Time::gmtime()),
-				'end_time'	 => array('egt' => RC_Time::gmtime()),
-				'act_type'	 => GAT_MOBILE_BUY,
+			'goods_id'	 => $goods_id,
+			'start_time' => array('elt' => RC_Time::gmtime()),
+			'end_time'	 => array('egt' => RC_Time::gmtime()),
+			'act_type'	 => GAT_MOBILE_BUY,
 		));
 		if (!empty($mobilebuy)) {
 			$mobilebuy_ext_info = unserialize($mobilebuy['ext_info']);

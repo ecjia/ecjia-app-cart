@@ -4,9 +4,7 @@ defined('IN_ECJIA') or exit('No permission resources.');
 /**
  * 从购物车中删除一商品
  * @author royalwang
- *
  */
- 
 class delete_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
     		
@@ -16,11 +14,7 @@ class delete_module extends api_front implements api_interface {
     	}
 	    $location  = $this->requestData('location', array());
 	    $seller_id = $this->requestData('seller_id', 0);
-	    //TODO:目前强制坐标
-// 	    $location = array(
-// 	        'latitude'	=> '31.235450744628906',
-// 	        'longitude' => '121.41641998291016',
-// 	    );
+
 	    RC_Loader::load_app_class('cart', 'cart', false);
 	    RC_Loader::load_app_func('cart', 'cart');
 		
@@ -49,11 +43,9 @@ class delete_module extends api_front implements api_interface {
         } else {
             return new ecjia_error('location_error', '请定位您当前所在地址！');
         }
-        
         $cart_result = RC_Api::api('cart', 'cart_list', array('store_group' => $store_id_group, 'flow_type' => CART_GENERAL_GOODS));
         
         return formated_cart_list($cart_result);
-	    
 	}
 }
 
