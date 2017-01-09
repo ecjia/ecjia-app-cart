@@ -1573,6 +1573,10 @@ function formated_cart_list($cart_result) {
             }
             $total['goods_number'] += $goods['goods_number'];
         }
+        //判断优惠超过商品总价时
+        if ($discount['discount'] > $total['goods_price']) {
+            $discount['discount'] = $total['goods_price'];
+        }
         $total['goods_price'] -= $discount['discount'];
         $total['goods_amount'] = $total['goods_price'];
         $total['saving']       = price_format($total['market_price'] - $total['goods_price'], false);
