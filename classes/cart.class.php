@@ -1024,14 +1024,15 @@ class cart {
                         $discount_temp[] = $favourable['act_type_ext'];
 						$favourable_name[] = $favourable['act_name'];
 					}
-					//优惠金额不能超过订单本身
-					if ($discount > $total_amount) {
-					    $discount = $total_amount;
-					}
 				}
 			}
+			$discount = max($discount_temp);
+			//优惠金额不能超过订单本身
+			if ($total_amount && $discount > $total_amount) {
+			    $discount = $total_amount;
+			}
 		}
-        $discount = max($discount_temp);
+        
 		return array('discount' => $discount, 'name' => $favourable_name);
 	}
 	
