@@ -1597,7 +1597,7 @@ function formated_cart_list($cart_result) {
     return $cart_goods;
 }
 
-function formated_favourable($favourable_result, $goods) {
+function formated_favourable($favourable_result, $goods_list) {
     if (is_ecjia_error($favourable_result) || empty($favourable_result)) {
         return $favourable_result;
     }
@@ -1611,39 +1611,41 @@ function formated_favourable($favourable_result, $goods) {
             );
         } else {
             $act_range_ext = explode(',', $val['act_range_ext']);
-            switch ($val['act_range']) {
-                case 1 :
-                    if (in_array($goods['cat_id'], $act_range_ext)) {
-                        $favourable_list[] = array(
-                            'id'    => $val['act_id'],
-                            'title' => $val['act_name'],
-                            'type'  => $val['act_type'] == '1' ? 'price_reduction' : 'price_discount',
-                            'type_label' => $val['act_type'] == '1' ? __('满减') : __('满折'),
-                        );
-                    }
-                    break;
-                case 2 :
-                    if (in_array($goods['brand_id'], $act_range_ext)) {
-                        $favourable_list[] = array(
-                            'id'    => $val['act_id'],
-                            'title' => $val['act_name'],
-                            'type' => $val['act_type'] == '1' ? 'price_reduction' : 'price_discount',
-                            'type_label' => $val['act_type'] == '1' ? __('满减') : __('满折'),
-                        );
-                    }
-                    break;
-                case 3 :
-                    if (in_array($goods['goods_id'], $act_range_ext)) {
-                        $favourable_list[] = array(
-                            'id'    => $val['act_id'],
-                            'title' => $val['act_name'],
-                            'type' => $val['act_type'] == '1' ? 'price_reduction' : 'price_discount',
-                            'type_label' => $val['act_type'] == '1' ? __('满减') : __('满折'),
-                        );
-                    }
-                    break;
-                default:
-                    break;
+            foreach ($goods_list as $goods) {
+                switch ($val['act_range']) {
+                    case 1 :
+                        if (in_array($goods['cat_id'], $act_range_ext)) {
+                            $favourable_list[] = array(
+                                'id'    => $val['act_id'],
+                                'title' => $val['act_name'],
+                                'type'  => $val['act_type'] == '1' ? 'price_reduction' : 'price_discount',
+                                'type_label' => $val['act_type'] == '1' ? __('满减') : __('满折'),
+                            );
+                        }
+                        break;
+                    case 2 :
+                        if (in_array($goods['brand_id'], $act_range_ext)) {
+                            $favourable_list[] = array(
+                                'id'    => $val['act_id'],
+                                'title' => $val['act_name'],
+                                'type' => $val['act_type'] == '1' ? 'price_reduction' : 'price_discount',
+                                'type_label' => $val['act_type'] == '1' ? __('满减') : __('满折'),
+                            );
+                        }
+                        break;
+                    case 3 :
+                        if (in_array($goods['goods_id'], $act_range_ext)) {
+                            $favourable_list[] = array(
+                                'id'    => $val['act_id'],
+                                'title' => $val['act_name'],
+                                'type' => $val['act_type'] == '1' ? 'price_reduction' : 'price_discount',
+                                'type_label' => $val['act_type'] == '1' ? __('满减') : __('满折'),
+                            );
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }
