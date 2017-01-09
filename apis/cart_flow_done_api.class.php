@@ -153,8 +153,8 @@ class cart_flow_done_api extends Component_Event_Api {
 
 		/* 订单中的总额 */
 		$total = cart::order_fee($order, $cart_goods, $consignee, $options['cart_id']);
-		RC_logger::getlogger('info')->info('flow-done-api - total');
-		RC_logger::getlogger('info')->info($total);
+		RC_Logger::getlogger('debug')->info('flow-done-api - total');
+		RC_Logger::getlogger('debug')->info($total);
 		$order['bonus']			= $total['bonus'];
 		$order['goods_amount']	= $total['goods_price'];
 		$order['discount']		= empty($total['discount']) ? 0.00 : $total['discount'];
@@ -247,8 +247,8 @@ class cart_flow_done_api extends Component_Event_Api {
 		unset($order['cod_fee']);
 
 		
-		RC_logger::getlogger('info')->info('flow-done-api - order -250');
-		RC_logger::getlogger('info')->info($order);
+		RC_Logger::getlogger('debug')->info('flow-done-api - order -250');
+		RC_Logger::getlogger('debug')->info($order);
 		$new_order_id	= $db_order_info->insertGetId($order);
 
 		$order['order_id'] = $new_order_id;

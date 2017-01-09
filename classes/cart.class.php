@@ -1026,6 +1026,9 @@ class cart {
 					}
 				}
 			}
+			RC_Logger::getlogger('debug')->info('checkflow-api-computer_discunt');
+			RC_Logger::getlogger('debug')->info($discount_temp);
+			RC_Logger::getlogger('debug')->info('total_amount-'.$total_amount);
 			$discount = max($discount_temp);
 			//优惠金额不能超过订单本身
 			if ($total_amount && $discount > $total_amount) {
