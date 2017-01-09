@@ -141,10 +141,11 @@ class checkOrder_module extends api_front implements api_interface {
 		}
 
 		/* 计算折扣 */
-		if ($flow_type != CART_EXCHANGE_GOODS && $flow_type != CART_GROUP_BUY_GOODS) {
+		// 暂无用处
+		/* if ($flow_type != CART_EXCHANGE_GOODS && $flow_type != CART_GROUP_BUY_GOODS) {
 			$discount = cart::compute_discount($cart_id);
 			$favour_name = empty($discount['name']) ? '' : join(',', $discount['name']);
-		}
+		} */
 		/* 计算订单的费用 */
 		$total = cart::order_fee($order, $cart_goods, $consignee, $cart_id);
 		/* 取得配送列表 */
@@ -394,7 +395,7 @@ class checkOrder_module extends api_front implements api_interface {
 		$out['inv_type_list']		= $inv_type_list;//发票类型及税率
 		$out['your_integral']		= $user_info['pay_points'];//用户可用积分
 // 		$out['your_discount']		= $your_discount;//用户享受折扣说明
-		$out['discount']			= number_format($discount['discount'], 2, '.', '');//用户享受折扣数
+		$out['discount']			= number_format($total['discount'], 2, '.', '');//用户享受折扣数
 		$out['discount_formated']	= $total['discount_formated'];
 
 		if (!empty($out['consignee'])) {
