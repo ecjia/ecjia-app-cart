@@ -956,6 +956,7 @@ class cart {
 		RC_Loader::load_app_class('goods_category', 'goods', false);
 		/* 循环计算每个优惠活动的折扣 */
 		if (!empty($favourable_list)) {
+		    RC_Logger::getlogger('debug')->info('checkflow-api-computer_discunt');
 			foreach ($favourable_list as $favourable) {
 			    /* 初始化折扣 */
 			    $discount = 0;
@@ -1025,16 +1026,18 @@ class cart {
 						$favourable_name[] = $favourable['act_name'];
 					}
 				}
+				RC_Logger::getlogger('debug')->info($favourable);
+				RC_Logger::getlogger('debug')->info($discount_temp);
+				RC_Logger::getlogger('debug')->info('total_amount-'.$total_amount);
 			}
-			RC_Logger::getlogger('debug')->info('checkflow-api-computer_discunt');
-			RC_Logger::getlogger('debug')->info($discount_temp);
-			RC_Logger::getlogger('debug')->info('total_amount-'.$total_amount);
+			
 			$discount = max($discount_temp);
 			//优惠金额不能超过订单本身
 			if ($total_amount && $discount > $total_amount) {
 			    $discount = $total_amount;
 			}
 		}
+		RC_Logger::getlogger('debug')->info('discount-'.$discount);
         
 		return array('discount' => $discount, 'name' => $favourable_name);
 	}
