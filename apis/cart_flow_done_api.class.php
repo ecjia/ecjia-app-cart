@@ -152,8 +152,8 @@ class cart_flow_done_api extends Component_Event_Api {
 		}
 
 		/* 订单中的总额 */
-		$total = cart::order_fee($order, $cart_goods, $consignee, $options['cart_id']);//error
-		$order['bonus']			= $total['bonus']; //error
+		$total = cart::order_fee($order, $cart_goods, $consignee, $options['cart_id']);
+		$order['bonus']			= $total['bonus']; 
 		$order['goods_amount']	= $total['goods_price'];
 		$order['discount']		= empty($total['discount']) ? 0.00 : $total['discount'];
 		$order['surplus']		= $total['surplus'];

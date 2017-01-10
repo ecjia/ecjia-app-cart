@@ -660,7 +660,7 @@ class cart {
 			$total['bonus']   			= $use_bonus;
 			$total['bonus_formated'] 	= price_format($total['bonus'], false);
 
-			$total['amount'] -= $use_bonus; // 还需要支付的订单金额//error
+			$total['amount'] -= $use_bonus; // 还需要支付的订单金额
 			$max_amount      -= $use_bonus; // 积分最多还能支付的金额
 		}
 
@@ -730,11 +730,6 @@ class cart {
 // 			}
 // 			$total['exchange_integral'] = $exchange_integral;
 // 		}
-
-		//处理总价，防止出现负值
-		if ($total['amount'] < 0 ) {
-		    
-		}
 		return $total;
 	}
 
