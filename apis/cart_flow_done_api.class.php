@@ -44,8 +44,9 @@
 //
 //  ---------------------------------------------------------------------------------
 //
-defined('IN_ECJIA') or exit('No permission resources.');
 use Ecjia\System\Notifications\OrderPlaced;
+defined('IN_ECJIA') or exit('No permission resources.');
+
 
 /**
  * @author will.chen
