@@ -579,15 +579,10 @@ class cart {
 		$total['card_fee_formated'] = price_format($total['card_fee'], false);
 
 		/* 红包 */
-		RC_Logger::getlogger('debug')->info('order_fee-'.__LINE__);
-		RC_Logger::getlogger('debug')->info($order);
 		if (!empty($order['bonus_id'])) {
 			$bonus          = RC_Api::api('bonus', 'bonus_info', array('bonus_id' => $order['bonus_id']));
-			RC_Logger::getlogger('debug')->info($bonus);
 			$total['bonus'] = $bonus['type_money'];
 		}
-		RC_Logger::getlogger('debug')->info('order_fee-total-'.__LINE__);
-		RC_Logger::getlogger('debug')->info($total);
 		//TODO::红包错误
 		$total['bonus_formated'] = price_format($total['bonus'], false);
 		/* 线下红包 */
@@ -646,8 +641,6 @@ class cart {
 
 		// 购物车中的商品能享受红包支付的总额
 		$discount_amount = self::compute_discount_amount($cart_id);//TODO::方法错误
-		RC_Logger::getlogger('debug')->info('order_fee'.__LINE__);
-		RC_Logger::getlogger('debug')->info($discount_amount);
 		// 红包和积分最多能支付的金额为商品总额
 		$max_amount = $total['goods_price'] == 0 ? 0 : $total['goods_price'] - $discount_amount;
 		$max_amount = $max_amount < 0 ? 0 : $max_amount;//防止出现负值
@@ -970,7 +963,6 @@ class cart {
 		RC_Loader::load_app_class('goods_category', 'goods', false);
 		/* 循环计算每个优惠活动的折扣 */
 		if (!empty($favourable_list)) {
-		    RC_Logger::getlogger('debug')->info('cart.class-compute_discount'.__LINE__);
 			foreach ($favourable_list as $favourable) {
 			    /* 初始化折扣 */
 			    $discount = 0;
@@ -1040,19 +1032,13 @@ class cart {
 						$favourable_name[] = $favourable['act_name'];
 					}
 				}
-// 				RC_Logger::getlogger('debug')->info($favourable);
-// 				RC_Logger::getlogger('debug')->info($discount_temp);
-// 				RC_Logger::getlogger('debug')->info('total_amount-'.$total_amount);
 			}
-			RC_Logger::getlogger('debug')->info('discount_temp');
-			RC_Logger::getlogger('debug')->info($discount_temp);
 			$discount = max($discount_temp);
 			//优惠金额不能超过订单本身
 			if ($total_amount && $discount > $total_amount) {
 			    $discount = $total_amount;
 			}
 		}
-		RC_Logger::getlogger('debug')->info('discount-'.$discount);
         
 		return array('discount' => $discount, 'name' => $favourable_name);
 	}
