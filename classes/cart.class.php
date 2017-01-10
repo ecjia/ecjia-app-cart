@@ -579,10 +579,16 @@ class cart {
 		$total['card_fee_formated'] = price_format($total['card_fee'], false);
 
 		/* 红包 */
+		RC_Logger::getlogger('debug')->info('order_fee-'.__LINE__);
+		RC_Logger::getlogger('debug')->info($order);
 		if (!empty($order['bonus_id'])) {
 			$bonus          = RC_Api::api('bonus', 'bonus_info', array('bonus_id' => $order['bonus_id']));
+			RC_Logger::getlogger('debug')->info($bonus);
 			$total['bonus'] = $bonus['type_money'];
 		}
+		RC_Logger::getlogger('debug')->info('order_fee-total-'.__LINE__);
+		RC_Logger::getlogger('debug')->info($total);
+		//TODO::红包错误
 		$total['bonus_formated'] = price_format($total['bonus'], false);
 		/* 线下红包 */
 		if (!empty($order['bonus_kill'])) {
@@ -639,9 +645,12 @@ class cart {
 		$total['shipping_insure_formated'] = price_format($total['shipping_insure'], false);
 
 		// 购物车中的商品能享受红包支付的总额
-		$bonus_amount = self::compute_discount_amount($cart_id);
+		$discount_amount = self::compute_discount_amount($cart_id);//TODO::方法错误
+		RC_Logger::getlogger('debug')->info('order_fee'.__LINE__);
+		RC_Logger::getlogger('debug')->info($discount_amount);
 		// 红包和积分最多能支付的金额为商品总额
-		$max_amount = $total['goods_price'] == 0 ? $total['goods_price'] : $total['goods_price'] - $bonus_amount;
+		$max_amount = $total['goods_price'] == 0 ? 0 : $total['goods_price'] - $discount_amount;
+		$max_amount = $max_amount < 0 ? 0 : $max_amount;//防止出现负值
 
 		/* 计算订单总额 */
 		if ($order['extension_code'] == 'group_buy' && $group_buy['deposit'] > 0) {
@@ -658,7 +667,7 @@ class cart {
 			$total['bonus']   			= $use_bonus;
 			$total['bonus_formated'] 	= price_format($total['bonus'], false);
 
-			$total['amount'] -= $use_bonus; // 还需要支付的订单金额
+			$total['amount'] -= $use_bonus; // 还需要支付的订单金额//error
 			$max_amount      -= $use_bonus; // 积分最多还能支付的金额
 		}
 
@@ -728,6 +737,11 @@ class cart {
 // 			}
 // 			$total['exchange_integral'] = $exchange_integral;
 // 		}
+
+		//处理总价，防止出现负值
+		if ($total['amount'] < 0 ) {
+		    
+		}
 		return $total;
 	}
 
@@ -956,7 +970,7 @@ class cart {
 		RC_Loader::load_app_class('goods_category', 'goods', false);
 		/* 循环计算每个优惠活动的折扣 */
 		if (!empty($favourable_list)) {
-		    RC_Logger::getlogger('debug')->info('checkflow-api-computer_discunt');
+		    RC_Logger::getlogger('debug')->info('cart.class-compute_discount'.__LINE__);
 			foreach ($favourable_list as $favourable) {
 			    /* 初始化折扣 */
 			    $discount = 0;
@@ -1026,11 +1040,12 @@ class cart {
 						$favourable_name[] = $favourable['act_name'];
 					}
 				}
-				RC_Logger::getlogger('debug')->info($favourable);
-				RC_Logger::getlogger('debug')->info($discount_temp);
-				RC_Logger::getlogger('debug')->info('total_amount-'.$total_amount);
+// 				RC_Logger::getlogger('debug')->info($favourable);
+// 				RC_Logger::getlogger('debug')->info($discount_temp);
+// 				RC_Logger::getlogger('debug')->info('total_amount-'.$total_amount);
 			}
-			
+			RC_Logger::getlogger('debug')->info('discount_temp');
+			RC_Logger::getlogger('debug')->info($discount_temp);
 			$discount = max($discount_temp);
 			//优惠金额不能超过订单本身
 			if ($total_amount && $discount > $total_amount) {
@@ -1231,7 +1246,7 @@ class cart {
 			if ($favourable['act_range'] == FAR_ALL) {
 				foreach ($goods_list as $goods) {
 // 					if ($favourable['user_id'] == $goods['user_id']) {
-					if ($favourable['store_id'] == $goods['store_id']) {
+					if ($favourable['store_id'] == $goods['store_id'] || $favourable['store_id'] == 0) {
 						$total_amount += $goods['subtotal'];
 					}
 				}
@@ -1246,7 +1261,7 @@ class cart {
 
 				foreach ($goods_list as $goods) {
 // 					if ($favourable['user_id'] == $goods['user_id']) {
-					if ($favourable['store_id'] == $goods['store_id']) {
+				    if ($favourable['store_id'] == $goods['store_id'] || $favourable['store_id'] == 0) {
 						if (strpos(',' . $ids . ',', ',' . $goods['cat_id'] . ',') !== false) {
 							$total_amount += $goods['subtotal'];
 						}
@@ -1255,7 +1270,7 @@ class cart {
 			} elseif ($favourable['act_range'] == FAR_BRAND) {
 				foreach ($goods_list as $goods) {
 // 					if ($favourable['user_id'] == $goods['user_id']) {
-					if ($favourable['store_id'] == $goods['store_id']) {
+				    if ($favourable['store_id'] == $goods['store_id'] || $favourable['store_id'] == 0) {
 						if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['brand_id'] . ',') !== false) {
 							$total_amount += $goods['subtotal'];
 						}
@@ -1264,7 +1279,7 @@ class cart {
 			} elseif ($favourable['act_range'] == FAR_GOODS) {
 				foreach ($goods_list as $goods) {
 // 					if ($favourable['user_id'] == $goods['user_id']) {
-					if ($favourable['store_id'] == $goods['store_id']) {
+				    if ($favourable['store_id'] == $goods['store_id'] || $favourable['store_id'] == 0) {
 // 						if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
 						if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
 							$total_amount += $goods['subtotal'];

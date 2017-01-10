@@ -18,6 +18,8 @@ class cart_flow_done_api extends Component_Event_Api {
 
 		$order = $options['order'];
 
+		RC_Logger::getlogger('debug')->info('cart_flow_done_api'.__LINE__);
+		RC_Logger::getlogger('debug')->info($order);
 		/* 获取用户收货地址*/
 		if ($options['address_id'] == 0) {
 			$consignee = cart::get_consignee($_SESSION['user_id']);
@@ -152,10 +154,10 @@ class cart_flow_done_api extends Component_Event_Api {
 		}
 
 		/* 订单中的总额 */
-		$total = cart::order_fee($order, $cart_goods, $consignee, $options['cart_id']);
+		$total = cart::order_fee($order, $cart_goods, $consignee, $options['cart_id']);//error
 		RC_Logger::getlogger('debug')->info('flow-done-api - total');
 		RC_Logger::getlogger('debug')->info($total);
-		$order['bonus']			= $total['bonus'];
+		$order['bonus']			= $total['bonus']; //error
 		$order['goods_amount']	= $total['goods_price'];
 		$order['discount']		= empty($total['discount']) ? 0.00 : $total['discount'];
 		$order['surplus']		= $total['surplus'];
