@@ -355,7 +355,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			$options = array(
 				'user_id'		=> $order['user_id'],
 				'pay_points'	=> $order['integral'] * (- 1),
-				'change_desc'	=> sprintf(RC_Lang::lang('pay_order'), $order['order_sn'])
+				'change_desc'	=> sprintf(RC_Lang::get('cart::shopping_flow.pay_order'), $order['order_sn'])
 			);
 			$result = RC_Api::api('user', 'account_change_log', $options);
 			if (is_ecjia_error($result)) {
@@ -460,7 +460,7 @@ class cart_flow_done_api extends Component_Event_Api {
 								'user_id' =>$order['user_id'],
 								'rank_points' => intval($integral['rank_points']),
 								'pay_points' => intval($integral['custom_points']),
-								'change_desc' =>sprintf(RC_Lang::lang('order_gift_integral'), $order['order_sn'])
+								'change_desc' =>sprintf(RC_Lang::get('orders::order.order_gift_integral'), $order['order_sn'])
 						);
 						$result = RC_Api::api('user', 'account_change_log', $options);
 						if (is_ecjia_error($result)) {

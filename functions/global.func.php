@@ -107,7 +107,7 @@ function em_favourable_list($user_rank) {
         }
 		
         $favourable['act_range_desc'] = act_range_desc($favourable);
-        $favourable['act_type_desc'] = sprintf(RC_Lang::lang('fat_ext/'.$favourable['act_type']), $favourable['act_type_ext']);
+        $favourable['act_type_desc'] = sprintf(RC_Lang::get('cart::shopping_flow.fat_ext.'.$favourable['act_type']), $favourable['act_type_ext']);
 
         /* 是否能享受 */
         $favourable['available'] = favourable_available($favourable);

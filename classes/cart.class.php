@@ -939,10 +939,10 @@ class cart {
 		if ($weight > 0) {
 			if ($weight < 1) {
 				/* 小于1千克，用克表示 */
-				return intval($weight * 1000) . RC_Lang::lang('gram');
+				return intval($weight * 1000) . RC_Lang::get('cart::shopping_flow.gram');
 			} else {
 				/* 大于1千克，用千克表示 */
-				return $weight . RC_Lang::lang('kilogram');
+				return $weight . RC_Lang::get('cart::shopping_flow.kilogram');
 			}
 		} else {
 			return 0;

@@ -217,13 +217,15 @@ return array(
 	'bonus_min_amount_error' 	=> '订单商品金额没有达到使用该红包的最低金额 %s',
 	'bonus_is_ok' 				=> '该红包序列号可以使用，可以抵扣 %s',
 	
-	'shopping_myship' 	=> '我的配送',
-	'shopping_activity'	=> '活动列表',
-	'shopping_package' 	=> '超值礼包列表',
+	'shopping_myship' 			=> '我的配送',
+	'shopping_activity'			=> '活动列表',
+	'shopping_package' 			=> '超值礼包列表',
 	
-	'label_place_order'		=> '订单提交成功',
-	'unpay'					=> '待付款',
-	'merchant_process'		=> '等待商家接单',
+	'label_place_order'			=> '订单提交成功',
+	'unpay'						=> '待付款',
+	'merchant_process'			=> '等待商家接单',
+	'gram'						=> '克',
+	'kilogram'					=> '千克',
 );
 
 // end
