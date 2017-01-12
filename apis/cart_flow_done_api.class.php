@@ -290,9 +290,6 @@ class cart_flow_done_api extends Component_Event_Api {
 		unset($order['address_info']);
 		unset($order['cod_fee']);
 
-		RC_Logger::getlogger('debug')->info('cart-flow-done-insert'.__LINE__);
-		RC_Logger::getlogger('debug')->info($order);
-		
 		$new_order_id	= $db_order_info->insertGetId($order);
 		$order['order_id'] = $new_order_id;
 
