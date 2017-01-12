@@ -607,6 +607,7 @@ class cart {
 			}
 			if ($rate > 0) {
 				$total['tax'] = $rate * $total['goods_price'];
+				$total['tax'] = round($total['tax'], 2);
 			}
 		}
 		$total['tax_formated'] = price_format($total['tax'], false);
