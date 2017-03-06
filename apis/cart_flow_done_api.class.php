@@ -73,13 +73,19 @@ class cart_flow_done_api extends Component_Event_Api {
 			->where('user_id', $_SESSION['user_id'])
 			->first();
 		}
-		if (isset($consignee['latitude']) && isset($consignee['longitude'])) {
+		$mobile_location_range = ecjia::config('mobile_location_range');
+		if (isset($consignee['latitude']) && isset($consignee['longitude']) && $mobile_location_range > 0) {
 			$geohash = RC_Loader::load_app_class('geohash', 'store');
 			$geohash_code = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
-			$geohash_code = substr($geohash_code, 0, 5);
 			$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code));
+			
+		} elseif (isset($consignee['city']) && $consignee['city'] > 0) {
+			$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('city_id' => $consignee['city']));
 		} else {
 			return new ecjia_error('pls_fill_in_consinee_info', '请完善收货人信息！');
+		}
+		if (empty($store_id_group)) {
+			$store_id_group = array(0);
 		}
 
 		/* 检查购物车中是否有商品 */
