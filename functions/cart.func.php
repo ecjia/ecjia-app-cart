@@ -1569,7 +1569,7 @@ function formated_cart_list($cart_result) {
                 'formated_market_price' => $row['formatted_market_price'],
                 'goods_number'	        => intval($row['goods_number']),
                 'subtotal'		        => $row['subtotal'],
-                'goods_attr_id'         => intval($row['goods_attr_id']),
+                'goods_attr_id'         => $row['goods_attr_id'],
                 'attr'			        => $row['goods_attr'],
                 'goods_attr'	        => $goods_attrs,
                 'is_checked'	        => $row['is_checked'],
