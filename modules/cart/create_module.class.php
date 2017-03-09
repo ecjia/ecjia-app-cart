@@ -66,7 +66,7 @@ class create_module extends api_front implements api_interface {
 	        return new ecjia_error(101, '参数错误');
 	    }
 	    $goods_spec		= $this->requestData('spec', array());
-	    $rec_type		= $this->requestData('rec_type', 0);
+	    $rec_type		= $this->requestData('rec_type', 0); //暂没用到
 
 	    RC_Loader::load_app_func('cart', 'cart');
 
