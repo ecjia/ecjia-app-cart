@@ -395,18 +395,24 @@ class cart_flow_done_api extends Component_Event_Api {
 				$tpl_name = 'order_placed_sms';
 				$tpl   = RC_Api::api('sms', 'sms_template', $tpl_name);
 				if (!empty($tpl)) {
-					ecjia_front::$controller->assign('order', $order);
+					ecjia_front::$controller->assign('order',	$order);
 					ecjia_front::$controller->assign('consignee', $order['consignee']);
-					ecjia_front::$controller->assign('mobile', $order['mobile']);
-
+					ecjia_front::$controller->assign('mobile',	$order['mobile']);
+					
 					$content = ecjia_front::$controller->fetch_string($tpl['template_content']);
 					$msg = $order['pay_status'] == PS_UNPAYED ? $content : $content.__('已付款');
-					$options = array(
-						'mobile' 		=> ecjia::config('sms_shop_mobile'),
-						'msg'			=> $msg,
-						'template_id' 	=> $tpl['template_id'],
-					);
-					$response = RC_Api::api('sms', 'sms_send', $options);
+					
+					
+					$staff_user = RC_DB::table('staff_user')->where('store_id', $order['store_id'])->where('parent_id', 0)->first();
+					if (!empty($staff_user['mobile'])) {
+						$options = array(
+								'mobile' 		=> $staff_user['mobile'],
+								'msg'			=> $msg,
+								'template_id' 	=> $tpl['template_id'],
+						);
+						$response = RC_Api::api('sms', 'sms_send', $options);
+					}
+					
 				}
 			}
 		}
