@@ -173,7 +173,7 @@ class cart_cart_manage_api extends Component_Event_Api {
             $spec_price             = goods_info::spec_price($spec);
             $goods_price            = goods_info::get_final_price($goods_id, $num, true, $spec);
             $goods['market_price'] += $spec_price;
-            $goods_attr             = goods_info::get_goods_attr_info($spec);
+            $goods_attr             = goods_info::get_goods_attr_info($spec, 'no');
             $goods_attr_id          = join(',', $spec);
         }
         $goods_attr_id = empty($goods_attr_id) ? 0 : $goods_attr_id;
