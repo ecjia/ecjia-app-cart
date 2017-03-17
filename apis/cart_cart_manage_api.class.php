@@ -332,7 +332,7 @@ class cart_cart_manage_api extends Component_Event_Api {
                 ->selectRaw('rec_id, goods_number')
                 ->where('user_id', $_SESSION['user_id'])
                 ->where('goods_id', $goods_id)
-                ->where('parent_id', 0)
+                ->where('parent_id', $parent_id)
                 ->where('extension_code', '!=', 'package_buy')
                 ->where('rec_type', '=', $rec_type)
                 ->where('goods_attr_id', $goods_attr_id)
@@ -361,6 +361,7 @@ class cart_cart_manage_api extends Component_Event_Api {
                             'neq' => 'package_buy'
                         ),
                         'rec_type' => $rec_type,
+                        'goods_attr_id' => $goods_attr_id,
                     );
                     $db_cart_model = RC_Model::model('cart/cart_model');
                     $db_cart_model->where($db_where)->update($data);
