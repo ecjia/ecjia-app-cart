@@ -202,7 +202,10 @@ class checkOrder_module extends api_front implements api_interface {
 
 		$shipping_method   = RC_Loader::load_app_class('shipping_method', 'shipping');
 		$shipping_list     = $shipping_method->available_shipping_list($region, $order['store_id']);
-
+		RC_Logger::getlogger('info')->info('check_order');
+		RC_Logger::getlogger('info')->info($region);
+		RC_Logger::getlogger('info')->info($order['store_id']);
+RC_Logger::getlogger('info')->info($shipping_list);
 		$cart_weight_price = cart::cart_weight_price($flow_type, $cart_id);
 		$insure_disabled   = true;
 		$cod_disabled      = true;
@@ -221,7 +224,6 @@ class checkOrder_module extends api_front implements api_interface {
 			$shipping_count_where = array_merge($shipping_count_where, array('session_id' => SESS_ID));
 			$shipping_count       = $db_cart->where($shipping_count_where)->count();
 		}
-
 
 		$ck = array();
 		foreach ($shipping_list AS $key => $val) {
@@ -284,7 +286,7 @@ class checkOrder_module extends api_front implements api_interface {
 			}
 		}
 		$shipping_list = array_values($shipping_list);
-
+		RC_Logger::getlogger('info')->info($shipping_list);
 		/* 取得支付列表 */
 		$cod_fee    = 0;
 		if ($order['shipping_id'] == 0) {
