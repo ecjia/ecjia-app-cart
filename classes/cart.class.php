@@ -852,7 +852,7 @@ class cart {
 		$package_row['weight'] 			= 0;
 		$package_row['amount'] 			= 0;
 		$package_row['number'] 			= 0;
-		$packages_row['free_shipping'] 	= 1;
+		$packages_row['free_shipping'] 	= 0;
 		$where = array('extension_code' => 'package_buy' , 'user_id' => $_SESSION['user_id'] );
 		if (!empty($cart_id)) {
 			$where['rec_id'] = $cart_id;

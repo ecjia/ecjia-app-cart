@@ -205,7 +205,7 @@ class checkOrder_module extends api_front implements api_interface {
 		RC_Logger::getlogger('info')->info('check_order');
 		RC_Logger::getlogger('info')->info($region);
 		RC_Logger::getlogger('info')->info($order['store_id']);
-RC_Logger::getlogger('info')->info($shipping_list);
+// RC_Logger::getlogger('info')->info($shipping_list);
 		$cart_weight_price = cart::cart_weight_price($flow_type, $cart_id);
 		$insure_disabled   = true;
 		$cod_disabled      = true;
@@ -219,12 +219,13 @@ RC_Logger::getlogger('info')->info($shipping_list);
 		// 查看购物车中是否全为免运费商品，若是则把运费赋为零
 		if ($_SESSION['user_id']) {
 			$shipping_count_where = array_merge($shipping_count_where, array('user_id' => $_SESSION['user_id']));
-			$shipping_count       = $db_cart->where($shipping_count_where)->count();
 		} else {
 			$shipping_count_where = array_merge($shipping_count_where, array('session_id' => SESS_ID));
-			$shipping_count       = $db_cart->where($shipping_count_where)->count();
 		}
-
+		$shipping_count       = $db_cart->where($shipping_count_where)->count();
+		RC_Logger::getlogger('info')->info('shipping_count:'.$shipping_count);
+		RC_Logger::getlogger('info')->info('cart_weight_price:');
+		RC_Logger::getlogger('info')->info($cart_weight_price);
 		$ck = array();
 		foreach ($shipping_list AS $key => $val) {
 			if (isset($ck[$val['shipping_id']])) {
