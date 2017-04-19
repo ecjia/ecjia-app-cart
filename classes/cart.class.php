@@ -852,7 +852,7 @@ class cart {
 		$package_row['weight'] 			= 0;
 		$package_row['amount'] 			= 0;
 		$package_row['number'] 			= 0;
-		$packages_row['free_shipping'] 	= 0;
+		$packages_row['free_shipping'] 	= 1;
 		$where = array('extension_code' => 'package_buy' , 'user_id' => $_SESSION['user_id'] );
 		if (!empty($cart_id)) {
 			$where['rec_id'] = $cart_id;
@@ -902,7 +902,7 @@ class cart {
 			'goods' => array(
 				'type'  => Component_Model_View::TYPE_LEFT_JOIN,
 				'alias' => 'g',
-				'field' => 'SUM(g.goods_weight * c.goods_number)|weight,SUM(c.goods_price * c.goods_number)|amount,SUM(c.goods_number)|number',
+				'field' => 'SUM(g.goods_weight * c.goods_number) as weight, SUM(c.goods_price * c.goods_number) as amount, SUM(c.goods_number) as number',
 				'on'    => 'g.goods_id = c.goods_id'
 			)
 		);

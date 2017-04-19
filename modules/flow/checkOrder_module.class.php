@@ -210,7 +210,7 @@ class checkOrder_module extends api_front implements api_interface {
 		$insure_disabled   = true;
 		$cod_disabled      = true;
 
-		$shipping_count_where = array('extension_code' => array('neq' => 'package_buy') , 'is_shipping' => 0);
+		$shipping_count_where = array('extension_code' => array('neq' => 'package_buy'), 'is_shipping' => 0);
 		if (!empty($cart_id)) {
 			$shipping_count_where = array_merge($shipping_count_where, array('rec_id' => $cart_id));
 		}
