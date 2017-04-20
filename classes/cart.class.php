@@ -910,8 +910,8 @@ class cart {
 			'c.user_id'		=> $_SESSION['user_id'] ,
 			'rec_type'		=> $type ,
 			'g.is_shipping' => 0 ,
-			'c.extension_code' => array('neq' => 'package_buy')
 		);
+		$where[] =  " (c.extension_code IS NULL or c.extension_code != 'package_buy') ";
 		if (!empty($cart_id)) {
 			$where['rec_id'] = $cart_id;
 		}
