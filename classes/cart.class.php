@@ -881,7 +881,7 @@ class cart {
 						'goods' => array(
 							'type'  => Component_Model_View::TYPE_LEFT_JOIN,
 							'alias' => 'g',
-							'field' => 'SUM(g.goods_weight * pg.goods_number)|weight,SUM(pg.goods_number)|number',
+							'field' => 'SUM(g.goods_weight * pg.goods_number) as weight,SUM(pg.goods_number) as number',
 							'on'    => 'g.goods_id = pg.goods_id',
 						)
 					);
