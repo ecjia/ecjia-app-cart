@@ -202,30 +202,23 @@ class checkOrder_module extends api_front implements api_interface {
 
 		$shipping_method   = RC_Loader::load_app_class('shipping_method', 'shipping');
 		$shipping_list     = $shipping_method->available_shipping_list($region, $order['store_id']);
-		RC_Logger::getlogger('info')->info('check_order');
-		RC_Logger::getlogger('info')->info($region);
-		RC_Logger::getlogger('info')->info($order['store_id']);
-// RC_Logger::getlogger('info')->info($shipping_list);
 		$cart_weight_price = cart::cart_weight_price($flow_type, $cart_id);
 		$insure_disabled   = true;
 		$cod_disabled      = true;
 
-		$shipping_count_where = array('extension_code' => array('neq' => 'package_buy'), 'is_shipping' => 0);
+		$shipping_count_where[] = " (`extension_code` IS NULL or `extension_code` != 'package_buy') ";
 		if (!empty($cart_id)) {
-			$shipping_count_where = array_merge($shipping_count_where, array('rec_id' => $cart_id));
+		    $shipping_count_where['rec_id'] = $cart_id;
 		}
 
 		$db_cart = RC_Model::model('cart/cart_model');
 		// 查看购物车中是否全为免运费商品，若是则把运费赋为零
 		if ($_SESSION['user_id']) {
-			$shipping_count_where = array_merge($shipping_count_where, array('user_id' => $_SESSION['user_id']));
+			$shipping_count_where['user_id'] = $_SESSION['user_id'];
 		} else {
-			$shipping_count_where = array_merge($shipping_count_where, array('session_id' => SESS_ID));
+			$shipping_count_where['user_id'] = SESS_ID;
 		}
 		$shipping_count       = $db_cart->where($shipping_count_where)->count();
-		RC_Logger::getlogger('info')->info('shipping_count:'.$shipping_count);
-		RC_Logger::getlogger('info')->info('cart_weight_price:');
-		RC_Logger::getlogger('info')->info($cart_weight_price);
 		$ck = array();
 		foreach ($shipping_list AS $key => $val) {
 			if (isset($ck[$val['shipping_id']])) {
@@ -287,7 +280,6 @@ class checkOrder_module extends api_front implements api_interface {
 			}
 		}
 		$shipping_list = array_values($shipping_list);
-		RC_Logger::getlogger('info')->info($shipping_list);
 		/* 取得支付列表 */
 		$cod_fee    = 0;
 		if ($order['shipping_id'] == 0) {
