@@ -219,6 +219,7 @@ class checkOrder_module extends api_front implements api_interface {
 			$shipping_count_where['user_id'] = SESS_ID;
 		}
 		$shipping_count       = $db_cart->where($shipping_count_where)->count();
+
 		$ck = array();
 		foreach ($shipping_list AS $key => $val) {
 			if (isset($ck[$val['shipping_id']])) {

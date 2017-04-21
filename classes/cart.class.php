@@ -1025,6 +1025,7 @@ class cart {
 					$id_list = array();
 					$raw_id_list = explode(',', $favourable['act_range_ext']);
 					foreach ($raw_id_list as $id) {
+						RC_Loader::load_app_class('goods_category', 'goods', false);
 						$id_list = array_merge($id_list, array_keys(goods_category::cat_list($id, 0, false)));
 					}
 					$ids = join(',', array_unique($id_list));
@@ -1283,7 +1284,8 @@ class cart {
 				$id_list = array();
 				$raw_id_list = explode(',', $favourable['act_range_ext']);
 				foreach ($raw_id_list as $id) {
-					$id_list = array_merge($id_list, array_keys(cat_list($id, 0, false)));
+					RC_Loader::load_app_class('goods_category', 'goods', false);
+					$id_list = array_merge($id_list, array_keys(goods_category::cat_list($id, 0, false)));
 				}
 				$ids = join(',', array_unique($id_list));
 
