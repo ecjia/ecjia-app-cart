@@ -881,7 +881,7 @@ class cart {
 						'goods' => array(
 							'type'  => Component_Model_View::TYPE_LEFT_JOIN,
 							'alias' => 'g',
-							'field' => 'SUM(g.goods_weight * pg.goods_number)|weight,SUM(pg.goods_number)|number',
+							'field' => 'SUM(g.goods_weight * pg.goods_number) as weight,SUM(pg.goods_number) as number',
 							'on'    => 'g.goods_id = pg.goods_id',
 						)
 					);
@@ -902,7 +902,7 @@ class cart {
 			'goods' => array(
 				'type'  => Component_Model_View::TYPE_LEFT_JOIN,
 				'alias' => 'g',
-				'field' => 'SUM(g.goods_weight * c.goods_number)|weight,SUM(c.goods_price * c.goods_number)|amount,SUM(c.goods_number)|number',
+				'field' => 'SUM(g.goods_weight * c.goods_number) as weight, SUM(c.goods_price * c.goods_number) as amount, SUM(c.goods_number) as number',
 				'on'    => 'g.goods_id = c.goods_id'
 			)
 		);
