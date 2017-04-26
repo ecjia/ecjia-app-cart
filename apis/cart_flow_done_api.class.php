@@ -543,6 +543,8 @@ class cart_flow_done_api extends Component_Event_Api {
 		if (!empty($staff_user)) {
 			$devic_info = RC_Api::api('mobile', 'device_info', array('user_type' => 'merchant', 'user_id' => $staff_user['user_id']));
 			/* 通知记录*/
+			RC_Logger::getlogger('info')->info('flow');
+			RC_Logger::getlogger('info')->info($staff_user);
 			$orm_staff_user_db = RC_Model::model('express/orm_staff_user_model');
 			$staff_user_ob = $orm_staff_user_db->find($staff_user['user_id']);
 			
@@ -560,7 +562,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			        'order_time'	         => RC_Time::local_date(ecjia::config('time_format'), $order['add_time']),
 			    ),
 			);
-			
+			RC_Logger::getlogger('info')->info($staff_user);
 			$push_order_placed = new OrderPlaced($order_data);
 			RC_Notification::send($staff_user_ob, $push_order_placed);
 		}
