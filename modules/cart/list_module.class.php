@@ -79,9 +79,9 @@ class list_module extends api_front implements api_interface {
 			return new ecjia_error('location_error', '请定位您当前所在地址！');
 		}
 
-		$cart_result = RC_Api::api('cart', 'cart_list', array('store_group' => $store_id_group, 'flow_type' => CART_GENERAL_GOODS));
+		$cart_result = RC_Api::api('cart', 'cart_list', array('store_group' => '', 'flow_type' => CART_GENERAL_GOODS));
 		
-		return formated_cart_list($cart_result);
+		return formated_cart_list($cart_result, $store_id_group);
 	}
 }
 
