@@ -60,8 +60,10 @@ class checkOrder_module extends api_front implements api_interface {
 
     	$address_id = $this->requestData('address_id', 0);
 		$rec_id		= $this->requestData('rec_id');
-
-		if (empty($address_id) || empty($rec_id)) {
+		$location 	= $this->requestData('location', array());
+		
+// 		if (empty($address_id) || empty($rec_id)) {
+		if (empty($rec_id)) {
 		    return new ecjia_error( 'invalid_parameter', RC_Lang::get ('system::system.invalid_parameter'));
 		}
 		$cart_id = array();
@@ -95,11 +97,24 @@ class checkOrder_module extends api_front implements api_interface {
 				$consignee = cart::get_consignee($_SESSION['user_id']);
 			}
 		}
+		
+		//检查该地址是否在该店铺配送范围内 
+		if (!empty($consignee)) {
+			$geohash = RC_Loader::load_app_class('geohash', 'store');
+			$geohash_code = $geohash->encode($consignee['latitude'], $consignee['longitude']);
+			
+			$geohash_store_code = $geohash->encode($location['latitude'], $location['longitude']);
+			$local = RC_Api::api('user', 'neighbors_address', array('geohash' => $geohash_code, 'geohash_store' => $geohash_store_code, 'city_id' => $consignee['city']));
+			if (!$local) {
+				$consignee = array();
+			}
+		}
+		
 
 		/* 检查收货人信息是否完整 */
 		if (!cart::check_consignee_info($consignee, $flow_type)) {
 			/* 如果不完整则转向到收货人信息填写界面 */
-			return new ecjia_error('pls_fill_in_consinee_info_', '请完善收货人信息！');
+// 			return new ecjia_error('pls_fill_in_consinee_info_', '请完善收货人信息！');
 		}
 
 		$store_id_group = array();
@@ -108,16 +123,17 @@ class checkOrder_module extends api_front implements api_interface {
 			$geohash         = RC_Loader::load_app_class('geohash', 'store');
 			$geohash_code    = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
 // 			$geohash_code    = substr($geohash_code, 0, 5);
-			$store_id_group  = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code, 'city_id' => $consignee['city']));
+// 			$store_id_group  = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code, 'city_id' => $consignee['city']));
 		}
 		
-		if (empty($store_id_group)) {
-			$store_id_group = array(0);
-		}
+// 		if (empty($store_id_group)) {
+// 			$store_id_group = array(0);
+// 		}
 
 		/* 检查购物车中是否有商品 */
-		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $cart_id, 'flow_type' => $flow_type, 'store_group' => $store_id_group));
-
+// 		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $cart_id, 'flow_type' => $flow_type, 'store_group' => $store_id_group));
+		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $cart_id, 'flow_type' => $flow_type, 'store_group' => ''));
+		
 		if(is_ecjia_error($get_cart_goods)) {
 			return $get_cart_goods;
 		}

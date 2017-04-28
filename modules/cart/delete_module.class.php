@@ -82,14 +82,14 @@ class delete_module extends api_front implements api_interface {
             $geohash_code   = $geohash->encode($location['latitude'] , $location['longitude']);
             $store_id_group = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code));
             if (!empty($seller_id) && !in_array($seller_id, $store_id_group)) {
-                return new ecjia_error('location_beyond', '店铺距离过远！');
+                // return new ecjia_error('location_beyond', '店铺距离过远！');
             } elseif (!empty($seller_id)) {
                 $store_id_group = array($seller_id);
             }
         } elseif ($city_id > 0) {
         	$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('city_id' => $city_id));
         	if (!empty($seller_id) && !in_array($seller_id, $store_id_group)) {
-        		return new ecjia_error('location_beyond', '店铺距离过远！');
+        		// return new ecjia_error('location_beyond', '店铺距离过远！');
         	} elseif (!empty($seller_id)) {
         		$store_id_group = array($seller_id);
         	}
