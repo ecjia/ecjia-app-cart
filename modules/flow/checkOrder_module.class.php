@@ -85,6 +85,28 @@ class checkOrder_module extends api_front implements api_interface {
 			//正常购物流程  清空其他购物流程情况
 			$_SESSION['flow_order']['extension_code'] = '';
 		}
+		
+		/* 检查购物车中是否有商品 */
+		// 		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $cart_id, 'flow_type' => $flow_type, 'store_group' => $store_id_group));
+		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $cart_id, 'flow_type' => $flow_type, 'store_group' => ''));
+		
+		if(is_ecjia_error($get_cart_goods)) {
+		    return $get_cart_goods;
+		}
+		if (count($get_cart_goods['goods_list']) == 0) {
+		    return new ecjia_error('not_found_cart_goods', '购物车中还没有商品');
+		}
+		
+		if (count($get_cart_goods['goods_list']) != count($cart_id)) {
+		    return new ecjia_error('delivery_beyond_error', '有部分商品不在送货范围内！');
+		}
+		
+		/* 对是否允许修改购物车赋值 */
+		if ($flow_type != CART_GENERAL_GOODS || ecjia::config('one_step_buy') == '1') {
+		    $allow_edit_cart = 0 ;
+		} else {
+		    $allow_edit_cart = 1 ;
+		}
 
 		/* 获取用户收货地址*/
 		if ($address_id > 0) {
@@ -100,11 +122,12 @@ class checkOrder_module extends api_front implements api_interface {
 		
 		//检查该地址是否在该店铺配送范围内 
 		if (!empty($consignee)) {
-			$geohash = RC_Loader::load_app_class('geohash', 'store');
-			$geohash_code = $geohash->encode($consignee['latitude'], $consignee['longitude']);
+// 			$geohash = RC_Loader::load_app_class('geohash', 'store');
+// 			$geohash_code = $geohash->encode($consignee['latitude'], $consignee['longitude']);
 			
-			$geohash_store_code = $geohash->encode($location['latitude'], $location['longitude']);
-			$local = RC_Api::api('user', 'neighbors_address', array('geohash' => $geohash_code, 'geohash_store' => $geohash_store_code, 'city_id' => $consignee['city']));
+// 			$geohash_store_code = $geohash->encode($location['latitude'], $location['longitude']);
+// 			$local = RC_Api::api('user', 'neighbors_address', array('geohash' => $geohash_code, 'geohash_store' => $geohash_store_code, 'city_id' => $consignee['city']));
+		    $local = RC_Api::api('user', 'neighbors_address_store', array('address' => $consignee, 'store_id' => $get_cart_goods['goods_list'][0]['store_id']));
 			if (!$local) {
 				$consignee = array();
 			}
@@ -129,28 +152,6 @@ class checkOrder_module extends api_front implements api_interface {
 // 		if (empty($store_id_group)) {
 // 			$store_id_group = array(0);
 // 		}
-
-		/* 检查购物车中是否有商品 */
-// 		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $cart_id, 'flow_type' => $flow_type, 'store_group' => $store_id_group));
-		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $cart_id, 'flow_type' => $flow_type, 'store_group' => ''));
-		
-		if(is_ecjia_error($get_cart_goods)) {
-			return $get_cart_goods;
-		}
-		if (count($get_cart_goods['goods_list']) == 0) {
-			return new ecjia_error('not_found_cart_goods', '购物车中还没有商品');
-		}
-
-		if (count($get_cart_goods['goods_list']) != count($cart_id)) {
-			return new ecjia_error('delivery_beyond_error', '有部分商品不在送货范围内！');
-		}
-
-		/* 对是否允许修改购物车赋值 */
-		if ($flow_type != CART_GENERAL_GOODS || ecjia::config('one_step_buy') == '1') {
-			$allow_edit_cart = 0 ;
-		} else {
-			$allow_edit_cart = 1 ;
-		}
 
 		/* 取得订单信息*/
 		$order = cart::flow_order_info();
