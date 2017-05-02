@@ -112,19 +112,19 @@ class checkOrder_module extends api_front implements api_interface {
 		
 
 		/* 检查收货人信息是否完整 */
-		if (!cart::check_consignee_info($consignee, $flow_type)) {
+// 		if (!cart::check_consignee_info($consignee, $flow_type)) {
 			/* 如果不完整则转向到收货人信息填写界面 */
 // 			return new ecjia_error('pls_fill_in_consinee_info_', '请完善收货人信息！');
-		}
+// 		}
 
 		$store_id_group = array();
 		/* 根据经纬度查询附近店铺id*/
-		if (!empty($consignee['latitude']) && !empty($consignee['longitude'])) {
-			$geohash         = RC_Loader::load_app_class('geohash', 'store');
-			$geohash_code    = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
+// 		if (!empty($consignee['latitude']) && !empty($consignee['longitude'])) {
+// 			$geohash         = RC_Loader::load_app_class('geohash', 'store');
+// 			$geohash_code    = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
 // 			$geohash_code    = substr($geohash_code, 0, 5);
 // 			$store_id_group  = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code, 'city_id' => $consignee['city']));
-		}
+// 		}
 		
 // 		if (empty($store_id_group)) {
 // 			$store_id_group = array(0);
@@ -213,124 +213,129 @@ class checkOrder_module extends api_front implements api_interface {
 		} */
 		/* 计算订单的费用 */
 		$total = cart::order_fee($order, $cart_goods, $consignee, $cart_id);
-		/* 取得配送列表 */
-		$region            = array($consignee['country'], $consignee['province'], $consignee['city'], $consignee['district']);
-
-		$shipping_method   = RC_Loader::load_app_class('shipping_method', 'shipping');
-		$shipping_list     = $shipping_method->available_shipping_list($region, $order['store_id']);
-		$cart_weight_price = cart::cart_weight_price($flow_type, $cart_id);
-		$insure_disabled   = true;
-		$cod_disabled      = true;
-
-		$shipping_count_where[] = " (`extension_code` IS NULL or `extension_code` != 'package_buy') ";
-		if (!empty($cart_id)) {
-		    $shipping_count_where['rec_id'] = $cart_id;
-		}
-
-		$db_cart = RC_Model::model('cart/cart_model');
-		// 查看购物车中是否全为免运费商品，若是则把运费赋为零
-		if ($_SESSION['user_id']) {
-			$shipping_count_where['user_id'] = $_SESSION['user_id'];
+		if (!empty($consignee)) {
+		    /* 取得配送列表 */
+		    $region            = array($consignee['country'], $consignee['province'], $consignee['city'], $consignee['district']);
+		    
+		    $shipping_method   = RC_Loader::load_app_class('shipping_method', 'shipping');
+		    $shipping_list     = $shipping_method->available_shipping_list($region, $order['store_id']);
+		    $cart_weight_price = cart::cart_weight_price($flow_type, $cart_id);
+		    $insure_disabled   = true;
+		    $cod_disabled      = true;
+		    
+		    $shipping_count_where[] = " (`extension_code` IS NULL or `extension_code` != 'package_buy') ";
+		    if (!empty($cart_id)) {
+		        $shipping_count_where['rec_id'] = $cart_id;
+		    }
+		    
+		    $db_cart = RC_Model::model('cart/cart_model');
+		    // 查看购物车中是否全为免运费商品，若是则把运费赋为零
+		    if ($_SESSION['user_id']) {
+		        $shipping_count_where['user_id'] = $_SESSION['user_id'];
+		    } else {
+		        $shipping_count_where['user_id'] = SESS_ID;
+		    }
+		    $shipping_count       = $db_cart->where($shipping_count_where)->count();
+		    
+		    $ck = array();
+		    foreach ($shipping_list AS $key => $val) {
+		        if (isset($ck[$val['shipping_id']])) {
+		            unset($shipping_list[$key]);
+		            continue;
+		        }
+		        $ck[$val['shipping_id']] = $val['shipping_id'];
+		    
+		        $shipping_cfg = $shipping_method->unserialize_config($val['configure']);
+		    
+		        $shipping_list[$key]['free_money']          = price_format($shipping_cfg['free_money'], false);
+		        $shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : $shipping_method->shipping_fee($val['shipping_code'], unserialize($val['configure']),
+		            $cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
+		    
+		    
+		        $shipping_list[$key]['format_shipping_fee'] = price_format($shipping_fee, false);
+		        $shipping_list[$key]['shipping_fee']        = $shipping_fee;
+		        $shipping_list[$key]['free_money']          = price_format($shipping_cfg['free_money'], false);
+		        $shipping_list[$key]['insure_formated']     = strpos($val['insure'], '%') === false ? price_format($val['insure'], false) : $val['insure'];
+		    
+		        /* 当前的配送方式是否支持保价 */
+		        if ($val['shipping_id'] == $order['shipping_id']) {
+		            $insure_disabled = ($val['insure'] == 0);
+		            $cod_disabled    = ($val['support_cod'] == 0);
+		        }
+		    
+		        /* o2o*/
+		        if ($val['shipping_code'] == 'ship_o2o_express') {
+		            /* 获取最后可送的时间（当前时间+需提前下单时间）*/
+		            $time = RC_Time::local_date('H:i', RC_Time::gmtime() + $shipping_cfg['last_order_time'] * 60);
+		    
+		            if (empty($shipping_cfg['ship_time'])) {
+		                unset($shipping_list[$key]);
+		                continue;
+		            }
+		            $shipping_list[$key]['shipping_date'] = array();
+		            $ship_date = 0;
+		    
+		            while ($shipping_cfg['ship_days']) {
+		                foreach ($shipping_cfg['ship_time'] as $k => $v) {
+		    
+		                    if ($v['end'] > $time || $ship_date > 0) {
+		                        $shipping_list[$key]['shipping_date'][$ship_date]['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$ship_date.' day'));
+		                        $shipping_list[$key]['shipping_date'][$ship_date]['time'][] = array(
+		                            'start_time' 	=> $v['start'],
+		                            'end_time'		=> $v['end'],
+		                        );
+		                    }
+		                }
+		    
+		                $ship_date ++;
+		    
+		                if (count($shipping_list[$key]['shipping_date']) >= $shipping_cfg['ship_days']) {
+		                    break;
+		                }
+		            }
+		            $shipping_list[$key]['shipping_date'] = array_merge($shipping_list[$key]['shipping_date']);
+		    
+		        }
+		    }
+		    $shipping_list = array_values($shipping_list);
+		    
+		    $cod_fee    = 0;
+		    if ($order['shipping_id'] == 0) {
+		        $cod        = true;
+		        $cod_fee    = 0;
+		    } else {
+		        $shipping = $shipping_method->shipping_info($order['shipping_id']);
+		        $cod      = $shipping['support_cod'];
+		        if ($cod){
+		            /* 如果是团购，且保证金大于0，不能使用货到付款 */
+		            if ($flow_type == CART_GROUP_BUY_GOODS) {
+		                $group_buy_id = $_SESSION['extension_id'];
+		                if ($group_buy_id <= 0) {
+		                    return new ecjia_error('groupbuy_not_support_cod', '如果是团购，且保证金大于0，不能使用货到付款');
+		                }
+		                RC_Loader::load_app_func('admin_goods', 'goods');
+		                $group_buy = group_buy_info($group_buy_id);
+		                if (empty($group_buy)) {
+		                    return new ecjia_error( 'invalid_parameter', RC_Lang::get ('system::system.invalid_parameter' ));
+		                }
+		                if ($group_buy['deposit'] > 0) {
+		                    $cod = false;
+		                    $cod_fee = 0;
+		                    /* 赋值保证金 */
+		                    $gb_deposit = $group_buy['deposit'];
+		                }
+		            }
+		            if ($cod) {
+		                $shipping_area_info = $shipping_method->shipping_area_info($order['shipping_id'], $region, $order['store_id']);
+		                $cod_fee            = $shipping_area_info['pay_fee'];
+		            }
+		        }
+		    }
 		} else {
-			$shipping_count_where['user_id'] = SESS_ID;
+		    $shipping_list = array();
 		}
-		$shipping_count       = $db_cart->where($shipping_count_where)->count();
-
-		$ck = array();
-		foreach ($shipping_list AS $key => $val) {
-			if (isset($ck[$val['shipping_id']])) {
-				unset($shipping_list[$key]);
-				continue;
-			}
-			$ck[$val['shipping_id']] = $val['shipping_id'];
-
-			$shipping_cfg = $shipping_method->unserialize_config($val['configure']);
-
-			$shipping_list[$key]['free_money']          = price_format($shipping_cfg['free_money'], false);
-			$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : $shipping_method->shipping_fee($val['shipping_code'], unserialize($val['configure']),
-					$cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
-
-
-			$shipping_list[$key]['format_shipping_fee'] = price_format($shipping_fee, false);
-			$shipping_list[$key]['shipping_fee']        = $shipping_fee;
-			$shipping_list[$key]['free_money']          = price_format($shipping_cfg['free_money'], false);
-			$shipping_list[$key]['insure_formated']     = strpos($val['insure'], '%') === false ? price_format($val['insure'], false) : $val['insure'];
-
-			/* 当前的配送方式是否支持保价 */
-			if ($val['shipping_id'] == $order['shipping_id']) {
-				$insure_disabled = ($val['insure'] == 0);
-				$cod_disabled    = ($val['support_cod'] == 0);
-			}
-
-			/* o2o*/
-			if ($val['shipping_code'] == 'ship_o2o_express') {
-				/* 获取最后可送的时间（当前时间+需提前下单时间）*/
-				$time = RC_Time::local_date('H:i', RC_Time::gmtime() + $shipping_cfg['last_order_time'] * 60);
-
-				if (empty($shipping_cfg['ship_time'])) {
-					unset($shipping_list[$key]);
-					continue;
-				}
-				$shipping_list[$key]['shipping_date'] = array();
-				$ship_date = 0;
-
-				while ($shipping_cfg['ship_days']) {
-					foreach ($shipping_cfg['ship_time'] as $k => $v) {
-						
-						if ($v['end'] > $time || $ship_date > 0) {
-							$shipping_list[$key]['shipping_date'][$ship_date]['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$ship_date.' day'));
-							$shipping_list[$key]['shipping_date'][$ship_date]['time'][] = array(
-								'start_time' 	=> $v['start'],
-								'end_time'		=> $v['end'],
-							);
-						}
-					}
-
-					$ship_date ++;
-
-					if (count($shipping_list[$key]['shipping_date']) >= $shipping_cfg['ship_days']) {
-						break;
-					}
-				}
-				$shipping_list[$key]['shipping_date'] = array_merge($shipping_list[$key]['shipping_date']);
-
-			}
-		}
-		$shipping_list = array_values($shipping_list);
+		
 		/* 取得支付列表 */
-		$cod_fee    = 0;
-		if ($order['shipping_id'] == 0) {
-			$cod        = true;
-			$cod_fee    = 0;
-		} else {
-			$shipping = $shipping_method->shipping_info($order['shipping_id']);
-			$cod      = $shipping['support_cod'];
-			if ($cod){
- 				/* 如果是团购，且保证金大于0，不能使用货到付款 */
- 				if ($flow_type == CART_GROUP_BUY_GOODS) {
- 					$group_buy_id = $_SESSION['extension_id'];
- 					if ($group_buy_id <= 0) {
- 						return new ecjia_error('groupbuy_not_support_cod', '如果是团购，且保证金大于0，不能使用货到付款');
- 					}
- 					RC_Loader::load_app_func('admin_goods', 'goods');
- 					$group_buy = group_buy_info($group_buy_id);
- 					if (empty($group_buy)) {
- 						return new ecjia_error( 'invalid_parameter', RC_Lang::get ('system::system.invalid_parameter' ));
- 					}
- 					if ($group_buy['deposit'] > 0) {
- 						$cod = false;
- 						$cod_fee = 0;
- 						/* 赋值保证金 */
-						$gb_deposit = $group_buy['deposit'];
- 					}
- 				}
-				if ($cod) {
-					$shipping_area_info = $shipping_method->shipping_area_info($order['shipping_id'], $region, $order['store_id']);
-					$cod_fee            = $shipping_area_info['pay_fee'];
-				}
-			}
-		}
-
 		$payment_method = RC_Loader::load_app_class('payment_method', 'payment');
 
 		// 给货到付款的手续费加<span id>，以便改变配送的时候动态显示
