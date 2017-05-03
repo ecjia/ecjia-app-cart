@@ -357,12 +357,12 @@ class cart_flow_done_api extends Component_Event_Api {
 
 		/* 处理积分、红包 */
 		if ($order['user_id'] > 0 && $order['integral'] > 0) {
-			$options = array(
+			$params = array(
 				'user_id'		=> $order['user_id'],
 				'pay_points'	=> $order['integral'] * (- 1),
 				'change_desc'	=> sprintf(RC_Lang::get('cart::shopping_flow.pay_order'), $order['order_sn'])
 			);
-			$result = RC_Api::api('user', 'account_change_log', $options);
+			$result = RC_Api::api('user', 'account_change_log', $params);
 			if (is_ecjia_error($result)) {
 				return new ecjia_error('integral_error', '积分使用失败！');
 			}
@@ -403,12 +403,12 @@ class cart_flow_done_api extends Component_Event_Api {
 					$content = ecjia_front::$controller->fetch_string($tpl['template_content']);
 					$msg = $order['pay_status'] == PS_UNPAYED ? $content : $content.__('已付款');
 					
-					$options = array(
+					$params = array(
 							'mobile' 		=> $staff_user['mobile'],
 							'msg'			=> $msg,
 							'template_id' 	=> $tpl['template_id'],
 					);
-					$response = RC_Api::api('sms', 'sms_send', $options);
+					$response = RC_Api::api('sms', 'sms_send', $params);
 				}
 			}
 		}
@@ -463,13 +463,13 @@ class cart_flow_done_api extends Component_Event_Api {
 						$user = user_info($order['user_id']);
 						/* 计算并发放积分 */
 						$integral = integral_to_give($order);
-						$options = array(
+						$params = array(
 								'user_id' =>$order['user_id'],
 								'rank_points' => intval($integral['rank_points']),
 								'pay_points' => intval($integral['custom_points']),
 								'change_desc' =>sprintf(RC_Lang::get('orders::order.order_gift_integral'), $order['order_sn'])
 						);
-						$result = RC_Api::api('user', 'account_change_log', $options);
+						$result = RC_Api::api('user', 'account_change_log', $params);
 						if (is_ecjia_error($result)) {
                         	return $result;
 						}
