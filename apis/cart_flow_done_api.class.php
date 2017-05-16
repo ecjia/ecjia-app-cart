@@ -548,7 +548,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			$staff_user_ob = $orm_staff_user_db->find($staff_user['user_id']);
 			
 			$order_data = array(
-			    'title'	=> '客户下单-cart',
+			    'title'	=> '客户下单',
 			    'body'	=> '您有一笔新订单，订单号为：'.$order['order_sn'],
 			    'data'	=> array(
 			        'order_id'		         => $order['order_id'],
