@@ -410,13 +410,16 @@ class cart_flow_done_api extends Component_Event_Api {
 // 					);
 // 					$response = RC_Api::api('sms', 'sms_send', $params);
 // 				}
+// 			'有客户下单啦！快去看看吧！订单编号：${order_sn}，收货人：${consignee}，联系电话：${mobile}，订单金额：${order_amount}。
 				
 				$options = array(
 					'mobile' => $staff_user['mobile'],
 					'event'	 => 'sms_order_placed',
 					'value'  =>array(
+						'order_sn'		=> $order['order_sn'],
 						'consignee' 	=> $order['consignee'],
-						'order_mobile'  => $order['mobile'],
+						'mobile'  		=> $order['mobile'],
+						'order_amount'  => $order['order_amount'],
 						'service_phone' => ecjia::config('service_phone'),
 					),
 				);
