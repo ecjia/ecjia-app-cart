@@ -65,6 +65,8 @@ class cart_flow_done_api extends Component_Event_Api {
 		$order = $options['order'];
 
 		$cart_id_array = $options['cart_id'];
+		$flow_type = $options['flow_type'];
+		
 		/* 获取用户收货地址*/
 		if ($options['address_id'] == 0) {
 			$consignee = cart::get_consignee($_SESSION['user_id']);
@@ -497,7 +499,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		}
 
 		/* 清空购物车 */
-		cart::clear_cart($options['flow_type'], $cart_id_array);
+		cart::clear_cart($flow_type, $cart_id_array);
 
 		/* 插入支付日志 */
 		$order['log_id'] = $payment_method->insert_pay_log($new_order_id, $order['order_amount'], PAY_ORDER);
