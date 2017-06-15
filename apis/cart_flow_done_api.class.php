@@ -60,6 +60,8 @@ class cart_flow_done_api extends Component_Event_Api {
      */
 	public function call(&$options) {
 
+		RC_Logger::getLogger('info')->info(array('options' => $options));
+		
 		RC_Loader::load_app_class('cart', 'cart', false);
 
 		$order = $options['order'];
@@ -495,6 +497,8 @@ class cart_flow_done_api extends Component_Event_Api {
 			$result = ecjia_app::validate_application('sms');
 		}
 
+		RC_Logger::getLogger('info')->info(array('clear_cart_option' => $options['cart_id']));
+		
 		/* 清空购物车 */
 		cart::clear_cart($options['flow_type'], $options['cart_id']);
 
