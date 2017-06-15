@@ -60,12 +60,11 @@ class cart_flow_done_api extends Component_Event_Api {
      */
 	public function call(&$options) {
 
-		RC_Logger::getLogger('info')->info(array('options' => $options));
-		
 		RC_Loader::load_app_class('cart', 'cart', false);
 
 		$order = $options['order'];
 
+		$cart_id_array = $options['cart_id'];
 		/* 获取用户收货地址*/
 		if ($options['address_id'] == 0) {
 			$consignee = cart::get_consignee($_SESSION['user_id']);
@@ -497,10 +496,8 @@ class cart_flow_done_api extends Component_Event_Api {
 			$result = ecjia_app::validate_application('sms');
 		}
 
-		RC_Logger::getLogger('info')->info(array('clear_cart_option' => $options['cart_id']));
-		
 		/* 清空购物车 */
-		cart::clear_cart($options['flow_type'], $options['cart_id']);
+		cart::clear_cart($options['flow_type'], $cart_id_array);
 
 		/* 插入支付日志 */
 		$order['log_id'] = $payment_method->insert_pay_log($new_order_id, $order['order_amount'], PAY_ORDER);
