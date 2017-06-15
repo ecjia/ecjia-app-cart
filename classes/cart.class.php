@@ -1400,6 +1400,8 @@ class cart {
 			$cart_w['rec_id'] = $cart_id;
 		}
 
+		RC_Logger::getLogger('info')->info(array('cart_w' => $cart_w));
+		
 // 		if (defined('SESS_ID')) {
 // 			$cart_w['session_id'] = SESS_ID;
 // 		}
