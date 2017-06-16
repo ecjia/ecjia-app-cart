@@ -70,7 +70,9 @@ class done_module extends api_front implements api_interface {
     	if (!empty($rec_id)) {
     		$cart_id = explode(',', $rec_id);
     	}
-    	
+    	if (empty($cart_id)) {
+    		return new ecjia_error( 'invalid_parameter', RC_Lang::get ('system::system.invalid_parameter'));
+    	}
     	$location		= $this->requestData('location',array());
     	//TODO:目前强制坐标
 //     	$location = array(
