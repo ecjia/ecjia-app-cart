@@ -361,8 +361,7 @@ class cart {
 		if (self::exist_real_goods(0, $flow_type)) {
 			/* 如果存在实体商品 */
 			$res = !empty($consignee['consignee']) &&
-			!empty($consignee['country']);
-
+			isset($consignee['country']);
 			if ($res) {
 				if (empty($consignee['province'])) {
 					/* 没有设置省份，检查当前国家下面有没有设置省份 */
