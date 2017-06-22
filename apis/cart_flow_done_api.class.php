@@ -421,7 +421,7 @@ class cart_flow_done_api extends Component_Event_Api {
 					'value'  =>array(
 						'order_sn'		=> $order['order_sn'],
 						'consignee' 	=> $order['consignee'],
-						'mobile'  		=> $order['mobile'],
+						'telphone'  	=> $order['mobile'],
 						'order_amount'  => $order['order_amount'],
 						'service_phone' => ecjia::config('service_phone'),
 					),
