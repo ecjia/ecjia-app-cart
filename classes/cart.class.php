@@ -597,6 +597,9 @@ class cart {
 			/* 查税率 */
 			$rate = 0;
 			$invoice_type = ecjia::config('invoice_type');
+			if ($invoice_type) {
+			    $invoice_type = unserialize($invoice_type);
+			}
 			foreach ($invoice_type['type'] as $key => $type) {
 				if ($type == $order['inv_type']) {
 					$rate_str = $invoice_type['rate'];
