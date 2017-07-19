@@ -336,16 +336,17 @@ class checkOrder_module extends api_front implements api_interface {
 		}
 		
 		/* 取得支付列表 */
-		$payment_method = RC_Loader::load_app_class('payment_method', 'payment');
+// 		$payment_method = RC_Loader::load_app_class('payment_method', 'payment');
 
-		// 给货到付款的手续费加<span id>，以便改变配送的时候动态显示
-		$store_info = RC_DB::table('store_franchisee')->where('store_id', $order['store_id'])->first();
-		if ($store_info['manage_mode'] == 'self') {
-			$payment_list = $payment_method->available_payment_list(1, $cod_fee);
-		} else {
-			$payment_list = $payment_method->available_payment_list(false, $cod_fee);
-		}
-
+// 		// 给货到付款的手续费加<span id>，以便改变配送的时候动态显示
+// 		$store_info = RC_DB::table('store_franchisee')->where('store_id', $order['store_id'])->first();
+// 		if ($store_info['manage_mode'] == 'self') {
+// 			$payment_list = $payment_method->available_payment_list(1, $cod_fee);
+// 		} else {
+// 			$payment_list = $payment_method->available_payment_list(false, $cod_fee);
+// 		}
+		
+		$payment_list = RC_Api::api('payment', 'available_payments', array('store_id' => $order['store_id'], 'cod_fee' => $cod_fee));
 
 		$user_info = RC_Api::api('user', 'user_info', array('user_id' => $_SESSION['user_id']));
 		/* 保存 session */
@@ -355,7 +356,7 @@ class checkOrder_module extends api_front implements api_interface {
 		$out['goods_list']		= $cart_goods;//商品
 		$out['consignee']		= $consignee;//收货地址
 		$out['shipping_list']	= $shipping_list;//快递信息
-		$out['payment_list']	= $payment_list;
+		$out['payment_list']	= $payment_list;//支付信息
 
 		/* 如果使用积分，取得用户可用积分及本订单最多可以使用的积分 */
 		if ((ecjia_config::has('use_integral') || ecjia::config('use_integral') == '1')
