@@ -59,6 +59,7 @@ class done_module extends api_front implements api_interface {
          * inv_type 4 //发票类型
          * inv_payee 发票抬头
          * inv_content 发票内容
+         * inv_tax_no 发票纳税人识别码
          */
     	
     	$this->authSession();
@@ -84,6 +85,10 @@ class done_module extends api_front implements api_interface {
     	
     	/* 获取收货信息*/
     	$address_id = $this->requestData('address_id', 0);
+    	//发票抬头
+    	$inv_payee = trim($this->requestData('inv_payee', ''));
+    	//发票纳税人识别码
+    	$inv_tax_no = trim($this->requestData('inv_tax_no', ''));
     	
     	$order = array(
     		'shipping_id'   => $this->requestData('shipping_id' ,0),
@@ -96,7 +101,7 @@ class done_module extends api_front implements api_interface {
     		'bonus_id'     	=> $this->requestData('bonus', 0),
     		'need_inv'     	=> $this->requestData('need_inv', 0),
     		'inv_type'     	=> $this->requestData('inv_type', ''),
-    		'inv_payee'    	=> $this->requestData('inv_payee', ''),
+    		'inv_payee'    	=> $inv_payee,
     		'inv_content'   => $this->requestData('inv_content', ''),
     		'postscript'    => $this->requestData('postscript', ''),
     		'need_insure'   => $this->requestData('need_insure', 0),
@@ -115,7 +120,12 @@ class done_module extends api_front implements api_interface {
     		'agency_id'		=> 0,
     		'expect_shipping_time' =>  $this->requestData('expect_shipping_time', ''),
     	);
-    	 
+    	
+    	//如果有传发票识别码，发票识别码存储在inv_payee（发票抬头）字段中；格式为发票抬头 + ，发票纳税人识别码；如：（企业，789654321456987124）。
+    	if (!empty($inv_tax_no)) {
+    		$order['inv_payee'] = $inv_payee.'，'.$inv_tax_no;
+    	}
+    	
     	$result = RC_Api::api('cart', 'flow_done', array('cart_id' => $cart_id, 'order' => $order, 'address_id' => $address_id, 'flow_type' => $flow_type, 'bonus_sn' => $this->requestData('bonus_sn'), 'location' => $location, 'device' => $this->device));
     	
     	return $result;
