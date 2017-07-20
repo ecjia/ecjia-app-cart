@@ -213,6 +213,7 @@ class checkOrder_module extends api_front implements api_interface {
 			$favour_name = empty($discount['name']) ? '' : join(',', $discount['name']);
 		} */
 		/* 计算订单的费用 */
+		$cod_fee    = 0;
 		$total = cart::order_fee($order, $cart_goods, $consignee, $cart_id);
 		if (!empty($consignee)) {
 		    /* 取得配送列表 */
@@ -299,7 +300,7 @@ class checkOrder_module extends api_front implements api_interface {
 		    }
 		    $shipping_list = array_values($shipping_list);
 		    
-		    $cod_fee    = 0;
+		    
 		    if ($order['shipping_id'] == 0) {
 		        $cod        = true;
 		        $cod_fee    = 0;
@@ -345,7 +346,7 @@ class checkOrder_module extends api_front implements api_interface {
 // 		} else {
 // 			$payment_list = $payment_method->available_payment_list(false, $cod_fee);
 // 		}
-		
+
 		$payment_list = RC_Api::api('payment', 'available_payments', array('store_id' => $order['store_id'], 'cod_fee' => $cod_fee));
 
 		$user_info = RC_Api::api('user', 'user_info', array('user_id' => $_SESSION['user_id']));
