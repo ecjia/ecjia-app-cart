@@ -348,7 +348,16 @@ class checkOrder_module extends api_front implements api_interface {
 // 		}
 
 		$payment_list = RC_Api::api('payment', 'available_payments', array('store_id' => $order['store_id'], 'cod_fee' => $cod_fee));
-
+		$payment_list = collect($payment_list)->mapWithKeys(function ($item) use ($order) {
+		    if ($item['pay_id'] == $order['pay_id']) {
+		        return array();
+		    }
+		
+		    $item['pay_name'] = strip_tags($item['pay_name']);
+		    return array($item);
+		})->all();
+		
+		
 		$user_info = RC_Api::api('user', 'user_info', array('user_id' => $_SESSION['user_id']));
 		/* 保存 session */
 		$_SESSION['flow_order'] = $order;
@@ -519,26 +528,26 @@ class checkOrder_module extends api_front implements api_interface {
 			}
 		}
 		
-		$device		 = $this->device;
-		$device_code = $device['code'];
-		if (!empty($out['payment_list'])) {
-			foreach ($out['payment_list'] as $key => $value) {
-				if ($device_code != '8001') {
-					if ($value['pay_code'] == 'pay_koolyun' || $value['pay_code'] == 'pay_cash') {
-						unset($out['payment_list'][$key]);
-						continue;
-					}
-				}
-				unset($out['payment_list'][$key]['pay_config']);
-				unset($out['payment_list'][$key]['pay_desc']);
-				$out['payment_list'][$key]['pay_name'] = strip_tags($value['pay_name']);
-				// cod 货到付款，alipay支付宝，bank银行转账
-				if (in_array($value['pay_code'], array('post', 'balance'))) {
-					unset($out['payment_list'][$key]);
-				}
-			}
-			$out['payment_list'] = array_values($out['payment_list']);
-		}
+// 		$device		 = $this->device;
+// 		$device_code = $device['code'];
+// 		if (!empty($out['payment_list'])) {
+// 			foreach ($out['payment_list'] as $key => $value) {
+// 				if ($device_code != '8001') {
+// 					if ($value['pay_code'] == 'pay_koolyun' || $value['pay_code'] == 'pay_cash') {
+// 						unset($out['payment_list'][$key]);
+// 						continue;
+// 					}
+// 				}
+// 				unset($out['payment_list'][$key]['pay_config']);
+// 				unset($out['payment_list'][$key]['pay_desc']);
+// 				$out['payment_list'][$key]['pay_name'] = strip_tags($value['pay_name']);
+// 				// cod 货到付款，alipay支付宝，bank银行转账
+// 				if (in_array($value['pay_code'], array('post', 'balance'))) {
+// 					unset($out['payment_list'][$key]);
+// 				}
+// 			}
+// 			$out['payment_list'] = array_values($out['payment_list']);
+// 		}
 		return $out;
 	}
 }
