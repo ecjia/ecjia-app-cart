@@ -348,11 +348,6 @@ class checkOrder_module extends api_front implements api_interface {
 // 		}
 
 		$payment_list = RC_Api::api('payment', 'available_payments', array('store_id' => $order['store_id'], 'cod_fee' => $cod_fee));
-		$payment_list = collect($payment_list)->mapWithKeys(function ($item) use ($order) {
-		    $item['pay_name'] = strip_tags($item['pay_name']);
-		    return array($item);
-		})->all();
-		
 		
 		$user_info = RC_Api::api('user', 'user_info', array('user_id' => $_SESSION['user_id']));
 		/* 保存 session */
