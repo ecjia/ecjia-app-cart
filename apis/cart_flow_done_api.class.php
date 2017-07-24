@@ -394,7 +394,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		if (!is_ecjia_error($result)) {
 			/* 如果需要，发短信 */
 			$staff_user = RC_DB::table('staff_user')->where('store_id', $order['store_id'])->where('parent_id', 0)->first();
-			if (ecjia::config('sms_order_placed')== '1' && !empty($staff_user['mobile'])) {
+			if (!empty($staff_user['mobile'])) {
 				//发送短信
 // 				$tpl_name = 'order_placed_sms';
 // 				$tpl   = RC_Api::api('sms', 'sms_template', $tpl_name);
