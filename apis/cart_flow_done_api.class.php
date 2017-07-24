@@ -312,7 +312,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			$inv_data = array(
 					'user_id' 			=> $_SESSION['user_id'],
 					'title_name' 		=> $order['inv_payee'],
-					'title_type' 		=> $order['inv_title_type'],
+					'title_type' 		=> $inv_title_type,
 					'user_mobile' 		=> $order['mobile'],
 					'tax_register_no'	=> $inv_tax_no,
 					'user_address'		=> $order['address'],
