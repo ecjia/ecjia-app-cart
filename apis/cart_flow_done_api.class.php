@@ -283,7 +283,10 @@ class cart_flow_done_api extends Component_Event_Api {
 
 		$parent_id = 0;
 		$order['parent_id'] = $parent_id;
-
+		/*发票识别码和抬头类型*/
+		$inv_tax_no = $order['inv_tax_no'];
+		$inv_title_type = $order['inv_title_type'];
+		
 		/* 插入订单表 */
 		$order['order_sn'] = cart::get_order_sn(); // 获取新订单号
 		//$db_order_info	= RC_Model::model('orders/order_info_model');
@@ -298,10 +301,28 @@ class cart_flow_done_api extends Component_Event_Api {
 		unset($order['latitude']);
 		unset($order['address_info']);
 		unset($order['cod_fee']);
+		unset($order['inv_tax_no']);
+		unset($order['inv_title_type']);
 		
 		$new_order_id	= $db_order_info->insertGetId($order);
 		$order['order_id'] = $new_order_id;
-
+		
+		if (!empty($inv_title_type)) {
+			/*插入财务发票表*/
+			$inv_data = array(
+					'user_id' 			=> $_SESSION['user_id'],
+					'title_name' 		=> $order['inv_payee'],
+					'title_type' 		=> $order['inv_title_type'],
+					'user_mobile' 		=> $order['mobile'],
+					'tax_register_no'	=> $inv_tax_no,
+					'user_address'		=> $order['address'],
+					'add_time'			=> RC_Time::gmtime(),
+					'is_default'		=> 1,
+					'status'		    => 0,
+			);
+			RC_DB::table('finance_invoice')->insert($inv_data);
+		}
+		
 		/* 插入订单商品 */
 		//$db_order_goods = RC_Model::model('orders/order_goods_model');
 		//$db_goods_activity = RC_Model::model('goods/goods_activity_model');
