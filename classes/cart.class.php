@@ -736,6 +736,12 @@ class cart {
 		$order['integral'] = $order['integral'] > 0 ? $order['integral'] : 0;
 		if ($total['amount'] > 0 && $max_amount > 0 && $order['integral'] > 0) {
 			$integral_money = self::value_of_integral($order['integral']);
+			/*amount小于积分价值时*/
+			$scale = floatval(ecjia::config('integral_scale'));
+			if ($integral_money > $total['amount']) {
+				$integral_money = $total['amount']*100*$scale;
+			}
+			
 			// 使用积分支付
 			$use_integral            = min($total['amount'], $max_amount, $integral_money); // 实际使用积分支付的金额
 			$total['amount']        -= $use_integral;
