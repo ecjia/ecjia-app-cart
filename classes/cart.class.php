@@ -469,7 +469,7 @@ class cart {
 		
 		$val_min = min($data, $total_goods_price);
 		
-		if ($val_min < 0) {
+		if ($val_min < 1 && $val_min > 0) {
 			$val = $val_min;
 		} else {
 			$val = intval($val_min);
