@@ -99,8 +99,8 @@ class done_module extends api_front implements api_interface {
     			if (empty($inv_tax_no) || empty($inv_payee)) {
     				return new ecjia_error('invoice_error', '发票抬头和识别码都不能为空！');
     			}
-    			//如果有传发票识别码，发票识别码存储在inv_payee（发票抬头）字段中；格式为发票抬头 + ，发票纳税人识别码；如：（企业，789654321456987124）。
-		    	$inv_payee_last = $inv_payee.'，'.$inv_tax_no;
+    			//如果有传发票识别码，发票识别码存储在inv_payee（发票抬头）字段中；格式为发票抬头 + ,发票纳税人识别码；如：（企业,789654321456987124）。
+		    	$inv_payee_last = $inv_payee.','.$inv_tax_no;
     		}
     	}
     	
@@ -121,7 +121,7 @@ class done_module extends api_front implements api_interface {
     		'need_insure'   => $this->requestData('need_insure', 0),
     		'user_id'      	=> $_SESSION['user_id'],
     		'add_time'     	=> RC_Time::gmtime(),
-    		'inv_tax_no'	=> $this->requestData('inv_tax_no' ,''),
+    		'inv_tax_no'	=> $this->requestData('inv_tax_no', ''),
     		'inv_title_type'=> $inv_title_type, 	
     		'order_status'  	=> OS_UNCONFIRMED,
     		'shipping_status' 	=> SS_UNSHIPPED,

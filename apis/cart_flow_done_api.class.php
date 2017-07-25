@@ -308,19 +308,30 @@ class cart_flow_done_api extends Component_Event_Api {
 		$order['order_id'] = $new_order_id;
 		
 		if (!empty($inv_title_type)) {
-			/*插入财务发票表*/
-			$inv_data = array(
-					'user_id' 			=> $_SESSION['user_id'],
-					'title_name' 		=> $order['inv_payee'],
-					'title_type' 		=> $inv_title_type,
-					'user_mobile' 		=> $order['mobile'],
-					'tax_register_no'	=> $inv_tax_no,
-					'user_address'		=> $order['address'],
-					'add_time'			=> RC_Time::gmtime(),
-					'is_default'		=> 1,
-					'status'		    => 0,
-			);
-			RC_DB::table('finance_invoice')->insert($inv_data);
+			if ($inv_title_type == 'personal') {
+				$inv_title_type_new = 'PERSONAL';
+			} elseif ($inv_title_type == 'enterprise') {
+				$inv_title_type_new = 'CORPORATION';
+				$inv_payee = explode(',', $order['inv_payee']);
+				$order['inv_payee'] = $inv_payee['0'];
+			}
+			
+			$finance_invoice_info = RC_DB::table('finance_invoice')->where('title_type', $inv_title_type_new)->where('user_id', $_SESSION['user_id'])->where('tax_register_no', $inv_tax_no)->first();
+			if (empty($finance_invoice_info)) {
+				/*插入财务发票表*/
+				$inv_data = array(
+						'user_id' 			=> $_SESSION['user_id'],
+						'title_name' 		=> $order['inv_payee'],
+						'title_type' 		=> $inv_title_type_new,
+						'user_mobile' 		=> $order['mobile'],
+						'tax_register_no'	=> $inv_tax_no,
+						'user_address'		=> $order['address'],
+						'add_time'			=> RC_Time::gmtime(),
+						'is_default'		=> 1,
+						'status'		    => 0,
+				);
+				RC_DB::table('finance_invoice')->insert($inv_data);
+			}
 		}
 		
 		/* 插入订单商品 */
