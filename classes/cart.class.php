@@ -68,6 +68,7 @@ class cart {
 		RC_Loader::load_app_func('admin_order', 'orders');
 		RC_Loader::load_app_func('global', 'goods');
 		/* 处理 */
+		
 		foreach ($arr AS $key => $val) {
 			$val = intval(make_semiangle($val));
 			if ($val <= 0 || !is_numeric($key)) {
@@ -80,7 +81,6 @@ class cart {
 // 				$cart_w['session_id'] = SESS_ID;
 // 			}
 			$goods = $db_cart->field(array('goods_id', 'goods_attr_id', 'product_id', 'extension_code'))->find($cart_w);
-
 
 			$row   = $dbview->join('cart')->find(array('c.rec_id' => $key));
 			//查询：系统启用了库存，检查输入的商品数量是否有效
@@ -139,7 +139,10 @@ class cart {
 				}  else {
 					/* 处理普通商品或非优惠的配件 */
 					$attr_id    = empty($goods['goods_attr_id']) ? array() : explode(',', $goods['goods_attr_id']);
-					$goods_price = self::get_final_price($goods['goods_id'], $val, true, $attr_id);
+					
+					//$goods_price = self::get_final_price($goods['goods_id'], $val, true, $attr_id);
+					RC_Loader::load_app_class('goods_info', 'goods', false);
+					$goods_price = goods_info::get_final_price($goods['goods_id'], $val, true, $attr_id);
 
 					$db_cart->where(array('rec_id' => $key , 'user_id' => $_SESSION['user_id'] ))->update(array('goods_number' => $val , 'goods_price' => $goods_price));
 
