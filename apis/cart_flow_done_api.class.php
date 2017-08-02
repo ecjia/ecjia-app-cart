@@ -422,45 +422,24 @@ class cart_flow_done_api extends Component_Event_Api {
 			RC_Mail::send_mail(ecjia::config('shop_name'), ecjia::config('service_email'), $tpl['template_subject'], $content, $tpl['is_html']);
 		}
 
-		$result = ecjia_app::validate_application('sms');
-		if (!is_ecjia_error($result)) {
-			/* 如果需要，发短信 */
-			$staff_user = RC_DB::table('staff_user')->where('store_id', $order['store_id'])->where('parent_id', 0)->first();
-			if (!empty($staff_user['mobile'])) {
-				//发送短信
-// 				$tpl_name = 'order_placed_sms';
-// 				$tpl   = RC_Api::api('sms', 'sms_template', $tpl_name);
-// 				if (!empty($tpl)) {
-// 					ecjia_front::$controller->assign('order',	$order);
-// 					ecjia_front::$controller->assign('consignee', $order['consignee']);
-// 					ecjia_front::$controller->assign('mobile',	$order['mobile']);
-					
-// 					$content = ecjia_front::$controller->fetch_string($tpl['template_content']);
-// 					$msg = $order['pay_status'] == PS_UNPAYED ? $content : $content.__('已付款');
-					
-// 					$params = array(
-// 							'mobile' 		=> $staff_user['mobile'],
-// 							'msg'			=> $msg,
-// 							'template_id' 	=> $tpl['template_id'],
-// 					);
-// 					$response = RC_Api::api('sms', 'sms_send', $params);
-// 				}
-// 			'有客户下单啦！快去看看吧！订单编号：${order_sn}，收货人：${consignee}，联系电话：${mobile}，订单金额：${order_amount}。
-				
-				$options = array(
-					'mobile' => $staff_user['mobile'],
-					'event'	 => 'sms_order_placed',
-					'value'  =>array(
-						'order_sn'		=> $order['order_sn'],
-						'consignee' 	=> $order['consignee'],
-						'telephone'  	=> $order['mobile'],
-						'order_amount'  => $order['order_amount'],
-						'service_phone' => ecjia::config('service_phone'),
-					),
-				);
-				$response = RC_Api::api('sms', 'send_event_sms', $options);
-			}
+		/* 如果需要，发短信 */
+		$staff_user = RC_DB::table('staff_user')->where('store_id', $order['store_id'])->where('parent_id', 0)->first();
+		if (!empty($staff_user['mobile'])) {
+		    //发送短信
+		    $options = array(
+		        'mobile' => $staff_user['mobile'],
+		        'event'	 => 'sms_order_placed',
+		        'value'  =>array(
+		            'order_sn'		=> $order['order_sn'],
+		            'consignee' 	=> $order['consignee'],
+		            'telephone'  	=> $order['mobile'],
+		            'order_amount'  => $order['order_amount'],
+		            'service_phone' => ecjia::config('service_phone'),
+		        ),
+		    );
+		    $response = RC_Api::api('sms', 'send_event_sms', $options);
 		}
+		
 		/* 如果订单金额为0 处理虚拟卡 */
 		if ($order['order_amount'] <= 0) {
 			$rec_type = $options['flow_type'];
