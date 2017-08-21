@@ -286,7 +286,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		/*发票识别码和抬头类型*/
 		$inv_tax_no = $order['inv_tax_no'];
 		$inv_title_type = $order['inv_title_type'];
-		
+
 		/* 插入订单表 */
 		$order['order_sn'] = cart::get_order_sn(); // 获取新订单号
 		//$db_order_info	= RC_Model::model('orders/order_info_model');
@@ -304,6 +304,13 @@ class cart_flow_done_api extends Component_Event_Api {
 		unset($order['inv_tax_no']);
 		unset($order['inv_title_type']);
 		
+		if (!empty($order['inv_payee'])) {
+			$inv_payee = explode(',', $order['inv_payee']);
+			$order['inv_payee'] = $inv_payee['0'];
+		} else {
+			$order['inv_payee'] = '';
+		}
+		
 		$new_order_id	= $db_order_info->insertGetId($order);
 		$order['order_id'] = $new_order_id;
 		
@@ -312,23 +319,20 @@ class cart_flow_done_api extends Component_Event_Api {
 				$inv_title_type_new = 'PERSONAL';
 			} elseif ($inv_title_type == 'enterprise') {
 				$inv_title_type_new = 'CORPORATION';
-				$inv_payee = explode(',', $order['inv_payee']);
-				$order['inv_payee'] = $inv_payee['0'];
 			}
-			
 			$finance_invoice_info = RC_DB::table('finance_invoice')->where('title_type', $inv_title_type_new)->where('user_id', $_SESSION['user_id'])->where('tax_register_no', $inv_tax_no)->first();
 			if (empty($finance_invoice_info)) {
 				/*插入财务发票表*/
 				$inv_data = array(
-						'user_id' 			=> $_SESSION['user_id'],
-						'title_name' 		=> $order['inv_payee'],
-						'title_type' 		=> $inv_title_type_new,
-						'user_mobile' 		=> $order['mobile'],
-						'tax_register_no'	=> $inv_tax_no,
-						'user_address'		=> $order['address'],
-						'add_time'			=> RC_Time::gmtime(),
-						'is_default'		=> 1,
-						'status'		    => 0,
+					'user_id' 			=> $_SESSION['user_id'],
+					'title_name' 		=> $order['inv_payee'],
+					'title_type' 		=> $inv_title_type_new,
+					'user_mobile' 		=> $order['mobile'],
+					'tax_register_no'	=> $inv_tax_no,
+					'user_address'		=> $order['address'],
+					'add_time'			=> RC_Time::gmtime(),
+					'is_default'		=> 1,
+					'status'		    => 0,
 				);
 				RC_DB::table('finance_invoice')->insert($inv_data);
 			}
@@ -410,34 +414,42 @@ class cart_flow_done_api extends Component_Event_Api {
 		/* 给商家发邮件 */
 		/* 增加是否给客服发送邮件选项 */
 		if (ecjia::config('send_service_email') && ecjia::config('service_email') != '') {
-			$tpl_name = 'remind_of_new_order';
-			$tpl   = RC_Api::api('mail', 'mail_template', $tpl_name);
-
-			ecjia_front::$controller->assign('order', $order);
-			ecjia_front::$controller->assign('goods_list', $cart_goods);
-			ecjia_front::$controller->assign('shop_name', ecjia::config('shop_name'));
-			ecjia_front::$controller->assign('send_date', date(ecjia::config('time_format')));
-
-			$content = ecjia_front::$controller->fetch_string($tpl['template_content']);
-			RC_Mail::send_mail(ecjia::config('shop_name'), ecjia::config('service_email'), $tpl['template_subject'], $content, $tpl['is_html']);
+			try {
+				$tpl_name = 'remind_of_new_order';
+				$tpl   = RC_Api::api('mail', 'mail_template', $tpl_name);
+	
+				ecjia_front::$controller->assign('order', $order);
+				ecjia_front::$controller->assign('goods_list', $cart_goods);
+				ecjia_front::$controller->assign('shop_name', ecjia::config('shop_name'));
+				ecjia_front::$controller->assign('send_date', date(ecjia::config('time_format')));
+	
+				$content = ecjia_front::$controller->fetch_string($tpl['template_content']);
+				RC_Mail::send_mail(ecjia::config('shop_name'), ecjia::config('service_email'), $tpl['template_subject'], $content, $tpl['is_html']);
+			} catch (PDOException $e) {
+				RC_Logger::getLogger('info')->error($e);
+			}
 		}
 
 		/* 如果需要，发短信 */
 		$staff_user = RC_DB::table('staff_user')->where('store_id', $order['store_id'])->where('parent_id', 0)->first();
 		if (!empty($staff_user['mobile'])) {
-		    //发送短信
-		    $options = array(
-		        'mobile' => $staff_user['mobile'],
-		        'event'	 => 'sms_order_placed',
-		        'value'  =>array(
-		            'order_sn'		=> $order['order_sn'],
-		            'consignee' 	=> $order['consignee'],
-		            'telephone'  	=> $order['mobile'],
-		            'order_amount'  => $order['order_amount'],
-		            'service_phone' => ecjia::config('service_phone'),
-		        ),
-		    );
-		    RC_Api::api('sms', 'send_event_sms', $options);
+			try {
+			    //发送短信
+			    $options = array(
+			        'mobile' => $staff_user['mobile'],
+			        'event'	 => 'sms_order_placed',
+			        'value'  =>array(
+			            'order_sn'		=> $order['order_sn'],
+			            'consignee' 	=> $order['consignee'],
+			            'telephone'  	=> $order['mobile'],
+			            'order_amount'  => $order['order_amount'],
+			            'service_phone' => ecjia::config('service_phone'),
+			        ),
+			    );
+			    RC_Api::api('sms', 'send_event_sms', $options);
+		    } catch (PDOException $e) {
+		    	RC_Logger::getLogger('info')->error($e);
+		    }
 		}
 		
 		/* 如果订单金额为0 处理虚拟卡 */
@@ -593,25 +605,27 @@ class cart_flow_done_api extends Component_Event_Api {
 // 			$push_order_placed = new OrderPlaced($order_data);
 // 			RC_Notification::send($staff_user_ob, $push_order_placed);
 
-			
-			
-			//新的推送消息方法
-			$options = array(
-				'user_id'   => $staff_user['user_id'],
-				'user_type' => 'merchant',
-				'event'     => 'order_placed',
-				'value' => array(
-					'order_sn'     => $order['order_sn'],
-					'consignee'    => $order['consignee'],
-					'telephone'    => $order['mobile'],
-					'order_amount' => $order['order_amount'],
-					'service_phone'=> ecjia::config('service_phone'),
-				),
-				'field' => array(
-					'open_type' => 'admin_message',
-				),
-			);
-			RC_Api::api('push', 'push_event_send', $options);
+			try {
+				//新的推送消息方法
+				$options = array(
+					'user_id'   => $staff_user['user_id'],
+					'user_type' => 'merchant',
+					'event'     => 'order_placed',
+					'value' => array(
+						'order_sn'     => $order['order_sn'],
+						'consignee'    => $order['consignee'],
+						'telephone'    => $order['mobile'],
+						'order_amount' => $order['order_amount'],
+						'service_phone'=> ecjia::config('service_phone'),
+					),
+					'field' => array(
+						'open_type' => 'admin_message',
+					),
+				);
+				RC_Api::api('push', 'push_event_send', $options);
+			} catch (PDOException $e) {
+				RC_Logger::getLogger('info')->error($e);
+			}
 		}
 		
 // 		if (!is_ecjia_error($devic_info) && !empty($devic_info)) {
