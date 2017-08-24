@@ -304,15 +304,16 @@ class cart_flow_done_api extends Component_Event_Api {
 		unset($order['inv_tax_no']);
 		unset($order['inv_title_type']);
 		
+		
+		$new_order_id	= $db_order_info->insertGetId($order);
+		$order['order_id'] = $new_order_id;
+		
 		if (!empty($order['inv_payee'])) {
 			$inv_payee = explode(',', $order['inv_payee']);
 			$order['inv_payee'] = $inv_payee['0'];
 		} else {
 			$order['inv_payee'] = '';
 		}
-		
-		$new_order_id	= $db_order_info->insertGetId($order);
-		$order['order_id'] = $new_order_id;
 		
 		if (!empty($inv_title_type)) {
 			if ($inv_title_type == 'personal') {
