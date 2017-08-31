@@ -585,26 +585,25 @@ class cart_flow_done_api extends Component_Event_Api {
 		if (!empty($staff_user)) {
 // 			$devic_info = RC_Api::api('mobile', 'device_info', array('user_type' => 'merchant', 'user_id' => $staff_user['user_id']));
 // 			/* 通知记录*/
-// 			$orm_staff_user_db = RC_Model::model('express/orm_staff_user_model');
-// 			$staff_user_ob = $orm_staff_user_db->find($staff_user['user_id']);
+			$orm_staff_user_db = RC_Model::model('express/orm_staff_user_model');
+			$staff_user_ob = $orm_staff_user_db->find($staff_user['user_id']);
+			$order_data = array(
+			    'title'	=> '客户下单',
+			    'body'	=> '您有一笔新订单，订单号为：'.$order['order_sn'],
+			    'data'	=> array(
+			        'order_id'		         => $order['order_id'],
+			        'order_sn'		         => $order['order_sn'],
+			        'order_amount'	         => $order['order_amount'],
+			        'formatted_order_amount' => price_format($order['order_amount']),
+			        'consignee'		         => $order['consignee'],
+			        'mobile'		         => $order['mobile'],
+			        'address'		         => $order['address'],
+			        'order_time'	         => RC_Time::local_date(ecjia::config('time_format'), $order['add_time']),
+			    ),
+			);
 			
-// 			$order_data = array(
-// 			    'title'	=> '客户下单',
-// 			    'body'	=> '您有一笔新订单，订单号为：'.$order['order_sn'],
-// 			    'data'	=> array(
-// 			        'order_id'		         => $order['order_id'],
-// 			        'order_sn'		         => $order['order_sn'],
-// 			        'order_amount'	         => $order['order_amount'],
-// 			        'formatted_order_amount' => price_format($order['order_amount']),
-// 			        'consignee'		         => $order['consignee'],
-// 			        'mobile'		         => $order['mobile'],
-// 			        'address'		         => $order['address'],
-// 			        'order_time'	         => RC_Time::local_date(ecjia::config('time_format'), $order['add_time']),
-// 			    ),
-// 			);
-			
-// 			$push_order_placed = new OrderPlaced($order_data);
-// 			RC_Notification::send($staff_user_ob, $push_order_placed);
+			$push_order_placed = new OrderPlaced($order_data);
+			RC_Notification::send($staff_user_ob, $push_order_placed);
 
 			try {
 				//新的推送消息方法
