@@ -1,7 +1,7 @@
 <?php
 defined('IN_ECJIA') or exit('No permission resources.');
 /**
- * ## 添加购物流
+ * 收银台添加购物流
  * @author zrl
  *
  */
@@ -23,7 +23,7 @@ class checkOrder_module extends api_admin implements api_interface {
 		//从移动端接收数据
 		$addgoods		= $this->requestData('addgoods');	//添加商品
 		$updategoods	= $this->requestData('updategoods');	//更新商品数量
-		$deletegoods	= $this->requestData('deletegoods');	//删除商铺
+		$deletegoods	= $this->requestData('deletegoods');	//删除商品
 		$user			= $this->requestData('user');		//选择用户
 		
 		//选择用户
@@ -36,6 +36,7 @@ class checkOrder_module extends api_admin implements api_interface {
 				//$row = RC_Model::model('user/users_model')->find(array('user_id' => $_SESSION['user_id']));
 				RC_DB::table('cart')->where('session_id', SESS_ID)->update(array('user_id', $user_id));
 				$row = RC_DB::table('users')->where('user_id', $_SESSION['user_id'])->first();
+				
 				if ($row) {
 					/* 判断是否是特殊等级，可能后台把特殊会员组更改普通会员组 */
 					if ($row['user_rank'] > 0) {
@@ -322,17 +323,17 @@ function cashdesk_order_fee($order, $goods, $consignee) {
 		
 		$area_id = $consignee['province'];
 		//多店铺开启库存管理以及地区后才会去判断
-		if ( $area_id > 0 && $shop_type == 'b2b2c') {
-			$warehouse_db = RC_Loader::load_app_model('warehouse_model', 'warehouse');
-			$warehouse = $warehouse_db->where(array('regionId' => $area_id))->find();
+// 		if ( $area_id > 0 && $shop_type == 'b2b2c') {
+// 			$warehouse_db = RC_Loader::load_app_model('warehouse_model', 'warehouse');
+// 			$warehouse = $warehouse_db->where(array('regionId' => $area_id))->find();
 
-			$warehouse_id = $warehouse['parent_id'];
-			$goods[$key]['warehouse_id'] = $warehouse_id;
-			$goods[$key]['area_id'] = $area_id;
-		} else {
-			$goods[$key]['warehouse_id'] = 0;
-			$goods[$key]['area_id'] 	 = 0;
-		}
+// 			$warehouse_id = $warehouse['parent_id'];
+// 			$goods[$key]['warehouse_id'] = $warehouse_id;
+// 			$goods[$key]['area_id'] = $area_id;
+// 		} else {
+// 			$goods[$key]['warehouse_id'] = 0;
+// 			$goods[$key]['area_id'] 	 = 0;
+// 		}
 	}
 
 	$total['saving']    = $total['market_price'] - $total['goods_price'];
