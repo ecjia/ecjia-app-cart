@@ -57,7 +57,6 @@ class done_module extends api_admin implements api_interface
 		}
         
         if ($count == 0) {
-            //EM_Api::outPut(10002);
         	return new ecjia_error('no_goods_in_cart', '购物车中没有商品');
         }
         /* 检查商品库存 */
@@ -70,7 +69,6 @@ class done_module extends api_admin implements api_interface
             }
             $result = flow_cart_stock($_cart_goods_stock);
             if (is_ecjia_error($result)) {
-            	//EM_Api::outPut(10008);
             	return new ecjia_error('Inventory shortage', '库存不足');
             }
             unset($cart_goods_stock, $_cart_goods_stock);
@@ -311,8 +309,8 @@ class done_module extends api_admin implements api_interface
         $order['order_sn'] = get_order_sn(); // 获取新订单号
         $db_order_info	= RC_Loader::load_app_model('order_info_model','orders');
         $new_order_id	= $db_order_info->insert($order);
-        RC_Logger::getlogger('info')->info('order-info');
-        RC_Logger::getlogger('info')->info(array($new_order_id,$order));
+//         RC_Logger::getlogger('info')->info('order-info');
+//         RC_Logger::getlogger('info')->info(array($new_order_id,$order));
         
         $order['order_id'] = $new_order_id;
         
@@ -321,7 +319,7 @@ class done_module extends api_admin implements api_interface
         $db_goods_activity = RC_Loader::load_app_model('goods_activity_model','goods');
         
         $shop_type = RC_Config::load_config('site', 'SHOP_TYPE');
-        $field = 'goods_id, goods_name, goods_sn, product_id, goods_number, market_price,goods_price, goods_attr, is_real, extension_code, parent_id, is_gift, goods_attr_id';
+        $field = 'goods_id, goods_name, goods_sn, product_id, goods_number, market_price, goods_price, goods_attr, is_real, extension_code, parent_id, is_gift, goods_attr_id';
         $field = $shop_type == 'b2b2c' ? $field.', ru_id' : $field;
         $cart_w = array('rec_type' => $flow_type);
         if (!empty($cart_id)) {
@@ -361,8 +359,8 @@ class done_module extends api_admin implements api_interface
         				'parent_id'		=> $row['parent_id'],
         				'is_gift'		=> $row['is_gift'],
         				'goods_attr_id' => $row['goods_attr_id'],
-        				'area_id'		=> 0,
-        				'warehouse_id'	=> 0,
+//         				'area_id'		=> 0,
+//         				'warehouse_id'	=> 0,
         		);
         		if ($shop_type == 'b2b2c') {
         			$arr['ru_id']	= $row['ru_id'];
@@ -383,9 +381,8 @@ class done_module extends api_admin implements api_interface
         			'pay_points'=> $order['integral'] * (- 1),
         			'change_desc'=>sprintf(RC_Lang::get('cart::shopping_flow.pay_order'), $order['order_sn'])
         	);
-        	$result = RC_Api::api('user', 'account_change_log',$options);
+        	$result = RC_Api::api('user', 'account_change_log', $options);
         	if (is_ecjia_error($result)) {
-        		//EM_Api::outPut(8);
         		return new ecjia_error('fail_error', '处理失败');
         	}
         }
@@ -492,25 +489,25 @@ class done_module extends api_admin implements api_interface
         );
         
         //订单分子订单 start
-        $order_id = $order['order_id'];
-        $adviser_log = array(
-        		'adviser_id' => $_SESSION['adviser_id'],
-        		'order_id'	 => $order_id,
-        		'device_id'	 => $_SESSION['device_id'],
-        		'type'   	 => 1,//收款
-        		'add_time'	 => RC_Time::gmtime(),
-        );
-        $adviser_log_id = RC_Model::model('achievement/adviser_log_model')->insert($adviser_log);
+//         $order_id = $order['order_id'];
+//         $adviser_log = array(
+//         		'adviser_id' => $_SESSION['adviser_id'],
+//         		'order_id'	 => $order_id,
+//         		'device_id'	 => $_SESSION['device_id'],
+//         		'type'   	 => 1,//收款
+//         		'add_time'	 => RC_Time::gmtime(),
+//         );
+//         $adviser_log_id = RC_Model::model('achievement/adviser_log_model')->insert($adviser_log);
         
-        $row = get_main_order_info($order_id);
-        $order_info = get_main_order_info($order_id, 1);
+//         $row = get_main_order_info($order_id);
+//         $order_info = get_main_order_info($order_id, 1);
         
-        $ru_id = explode(",", $order_info['all_ruId']['ru_id']);
+//         $ru_id = explode(",", $order_info['all_ruId']['ru_id']);
 
-        if(count($ru_id) > 1){
-        	get_insert_order_goods_single($order_info, $row, $order_id);
-        }
-        //EM_Api::outPut($out);
+//         if(count($ru_id) > 1){
+//         	get_insert_order_goods_single($order_info, $row, $order_id);
+//         }
+        
         return $out;
 	}
 
@@ -1178,7 +1175,7 @@ function cashdesk_order_fee($order, $goods, $consignee) {
 		$total['exchange_integral'] = $exchange_integral;
 	}
 	
-	return $total;
+	return $total;  
 }
 
 // end
