@@ -26,15 +26,23 @@ class validate_module extends api_admin implements api_interface
 		/* 取得购物类型 */
 		$flow_type  = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
 		
-		if (empty($bonus) || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart_amount(true, $flow_type) || $now > $bonus['use_end_date']) {
+        if (empty($bonus)) {
 			return new ecjia_error('bonus_error', '红包信息有误！');
+		}
+		if ($bonus['order_id'] > 0) {
+		    return new ecjia_error('bonus_error', '红包已使用！');
+		}
+		if ($bonus['min_goods_amount'] > cart_amount(true, $flow_type)) {
+		    return new ecjia_error('bonus_error', '红包使用最小金额为'.$bonus['min_goods_amount'].'！');
+		}
+		if ($now < $bonus['use_start_date'] ||  $now > $bonus['use_end_date']) {
+		    return new ecjia_error('bonus_error', '红包不在有效期！');
+		}
+		
+		if (isset($_SESSION['user_id']) && $bonus['user_id'] > 0 && $_SESSION['user_id'] != $bonus['user_id']) {
+		    return new ecjia_error('bonus_error', '红包信息有误！');
 		} else {
-			if (isset($_SESSION['user_id']) && $bonus['user_id'] > 0 && $_SESSION['user_id'] != $bonus['user_id']) {
-				return new ecjia_error('bonus_error', '红包信息有误！');
-			} else {
-				return array('bonus' => $bonus['type_money'], 'bonus_formated' => price_format($bonus['type_money']));
-				
-			}
+		    return array('bonus' => $bonus['type_money'], 'bonus_formated' => price_format($bonus['type_money']));
 		}
 	}
 }
