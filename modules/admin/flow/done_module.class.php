@@ -517,7 +517,7 @@ class done_module extends api_admin implements api_interface
  * @return  array
  */
 function cashdesk_order_fee($order, $goods, $consignee) {
-    RC_Loader::load_app_func('common','goods');
+    RC_Loader::load_app_func('global','goods');
     RC_Loader::load_app_func('cart','cart');
     $db 	= RC_Loader::load_app_model('cart_model', 'cart');
     $dbview = RC_Loader::load_app_model('cart_exchange_viewmodel', 'cart');
@@ -633,7 +633,7 @@ function cashdesk_order_fee($order, $goods, $consignee) {
     //    }
     $total['card_fee_formated'] = price_format($total['card_fee'], false);
 
-    RC_Loader::load_app_func('bonus','bonus');
+    RC_Loader::load_app_func('admin_bonus','bonus');
     /* 红包 */
     if (!empty($order['bonus_id'])) {
         $bonus          = bonus_info($order['bonus_id']);
