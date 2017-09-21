@@ -31,7 +31,7 @@ class done_module extends api_admin implements api_interface
     	}
     	
         RC_Loader::load_app_func('cart','cart');
-        RC_Loader::load_app_func('order','orders');
+        RC_Loader::load_app_func('admin_order','orders');
         
         //获取所需购买购物车id  will.chen
         $rec_id = $this->requestData('rec_id', 0);
