@@ -102,9 +102,9 @@ class done_module extends api_admin implements api_interface
             RC_Loader::load_app_func('merchant_store','store');
             $info = get_store_full_info($_SESSION['store_id']);
         	$region_info = array(
-        			'province'			=> $info['province'],
-        			'city'				=> $info['city'],
-	       			'address'			=> $info['address'],
+        			'province'			=> $info['province_id'],
+        			'city'				=> $info['city_id'],
+	       			'address'			=> $info['address_id'],
         	);
         	$consignee = array_merge($consignee, $region_info);
         } else {
@@ -243,9 +243,14 @@ class done_module extends api_admin implements api_interface
         }
         
         /* 配送方式 */
+        $shipping_method = RC_Loader::load_app_class('shipping_method', 'shipping');
         if ($order['shipping_id'] > 0) {
-            $shipping_method = RC_Loader::load_app_class('shipping_method', 'shipping');
             $shipping = $shipping_method->shipping_info($order['shipping_id']);
+            $order['shipping_name'] = addslashes($shipping['shipping_name']);
+        } else {
+            //无需物流
+            $shipping = $shipping_method->shipping_info('ship_no_express');
+            $order['shipping_id'] = $shipping['shipping_id'];
             $order['shipping_name'] = addslashes($shipping['shipping_name']);
         }
         $order['shipping_fee']	= $total['shipping_fee'];
