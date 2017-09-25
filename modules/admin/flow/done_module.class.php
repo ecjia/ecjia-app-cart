@@ -505,6 +505,21 @@ class done_module extends api_admin implements api_interface
 //         if(count($ru_id) > 1){
 //         	get_insert_order_goods_single($order_info, $row, $order_id);
 //         }
+		/*收银员订单操作记录*/
+        $order_id = $order['order_id'];
+        $device_info = RC_DB::table('mobile_device')->where('id', $_SESSION['device_id'])->first();
+        $cashier_record = array(
+        		'store_id' 			=> $_SESSION['store_id'],
+        		'staff_id'			=> $_SESSION['staff_id'],
+        		'order_id'	 		=> $order_id,
+        		'order_type' 		=> 'ecjia-cashdesk',
+        		'mobile_device_id'	=> $_SESSION['device_id'],
+        		'device_sn'			=> $device_info['device_udid'],
+        		'device_type'		=> 'ecjia-cashdesk',
+        		'action'   	 		=> 'billing', //开单
+        		'create_at'	 		=> RC_Time::gmtime(),
+        );
+        RC_DB::table('cashier_record')->insert($cashier_record);
         
         return $out;
 	}
