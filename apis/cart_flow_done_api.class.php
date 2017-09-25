@@ -200,6 +200,7 @@ class cart_flow_done_api extends Component_Event_Api {
 	
 		if (isset($is_real_good)) {
 			$shipping_method = RC_Loader::load_app_class('shipping_method', 'shipping');
+			$order['shipping_id'] = intval($order['shipping_id']);
 			$data = $shipping_method->shipping_info($order['shipping_id']);
 			if (empty($data['shipping_id'])) {
 				return new ecjia_error('shipping_error', '请选择一个配送方式！');
