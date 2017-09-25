@@ -248,8 +248,8 @@ class done_module extends api_admin implements api_interface
             $shipping = $shipping_method->shipping_info($order['shipping_id']);
             $order['shipping_name'] = addslashes($shipping['shipping_name']);
         } else {
-            //无需物流
-            $shipping = $shipping_method->shipping_info('ship_no_express');
+            //自提
+            $shipping = $shipping_method->shipping_info('ship_cac');
             $order['shipping_id'] = $shipping['shipping_id'];
             $order['shipping_name'] = addslashes($shipping['shipping_name']);
         }
