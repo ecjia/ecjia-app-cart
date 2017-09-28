@@ -26,6 +26,8 @@ class checkOrder_module extends api_admin implements api_interface {
 		$deletegoods	= $this->requestData('deletegoods');	//删除商品
 		$user			= $this->requestData('user');		//选择用户
 		
+		
+		
 		//选择用户
 		if (!empty($user)) {
 			$user_id = (empty($user['user_id']) || !isset($user['user_id'])) ? 0 : $user['user_id'];
@@ -34,7 +36,7 @@ class checkOrder_module extends api_admin implements api_interface {
 				$_SESSION['user_id']		= $user_id;
 				//$db_cart->where(array('session_id' => SESS_ID))->update(array('user_id' => $user_id));
 				//$row = RC_Model::model('user/users_model')->find(array('user_id' => $_SESSION['user_id']));
-				RC_DB::table('cart')->where('session_id', SESS_ID)->update(array('user_id', $user_id));
+				RC_DB::table('cart')->where('session_id', SESS_ID)->update(array('user_id' => $user_id));
 				$row = RC_DB::table('users')->where('user_id', $_SESSION['user_id'])->first();
 				
 				if ($row) {
