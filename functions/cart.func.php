@@ -885,6 +885,9 @@ function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
 	if (!empty($cart_id)) {
 		$cart_where = array_merge($cart_where,  array('rec_id' => $cart_id));
 	}
+	if (!empty($_SESSION['store_id'])) {
+		$cart_where = array_merge($cart_where, array('c.store_id' => $_SESSION['store_id']));
+	}
 	$field = 'goods_img, original_img, goods_thumb, c.rec_id, c.user_id, c.goods_id, c.goods_name, c.goods_sn, c.goods_number, c.market_price, c.goods_price, c.goods_attr, c.is_real, c.extension_code, c.parent_id, c.is_gift, c.is_shipping, c.goods_price * c.goods_number|subtotal, goods_weight as goodsWeight, c.goods_attr_id';
 	if ($_SESSION['user_id']) {
 		$cart_where = array_merge($cart_where, array('c.user_id' => $_SESSION['user_id']));
