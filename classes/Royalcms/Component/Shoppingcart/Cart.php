@@ -56,6 +56,13 @@ class Cart
      * @var integer
      */
     protected $shopid;
+    
+    /**
+     * Associated model name.
+     *
+     * @var string
+     */
+    protected $model;
 
     /**
      * Cart constructor.
@@ -87,6 +94,16 @@ class Cart
     }
     
     /**
+     * Get the current cart instance.
+     *
+     * @return string
+     */
+    public function currentInstance()
+    {
+        return str_replace('cart.', '', $this->instance);
+    }
+    
+    /**
      * Set the current shop's shopid.
      * 
      * @param integer $shopid
@@ -98,16 +115,25 @@ class Cart
         
         return $this;
     }
-
+    
     /**
-     * Get the current cart instance.
+     * Associated model.
      *
-     * @return string
+     * @param string $model The name of the model
+     *
+     * @return Cart
      */
-    public function currentInstance()
+    public function associate2($model)
     {
-        return str_replace('cart.', '', $this->instance);
+        if (!class_exists($model)) {
+            throw new UnknownModelException("Invalid model name '$model'.");
+        }
+        
+        $this->model = $model;
+        
+        return $this;
     }
+    
 
     /**
      * Add an item to the cart.
