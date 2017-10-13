@@ -15,7 +15,20 @@ use Royalcms\Component\Shoppingcart\Exceptions\CartAlreadyStoredException;
 class Cart
 {
     const DEFAULT_INSTANCE = 'default';
-
+    
+    /**
+     * Instance types.
+     * 
+     * @var array
+     */
+    protected $instances = [
+    	'default'  => '0', //普通
+    	'groupbuy' => '1', //团购
+    	'auction'  => '2', //拍卖
+    	'snatch '  => '3', //夺宝奇兵
+    	'cashier'  => '11', //收银台
+    ];
+    
     /**
      * Instance of the session manager.
      *
@@ -36,6 +49,13 @@ class Cart
      * @var string
      */
     private $instance;
+    
+    /**
+     * Store shop id.
+     * 
+     * @var integer
+     */
+    protected $shopid;
 
     /**
      * Cart constructor.
@@ -63,6 +83,19 @@ class Cart
 
         $this->instance = sprintf('%s.%s', 'cart', $instance);
 
+        return $this;
+    }
+    
+    /**
+     * Set the current shop's shopid.
+     * 
+     * @param integer $shopid
+     * @return \Royalcms\Component\Shoppingcart\Cart
+     */
+    public function shop($shopid)
+    {
+        $this->shopid = $shopid;
+        
         return $this;
     }
 
@@ -461,7 +494,7 @@ class Cart
             $cartItem->setQuantity($qty);
         }
 
-        $cartItem->setTaxRate(config('cart.tax'));
+        $cartItem->setTaxRate(config('shoppingcart::cart.tax'));
 
         return $cartItem;
     }
@@ -507,7 +540,7 @@ class Cart
      */
     private function getTableName()
     {
-        return config('cart.database.table', 'shoppingcart');
+        return config('shoppingcart::cart.database.table', 'shoppingcart');
     }
 
     /**
@@ -517,7 +550,7 @@ class Cart
      */
     private function getConnectionName()
     {
-        $connection = config('cart.database.connection');
+        $connection = config('shoppingcart::cart.database.connection');
 
         return is_null($connection) ? config('database.default') : $connection;
     }
@@ -534,13 +567,13 @@ class Cart
     private function numberFormat($value, $decimals, $decimalPoint, $thousandSeperator)
     {
         if(is_null($decimals)){
-            $decimals = is_null(config('cart.format.decimals')) ? 2 : config('cart.format.decimals');
+            $decimals = is_null(config('shoppingcart::cart.format.decimals')) ? 2 : config('shoppingcart::cart.format.decimals');
         }
         if(is_null($decimalPoint)){
-            $decimalPoint = is_null(config('cart.format.decimal_point')) ? '.' : config('cart.format.decimal_point');
+            $decimalPoint = is_null(config('shoppingcart::cart.format.decimal_point')) ? '.' : config('shoppingcart::cart.format.decimal_point');
         }
         if(is_null($thousandSeperator)){
-            $thousandSeperator = is_null(config('cart.format.thousand_seperator')) ? ',' : config('cart.format.thousand_seperator');
+            $thousandSeperator = is_null(config('shoppingcart::cart.format.thousand_seperator')) ? ',' : config('shoppingcart::cart.format.thousand_seperator');
         }
 
         return number_format($value, $decimals, $decimalPoint, $thousandSeperator);
