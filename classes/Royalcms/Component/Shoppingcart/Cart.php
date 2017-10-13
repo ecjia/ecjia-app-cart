@@ -58,6 +58,14 @@ class Cart
     protected $shopid;
     
     /**
+     * user_id.
+     *
+     * @var integer
+     */
+    protected $userid;
+    
+    
+    /**
      * Associated model name.
      *
      * @var string
@@ -84,8 +92,12 @@ class Cart
      * @param string|null $instance
      * @return \Royalcms\Component\Shoppingcart\Cart
      */
-    public function instance($instance = null)
+    public function instance($shopid, $userid, $instance = null)
     {
+        $this->shop($shopid);
+        
+        $this->user($userid);
+        
         $instance = $instance ?: self::DEFAULT_INSTANCE;
 
         $this->instance = sprintf('%s.%s', 'cart', $instance);
@@ -112,6 +124,19 @@ class Cart
     public function shop($shopid)
     {
         $this->shopid = $shopid;
+        
+        return $this;
+    }
+    
+    /**
+     * Set the current user's userid.
+     * 
+     * @param integer $userid
+     * @return \Royalcms\Component\Shoppingcart\Cart
+     */
+    public function user($userid)
+    {
+        $this->userid = $userid;
         
         return $this;
     }
