@@ -189,10 +189,14 @@ class checkOrder_module extends api_admin implements api_interface {
 		if ((ecjia::config('use_bonus', ecjia::CONFIG_CHECK) || ecjia::config('use_bonus') == '1')
 				&& ($flow_type != CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS)){
 			// 取得用户可用红包
-			$user_bonus = user_bonus($_SESSION['user_id'], $total['goods_price']);
+			$user_bonus = user_bonus($_SESSION['user_id'], $total['goods_price'], array(), $_SESSION['store_id']);
 			if (!empty($user_bonus)) {
 				foreach ($user_bonus AS $key => $val) {
-					$user_bonus[$key]['bonus_money_formated'] = price_format($val['type_money'], false);
+					$user_bonus[$key]['bonus_money_formated'] = price_format($val['type_money'], false);//use_start_date  use_end_date
+					$user_bonus[$key]['use_start_date_formated'] = RC_Time::local_date(ecjia::config('date_format'), $val['use_start_date']);
+					$user_bonus[$key]['use_end_date_formated'] = RC_Time::local_date(ecjia::config('date_format'), $val['use_end_date']);
+					$user_bonus[$key]['min_amount'] = $val['min_goods_amount'];
+					$user_bonus[$key]['label_min_amount'] = '满'.$val['min_goods_amount'].'可使用';
 				}
 				$bonus_list = $user_bonus;
 			}

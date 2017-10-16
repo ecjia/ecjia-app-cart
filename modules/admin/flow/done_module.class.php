@@ -133,7 +133,7 @@ class done_module extends api_admin implements api_interface
         	'card_message' 		=> trim($card_message),
         	'surplus' 			=> $this->requestData('surplus', '0.00'),
         	'integral' 			=> $this->requestData('integral', 0),
-        	'bonus_id' 			=> $this->requestData('bonus', 0),
+        	'bonus_id' 			=> $this->requestData('bonus_id', 0),
         	'need_inv' 			=> $this->requestData('need_inv', 0),
         	'inv_type' 			=> $inv_type,
         	'inv_payee' 		=> trim($inv_payee),
