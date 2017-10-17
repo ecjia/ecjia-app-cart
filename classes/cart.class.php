@@ -1699,22 +1699,22 @@ class cart {
 		if ($goods_number < abs($number) ) {
 			
 			//下单时机：短信提醒库存不足
-			$staff_user = RC_DB::table('staff_user')->where('store_id', $order['store_id'])->where('parent_id', 0)->first();
-			$merchants_name = RC_DB::TABLE('store_franchisee')->where('store_id', $order['store_id'])->pluck('merchants_name');
+			$staff_user = RC_DB::table('staff_user')->where('store_id',$_SESSION['store_id'])->where('parent_id', 0)->first();
+			$store_name = RC_DB::TABLE('store_franchisee')->where('store_id', $_SESSION['store_id'])->pluck('merchants_name');
+			$goods_name = RC_DB::TABLE('goods')->where('goods_id', $goods_id)->pluck('goods_name');
 			if (!empty($staff_user['mobile'])) {
 				//发送短信
 				$options = array(
-						'mobile' => $staff_user['mobile'],
-						'event'	 => 'sms_goods_stock_warning',
-						'value'  =>array(
-								'store_name'	=> $merchants_name,
-								'goods_name' 	=> $cart_goods_stock['goods_name'],
-								'goods_number'  => $cart_goods_stock['goods_number'],
-						),
+					'mobile' => $staff_user['mobile'],
+					'event'	 => 'sms_goods_stock_warning',
+					'value'  =>array(
+						'store_name'	=> $store_name,
+						'goods_name' 	=> $goods_name,
+						'goods_number'  => $goods_number,
+					),
 				);
 				RC_Api::api('sms', 'send_event_sms', $options);
 			}
-			
 			return new ecjia_error('low_stocks', __('库存不足'));
 		}
 		/* end*/
