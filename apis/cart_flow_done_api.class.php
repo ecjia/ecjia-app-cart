@@ -134,6 +134,24 @@ class cart_flow_done_api extends Component_Event_Api {
 			}
 			$result = cart::flow_cart_stock($_cart_goods_stock);
 			if (is_ecjia_error($result)) {
+				
+				//下单时机：短信提醒库存不足
+				$staff_user = RC_DB::table('staff_user')->where('store_id', $order['store_id'])->where('parent_id', 0)->first();
+				$merchants_name = RC_DB::TABLE('store_franchisee')->where('store_id', $order['store_id'])->pluck('merchants_name');
+				if (!empty($staff_user['mobile'])) {
+					//发送短信
+					$options = array(
+						'mobile' => $staff_user['mobile'],
+						'event'	 => 'sms_goods_stock_warning',
+						'value'  =>array(
+								'store_name'	=> $merchants_name,
+								'goods_name' 	=> $cart_goods_stock['goods_name'],
+								'goods_number'  => $cart_goods_stock['goods_number'],
+						),
+					);
+					RC_Api::api('sms', 'send_event_sms', $options);
+				}
+				
 				return $result;
 			}
 			unset($cart_goods_stock, $_cart_goods_stock);
