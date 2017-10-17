@@ -194,7 +194,7 @@ class done_module extends api_admin implements api_interface
             $order['surplus']	= 0;
             $order['integral']	= 0;
         }
-        RC_Loader::load_app_func('bonus','bonus');
+        RC_Loader::load_app_func('admin_bonus','bonus');
         /* 检查红包是否存在 */
         $bonus_sn = $this->requestData('bonus_sn');
         if ($order['bonus_id'] > 0) {
