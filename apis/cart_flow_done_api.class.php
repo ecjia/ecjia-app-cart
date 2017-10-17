@@ -399,6 +399,24 @@ class cart_flow_done_api extends Component_Event_Api {
 		if (ecjia::config('use_storage') == '1' && ecjia::config('stock_dec_time') == SDT_PLACE) {
 			$result = cart::change_order_goods_storage($order['order_id'], true, SDT_PLACE);
 			if (is_ecjia_error($result)) {
+				
+				//下单时机：短信提醒库存不足
+				$staff_user = RC_DB::table('staff_user')->where('store_id', $order['store_id'])->where('parent_id', 0)->first();
+				$merchants_name = RC_DB::TABLE('store_franchisee')->where('store_id', $order['store_id'])->pluck('merchants_name');
+				if (!empty($staff_user['mobile'])) {
+					//发送短信
+					$options = array(
+							'mobile' => $staff_user['mobile'],
+							'event'	 => 'sms_goods_stock_warning',
+							'value'  =>array(
+									'store_name'	=> $merchants_name,
+									'goods_name' 	=> $cart_goods_stock['goods_name'],
+									'goods_number'  => $cart_goods_stock['goods_number'],
+							),
+					);
+					RC_Api::api('sms', 'send_event_sms', $options);
+				}
+				
 				/* 库存不足删除已生成的订单（并发处理） will.chen*/
 				//$db_order_info->where(array('order_id' => $order['order_id']))->delete();
 				//$db_order_goods->where(array('order_id' => $order['order_id']))->delete();
