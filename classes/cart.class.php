@@ -1697,27 +1697,38 @@ class cart {
 		/* by will.chen start*/
 		$goods_number = $db_goods->where(array('goods_id' => $goods_id))->get_field('goods_number');
 		if ($goods_number < abs($number) ) {
-			$goods_info  = RC_DB::TABLE('goods')->where('goods_id', $goods_id)->select('goods_name', 'store_id')->first();
-			$mobile = RC_DB::table('staff_user')->where('store_id', $goods_info['store_id'])->where('parent_id', 0)->pluck('mobile');
-			$store_name = RC_DB::TABLE('store_franchisee')->where('store_id', $goods_info['store_id'])->pluck('merchants_name');
-			if (!empty($mobile)) {
-				$options = array(
-					'mobile' => $mobile,
-					'event'     => 'sms_goods_stock_warning',
-					'value'  =>array(
-							'store_name'    => $store_name,
-							'goods_name'    => $goods_info['goods_name'],
-							'goods_number'  => $goods_number,
-					),
-				);
-				RC_Api::api('sms', 'send_event_sms', $options);
-			}
 			return new ecjia_error('low_stocks', __('库存不足'));
 		}
 		/* end*/
 		/* 处理商品库存 */
 		$query = $db_goods->inc('goods_number', 'goods_id='.$goods_id, $number);
+		
 		if ($query && $products_query) {
+			$goods_info  = RC_DB::TABLE('goods')->where('goods_id', $goods_id)->select('goods_name', 'goods_number', 'warn_number', 'store_id')->first();
+			$mobile      = RC_DB::table('staff_user')->where('store_id', $goods_info['store_id'])->where('parent_id', 0)->pluck('mobile');
+			$store_name  = RC_DB::TABLE('store_franchisee')->where('store_id', $goods_info['store_id'])->pluck('merchants_name');
+			
+			//下单时减库存进行短信通知每日一次
+// 			$send_time = RC_Cache::app_cache_get('sms_goods_stock_warning_sendtime', 'cart');
+// 			$now_time  = RC_Time::gmtime();
+				
+// 			if($now_time > $send_time + 86400) {
+				if (!empty($mobile) && $goods_info['goods_number'] <= $goods_info['warn_number']) {
+					$options = array(
+						'mobile' => $mobile,
+						'event'     => 'sms_goods_stock_warning',
+						'value'  =>array(
+								'store_name'   => $store_name,
+								'goods_name'   => $goods_info['goods_name'],
+								'goods_number' => $goods_number
+						),
+					);
+					$response = RC_Api::api('sms', 'send_event_sms', $options);
+// 					if (!is_ecjia_error($response)) {
+// 						RC_Cache::app_cache_set('sms_goods_stock_warning_sendtime', $send_time, 'cart', 10080);
+// 					}
+				}
+// 			}
 			return true;
 		} else {
 			return false;
