@@ -1697,6 +1697,21 @@ class cart {
 		/* by will.chen start*/
 		$goods_number = $db_goods->where(array('goods_id' => $goods_id))->get_field('goods_number');
 		if ($goods_number < abs($number) ) {
+			$goods_info  = RC_DB::TABLE('goods')->where('goods_id', $goods_id)->select('goods_name', 'store_id')->first();
+			$mobile = RC_DB::table('staff_user')->where('store_id', $goods_info['store_id'])->where('parent_id', 0)->pluck('mobile');
+			$store_name = RC_DB::TABLE('store_franchisee')->where('store_id', $goods_info['store_id'])->pluck('merchants_name');
+			if (!empty($mobile)) {
+				$options = array(
+					'mobile' => $mobile,
+					'event'     => 'sms_goods_stock_warning',
+					'value'  =>array(
+							'store_name'    => $store_name,
+							'goods_name'    => $goods_info['goods_name'],
+							'goods_number'  => $goods_number,
+					),
+				);
+				RC_Api::api('sms', 'send_event_sms', $options);
+			}
 			return new ecjia_error('low_stocks', __('库存不足'));
 		}
 		/* end*/
