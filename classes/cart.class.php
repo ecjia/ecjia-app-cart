@@ -1709,10 +1709,10 @@ class cart {
 			$store_name  = RC_DB::TABLE('store_franchisee')->where('store_id', $goods_info['store_id'])->pluck('merchants_name');
 			
 			//发货警告库存发送短信
-// 			$send_time = RC_Cache::app_cache_get('sms_goods_stock_warning_sendtime', 'cart');
-// 			$now_time  = RC_Time::gmtime();
+			$send_time = RC_Cache::app_cache_get('sms_goods_stock_warning_sendtime', 'orders');
+			$now_time  = RC_Time::gmtime();
 				
-// 			if($now_time > $send_time + 86400) {
+			if($now_time > $send_time + 86400) {
 				if (!empty($mobile) && $goods_info['goods_number'] <= $goods_info['warn_number']) {
 					$options = array(
 						'mobile' => $mobile,
@@ -1724,11 +1724,11 @@ class cart {
 						),
 					);
 					$response = RC_Api::api('sms', 'send_event_sms', $options);
-// 					if (!is_ecjia_error($response)) {
-// 						RC_Cache::app_cache_set('sms_goods_stock_warning_sendtime', $send_time, 'cart', 10080);
-// 					}
+					if (!is_ecjia_error($response)) {
+						RC_Cache::app_cache_set('sms_goods_stock_warning_sendtime', $now_time, 'orders', 10080);
+					}
 				}
-// 			}
+			}
 			return true;
 		} else {
 			return false;
