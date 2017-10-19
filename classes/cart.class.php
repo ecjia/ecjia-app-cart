@@ -1708,7 +1708,7 @@ class cart {
 			$mobile      = RC_DB::table('staff_user')->where('store_id', $goods_info['store_id'])->where('parent_id', 0)->pluck('mobile');
 			$store_name  = RC_DB::TABLE('store_franchisee')->where('store_id', $goods_info['store_id'])->pluck('merchants_name');
 			
-			//下单时减库存进行短信通知每日一次
+			//发货警告库存发送短信
 // 			$send_time = RC_Cache::app_cache_get('sms_goods_stock_warning_sendtime', 'cart');
 // 			$now_time  = RC_Time::gmtime();
 				
