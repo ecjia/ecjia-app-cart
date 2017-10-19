@@ -1720,7 +1720,7 @@ class cart {
 						'value'  =>array(
 								'store_name'   => $store_name,
 								'goods_name'   => $goods_info['goods_name'],
-								'goods_number' => $goods_number
+								'goods_number' => $goods_info['goods_number']
 						),
 					);
 					$response = RC_Api::api('sms', 'send_event_sms', $options);
