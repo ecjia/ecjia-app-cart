@@ -14,6 +14,8 @@ class checkOrder_module extends api_admin implements api_interface {
         }
         define('SESS_ID', RC_Session::session()->getSessionKey());
         
+        $device = $this->device;
+        
 		RC_Loader::load_app_func('global','cart');
 		RC_Loader::load_app_func('cart','cart');
 		RC_Loader::load_app_func('admin_order','orders');
@@ -25,8 +27,6 @@ class checkOrder_module extends api_admin implements api_interface {
 		$updategoods	= $this->requestData('updategoods');	//更新商品数量
 		$deletegoods	= $this->requestData('deletegoods');	//删除商品
 		$user			= $this->requestData('user');		//选择用户
-		
-		
 		
 		//选择用户
 		if (!empty($user)) {
@@ -90,7 +90,11 @@ class checkOrder_module extends api_admin implements api_interface {
 		
 		/* 取得购物类型 */
 		$flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
-
+	    /*收银台商品购物车类型*/
+	    if (!empty($device) && $device['code'] == '8001') {
+	    	$flow_type = CART_CASHDESK_GOODS;
+	    }
+		
 		if (!empty($addgoods)) {
 			$products_db = RC_Loader::load_app_model('products_model', 'goods');
 			$goods_db = RC_Loader::load_app_model('goods_model', 'goods');
@@ -114,7 +118,7 @@ class checkOrder_module extends api_admin implements api_interface {
 			if (empty($goods)) {
 				return new ecjia_error('addgoods_error', '该商品不存在或已下架');
 			}
-			$result = addto_cart($goods['goods_id'], $addgoods['number'], $goods_spec, 0, 0, 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['price'] : 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['weight'] : 0);
+			$result = addto_cart($goods['goods_id'], $addgoods['number'], $goods_spec, 0, 0, 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['price'] : 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['weight'] : 0, $device);
 			if (is_ecjia_error($result)) {
 				return $result;
 			}

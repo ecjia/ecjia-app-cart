@@ -380,7 +380,7 @@ function flow_clear_cart_alone() {
  * @param   integer $parent     基本件
  * @return  boolean
  */
-function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0) {
+function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0,$warehouse_id = 0, $area_id = 0, $price = 0, $weight = 0, $device) {
 	$dbview 		= RC_Loader::load_app_model('sys_goods_member_viewmodel', 'goods');
 	$db_cart 		= RC_Loader::load_app_model('cart_model', 'cart');
 	$db_products 	= RC_Loader::load_app_model('products_model', 'goods');
@@ -515,6 +515,11 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0) {
 //         'warehouse_id'  => $warehouse_id,  			//仓库
         'area_id'  		=> $area_id, 				// 仓库地区
     );
+    
+    /*收银台商品购物车类型*/
+    if (!empty($device) && $device['code'] == '8001') {
+    	$parent['rec_type'] = CART_CASHDESK_GOODS;
+    }
 
     /* 如果该配件在添加为基本件的配件时，所设置的“配件价格”比原价低，即此配件在价格上提供了优惠， */
     /* 则按照该配件的优惠价格卖，但是每一个基本件只能购买一个优惠价格的“该配件”，多买的“该配件”不享受此优惠 */
