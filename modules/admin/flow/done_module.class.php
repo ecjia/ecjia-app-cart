@@ -33,6 +33,8 @@ class done_module extends api_admin implements api_interface
         RC_Loader::load_app_func('cart','cart');
         RC_Loader::load_app_func('admin_order','orders');
         
+        $device = $this->device;
+        
         //获取所需购买购物车id  will.chen
         $rec_id = $this->requestData('rec_id', 0);
         $rec_id = empty($rec_id) ? $_SESSION['cart_id'] : $rec_id;
@@ -40,6 +42,10 @@ class done_module extends api_admin implements api_interface
 		
         /* 取得购物类型 */
         $flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
+        
+        if (!empty($device) && $device['code'] == '8001') {
+        	$flow_type = CART_CASHDESK_GOODS;
+        }
         
         /* 检查购物车中是否有商品 */
 		$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
