@@ -390,7 +390,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0,$warehouse
 	RC_Loader::load_app_func('admin_goods', 'goods');
 	RC_Loader::load_app_func('global', 'goods');
 	
-	$field = "g.goods_id,  g.goods_name, g.goods_sn, g.is_on_sale, g.is_real, g.store_id as store_id, g.model_inventory, g.model_attr, ".
+	$field = "g.goods_id, g.market_price, g.goods_name, g.goods_sn, g.is_on_sale, g.is_real, g.store_id as store_id, g.model_inventory, g.model_attr, ".
 			"g.is_xiangou, g.xiangou_start_date, g.xiangou_end_date, g.xiangou_num, ".
 // 			"wg.w_id, wg.warehouse_price, wg.warehouse_promote_price, wg.region_number as wg_number, wag.region_price, wag.region_promote_price, wag.region_number as wag_number, ".
 // 			"IF(g.model_price < 1, g.shop_price, IF(g.model_price < 2, wg.warehouse_price, wag.region_price)) AS org_price,  ".
@@ -425,8 +425,6 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0,$warehouse
    		$where['g.review_status'] = array('gt' => 2);
    	}
     $goods = $dbview->field($field)->join(array(/* 'warehouse_goods', 'warehouse_area_goods', */ 'member_price'))->find($where);
-    
-    
     if (empty($goods)) {
     	return new ecjia_error('no_goods', __('对不起，指定的商品不存在！'));
     }
@@ -515,7 +513,6 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0,$warehouse
 //         'warehouse_id'  => $warehouse_id,  			//仓库
         'area_id'  		=> $area_id, 				// 仓库地区
     );
-    
     /*收银台商品购物车类型*/
     if (!empty($device) && $device['code'] == '8001') {
     	$parent['rec_type'] = CART_CASHDESK_GOODS;
