@@ -15,7 +15,6 @@ class checkOrder_module extends api_admin implements api_interface {
         define('SESS_ID', RC_Session::session()->getSessionKey());
         
         $device = $this->device;
-        
 		RC_Loader::load_app_func('global','cart');
 		RC_Loader::load_app_func('cart','cart');
 		RC_Loader::load_app_func('admin_order','orders');
@@ -32,7 +31,7 @@ class checkOrder_module extends api_admin implements api_interface {
 		if (!empty($user)) {
 			$user_id = (empty($user['user_id']) || !isset($user['user_id'])) ? 0 : $user['user_id'];
 			if ($user_id > 0) {
-				$_SESSION['temp_user_id']	= $user_id;
+				$_SESSION['cashdesk_temp_user_id']	= $user_id;
 				$_SESSION['user_id']		= $user_id;
 				//$db_cart->where(array('session_id' => SESS_ID))->update(array('user_id' => $user_id));
 				//$row = RC_Model::model('user/users_model')->find(array('user_id' => $_SESSION['user_id']));
@@ -80,7 +79,7 @@ class checkOrder_module extends api_admin implements api_interface {
 					}
 				}
 			} else {
-				unset($_SESSION['temp_user_id']);
+				unset($_SESSION['cashdesk_temp_user_id']);
 				unset($_SESSION['user_id']);
 				$_SESSION['user_rank']	= 0;
 				$_SESSION['discount']	= 1;

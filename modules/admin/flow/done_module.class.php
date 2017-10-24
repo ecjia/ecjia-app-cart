@@ -26,15 +26,14 @@ class done_module extends api_admin implements api_interface
 		}
     	define('SESS_ID', RC_Session::session()->getSessionKey());
     	
-    	if ($_SESSION['temp_user_id'] > 0) {
-    		$_SESSION['user_id'] = $_SESSION['temp_user_id'];
+    	if ($_SESSION['cashdesk_temp_user_id'] > 0) {
+    		$_SESSION['user_id'] = $_SESSION['cashdesk_temp_user_id'];
     	}
     	
         RC_Loader::load_app_func('cart','cart');
         RC_Loader::load_app_func('admin_order','orders');
         
         $device = $this->device;
-        
         //获取所需购买购物车id  will.chen
         $rec_id = $this->requestData('rec_id', 0);
         $rec_id = empty($rec_id) ? $_SESSION['cart_id'] : $rec_id;
@@ -479,7 +478,7 @@ class done_module extends api_admin implements api_interface
         unset($_SESSION['flow_order']);
         unset($_SESSION['direct_shopping']);
         unset($_SESSION['user_id']);
-        unset($_SESSION['temp_user_id']);
+        unset($_SESSION['cashdesk_temp_user_id']);
         unset($_SESSION['user_rank']);
         unset($_SESSION['discount']);
         
@@ -525,7 +524,7 @@ class done_module extends api_admin implements api_interface
         		'order_id'	 		=> $order_id,
         		'order_type' 		=> 'ecjia-cashdesk',
         		'mobile_device_id'	=> empty($_SESSION['device_id']) ? 0 : $_SESSION['device_id'],
-        		'device_sn'			=> $device_info['device_udid'],
+        		'device_sn'			=> empty($device_info['device_udid']) ? '' : $device_info['device_udid'],
         		'device_type'		=> 'ecjia-cashdesk',
         		'action'   	 		=> 'billing', //开单
         		'create_at'	 		=> RC_Time::gmtime(),
