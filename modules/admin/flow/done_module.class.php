@@ -478,7 +478,7 @@ class done_module extends api_admin implements api_interface
         unset($_SESSION['flow_consignee']); // 清除session中保存的收货人信息
         unset($_SESSION['flow_order']);
         unset($_SESSION['direct_shopping']);
-        //unset($_SESSION['user_id']);
+        unset($_SESSION['user_id']);
         unset($_SESSION['temp_user_id']);
         unset($_SESSION['user_rank']);
         unset($_SESSION['discount']);
