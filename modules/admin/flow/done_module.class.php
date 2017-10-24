@@ -105,12 +105,17 @@ class done_module extends api_admin implements api_interface
         
         /* 获取商家或平台的地址 作为收货地址 */
         if ($_SESSION['store_id'] > 0){
-            RC_Loader::load_app_func('merchant_store','store');
-            $info = get_store_full_info($_SESSION['store_id']);
+            //RC_Loader::load_app_func('merchant_store','store');
+            //$info = get_store_full_info($_SESSION['store_id']);
+        	$info = RC_DB::table('store_franchisee')->where('store_id', $_SESSION['store_id'])->first();
         	$region_info = array(
-        			'province'			=> $info['province_id'],
-        			'city'				=> $info['city_id'],
-	       			'address'			=> $info['address_id'],
+        			'country'			=> ecjia::config('shop_country'),
+        			'province'			=> empty($info['province']) ? 0 : $info['province'],
+        			'city'				=> empty($info['city']) ? 0 : $info['city'],
+        			'district'		    => empty($info['district']) ? $info['district'] : 0,
+	       			'address'			=> empty($info['address']) ? '' : $info['address'],
+        			'longitude'			=> empty($info['longitude']) ? $info['longitude'] : '',
+        			'latitude'			=> empty($info['latitude']) ? '' : $info['latitude'],
         	);
         	$consignee = array_merge($consignee, $region_info);
         } else {
