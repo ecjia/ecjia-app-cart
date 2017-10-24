@@ -511,11 +511,14 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0,$warehouse
     	'store_id'		=> $goods['store_id'],
     	'model_attr'  	=> $goods['model_attr'], 	//属性方式
 //         'warehouse_id'  => $warehouse_id,  			//仓库
-        'area_id'  		=> $area_id, 				// 仓库地区
+        //'area_id'  		=> $area_id, 				// 仓库地区
     );
     /*收银台商品购物车类型*/
     if (!empty($device) && $device['code'] == '8001') {
     	$parent['rec_type'] = CART_CASHDESK_GOODS;
+    	$rec_type = CART_CASHDESK_GOODS;
+    } else {
+    	$rec_type = CART_GENERAL_GOODS;
     }
 
     /* 如果该配件在添加为基本件的配件时，所设置的“配件价格”比原价低，即此配件在价格上提供了优惠， */
@@ -580,6 +583,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0,$warehouse
         $parent['goods_number'] = min($num, $basic_count_list[$parent_id]);
         $parent['parent_id']    = $parent_id;
 
+        
         /* 添加 */
         $db_cart->insert($parent);
         /* 改变数量 */
@@ -590,9 +594,9 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0,$warehouse
     if ($num > 0) {
         /* 检查该商品是否已经存在在购物车中 */
     	if ($_SESSION['user_id']) {
-    		$row = $db_cart->field('rec_id, goods_number')->find('user_id = "' .$_SESSION['user_id']. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.CART_GENERAL_GOODS.'" ');
+    		$row = $db_cart->field('rec_id, goods_number')->find('user_id = "' .$_SESSION['user_id']. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" ');
     	} else {
-    		$row = $db_cart->field('rec_id, goods_number')->find('session_id = "' .SESS_ID. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.CART_GENERAL_GOODS.'" ');
+    		$row = $db_cart->field('rec_id, goods_number')->find('session_id = "' .SESS_ID. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" ');
     	}
     	
     	/* 限购判断*/
@@ -633,9 +637,9 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0,$warehouse
                 		'area_id'	   => $area_id,
                 );
                 if ($_SESSION['user_id']) {
-                	$db_cart->where('user_id = "' .$_SESSION['user_id']. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.CART_GENERAL_GOODS.'" AND warehouse_id = "'.$warehouse_id.'"')->update($data);
+                	$db_cart->where('user_id = "' .$_SESSION['user_id']. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" ')->update($data);
                 } else {
-                	$db_cart->where('session_id = "' .SESS_ID. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.CART_GENERAL_GOODS.'"  AND warehouse_id = "'.$warehouse_id.'"')->update($data);
+                	$db_cart->where('session_id = "' .SESS_ID. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" ')->update($data);
                 }
             } else {
 				return new ecjia_error('low_stocks', __('库存不足'));
