@@ -155,7 +155,13 @@ class checkOrder_module extends api_admin implements api_interface {
 // 		$payment_method = RC_Loader::load_app_class('payment_method', 'payment');
 // 		// 给货到付款的手续费加<span id>，以便改变配送的时候动态显示
 // 		$payment_list = $payment_method->available_payment_list(1, $cod_fee);
-		//$user_info = user_info($_SESSION['user_id']);
+		if (!empty($_SESSION['user_id'])) {
+			$user_info = user_info($_SESSION['user_id']);
+			if (is_ecjia_error($user_info)) {
+				return $user_info;
+			}
+		}
+		
 		
 		$out = array();
 		$out['user_info'] = array();
