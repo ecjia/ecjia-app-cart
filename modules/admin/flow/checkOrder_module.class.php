@@ -117,15 +117,16 @@ class checkOrder_module extends api_admin implements api_interface {
 			if (empty($goods)) {
 				return new ecjia_error('addgoods_error', '该商品不存在或已下架');
 			}
-			$result = addto_cart($goods['goods_id'], $addgoods['number'], $goods_spec, 0, 0, 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['price'] : 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['weight'] : 0, $device);
-			if (is_ecjia_error($result)) {
-				return $result;
+			$cart_id = addto_cart($goods['goods_id'], $addgoods['number'], $goods_spec, 0, 0, 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['price'] : 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['weight'] : 0, $device);
+			if (is_ecjia_error($cart_id)) {
+				return $cart_id;
 			}
 		}
 		//编辑购物车商品
 		if (!empty($updategoods)) {
 			//$result = updatecart($updategoods);
 			$result = flow_update_cart(array($updategoods['rec_id'] => $updategoods['number']));
+			$cart_id = $updategoods['rec_id'];
 		}
 		//删除购物车商品
 		if (!empty($deletegoods)) {
@@ -181,11 +182,13 @@ class checkOrder_module extends api_admin implements api_interface {
 // 		$out['payment_list']	= $payment_list;
 		/* 如果使用积分，取得用户可用积分及本订单最多可以使用的积分 */
 		if ((ecjia::config('use_integral', ecjia::CONFIG_CHECK) || ecjia::config('use_integral') == '1')
-				&& $_SESSION['user_id'] > 0 && $user_info['pay_points'] > 0 
-				&& ($flow_type != CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS)) {
+		&& $_SESSION['user_id'] > 0
+		&& $user_info['pay_points'] > 0
+		&& ($flow_type != CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS))
+		{
 			// 能使用积分
 			$allow_use_integral = 1;
-			$order_max_integral = flow_available_points();
+			$order_max_integral = cart::flow_available_points(array($cart_id), $device);
 		} else {
 			$allow_use_integral = 0;
 			$order_max_integral = 0;
