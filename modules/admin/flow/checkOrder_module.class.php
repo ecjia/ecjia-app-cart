@@ -14,6 +14,8 @@ class checkOrder_module extends api_admin implements api_interface {
         }
         define('SESS_ID', RC_Session::session()->getSessionKey());
         
+        RC_Loader::load_app_class('cart', 'cart', false);
+        
         $device = $this->device;
 		RC_Loader::load_app_func('global','cart');
 		RC_Loader::load_app_func('cart','cart');
