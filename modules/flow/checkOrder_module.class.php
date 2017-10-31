@@ -367,6 +367,9 @@ class checkOrder_module extends api_front implements api_interface {
 		{
 			// 能使用积分
 			$allow_use_integral = 1;
+			RC_Logger::getLogger('error')->info('积分testapp');
+			RC_Logger::getLogger('error')->info($cart_id);
+			RC_Logger::getLogger('error')->info('积分testapp');
 			$order_max_integral = cart::flow_available_points($cart_id);
 		} else {
 			$allow_use_integral = 0;
