@@ -120,6 +120,11 @@ class checkOrder_module extends api_admin implements api_interface {
 				return new ecjia_error('addgoods_error', '该商品不存在或已下架');
 			}
 			$cart_id = addto_cart($goods['goods_id'], $addgoods['number'], $goods_spec, 0, 0, 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['price'] : 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['weight'] : 0, $device);
+			
+			RC_Logger::getLogger('error')->info('积分test44');
+			RC_Logger::getLogger('error')->info($cart_id);
+			RC_Logger::getLogger('error')->info('积分test55');
+			
 			if (is_ecjia_error($cart_id)) {
 				return $cart_id;
 			}
@@ -129,6 +134,8 @@ class checkOrder_module extends api_admin implements api_interface {
 			//$result = updatecart($updategoods);
 			$result = flow_update_cart(array($updategoods['rec_id'] => $updategoods['number']));
 			$cart_id = $updategoods['rec_id'];
+			RC_Logger::getLogger('error')->info('积分test66');
+			RC_Logger::getLogger('error')->info($cart_id);
 		}
 		//删除购物车商品
 		if (!empty($deletegoods)) {
