@@ -744,25 +744,31 @@ function flow_cart_stock($arr) {
  * @access public
  * @return void
  */
-function recalculate_price() {
+function recalculate_price($device) {
 	// 链接数据库
 	$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
 	$dbview = RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
-
+	
+	if ($device['code'] == '8001') {
+		$rec_type = CART_CASHDESK_GOODS;
+	} else {
+		$rec_type = CART_GENERAL_GOODS;
+	}
+	
 	/* 取得有可能改变价格的商品：除配件和赠品之外的商品 */
 	if ($_SESSION['user_id']) {
 		$res = $dbview->join(array(
 			'goods',
 			'member_price'
 		))
-		->where('c.user_id = "' . $_SESSION['user_id'] . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . CART_GENERAL_GOODS . '" AND c.extension_code <> "package_buy"')
+		->where('c.user_id = "' . $_SESSION['user_id'] . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" AND c.extension_code <> "package_buy"')
 		->select();
 	} else {
 		$res = $dbview->join(array(
 			'goods',
 			'member_price'
 		))
-		->where('c.session_id = "' . SESS_ID . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . CART_GENERAL_GOODS . '" AND c.extension_code <> "package_buy"')
+		->where('c.session_id = "' . SESS_ID . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" AND c.extension_code <> "package_buy"')
 		->select();
 	}
 
