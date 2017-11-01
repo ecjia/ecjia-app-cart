@@ -119,23 +119,16 @@ class checkOrder_module extends api_admin implements api_interface {
 			if (empty($goods)) {
 				return new ecjia_error('addgoods_error', '该商品不存在或已下架');
 			}
-			$cart_id = addto_cart($goods['goods_id'], $addgoods['number'], $goods_spec, 0, 0, 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['price'] : 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['weight'] : 0, $device);
+			$result = addto_cart($goods['goods_id'], $addgoods['number'], $goods_spec, 0, 0, 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['price'] : 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['weight'] : 0, $device);
 			
-			RC_Logger::getLogger('error')->info('积分test44');
-			RC_Logger::getLogger('error')->info($cart_id);
-			RC_Logger::getLogger('error')->info('积分test55');
-			
-			if (is_ecjia_error($cart_id)) {
-				return $cart_id;
+			if (is_ecjia_error($result)) {
+				return $result;
 			}
 		}
 		//编辑购物车商品
 		if (!empty($updategoods)) {
 			//$result = updatecart($updategoods);
 			$result = flow_update_cart(array($updategoods['rec_id'] => $updategoods['number']));
-			$cart_id = $updategoods['rec_id'];
-			RC_Logger::getLogger('error')->info('积分test66');
-			RC_Logger::getLogger('error')->info($cart_id);
 		}
 		//删除购物车商品
 		if (!empty($deletegoods)) {
@@ -190,6 +183,13 @@ class checkOrder_module extends api_admin implements api_interface {
 // 		$out['shipping_list']	= $shipping_list;	//快递信息
 // 		$out['payment_list']	= $payment_list;
 		/* 如果使用积分，取得用户可用积分及本订单最多可以使用的积分 */
+		$rec_ids = array();
+		if (!empty($cart_goods)) {
+			foreach ($cart_goods as $k => $v) {
+				$rec_ids[] = $v['rec_id'];
+			}
+		}
+		
 		if ((ecjia::config('use_integral', ecjia::CONFIG_CHECK) || ecjia::config('use_integral') == '1')
 		&& $_SESSION['user_id'] > 0
 		&& $user_info['pay_points'] > 0
@@ -197,7 +197,11 @@ class checkOrder_module extends api_admin implements api_interface {
 		{
 			// 能使用积分
 			$allow_use_integral = 1;
-			$order_max_integral = cart::flow_available_points(array($cart_id), $device);
+			
+			RC_Logger::getLogger('error')->info('积分test33');
+			RC_Logger::getLogger('error')->info($rec_ids);
+			
+			$order_max_integral = cart::flow_available_points($rec_ids, $device);
 		} else {
 			$allow_use_integral = 0;
 			$order_max_integral = 0;

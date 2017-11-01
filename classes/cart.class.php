@@ -464,14 +464,14 @@ class cart {
 		$cart_where = array('c.user_id' => $_SESSION['user_id'], 'c.is_gift' => 0 , 'g.integral' => array('gt' => 0) , 'c.rec_type' => $rec_type);
 		if (!empty($cart_id)) {
 			$cart_where = array_merge($cart_where, array('rec_id' => $cart_id));
-			
-			RC_Logger::getLogger('error')->info('积分test11');
-			RC_Logger::getLogger('error')->info($cart_id);
-			RC_Logger::getLogger('error')->info(array('rec_id' => $cart_id));
-			RC_Logger::getLogger('error')->info($cart_where);
-			RC_Logger::getLogger('error')->info('积分test22');
-			
 		}
+
+		RC_Logger::getLogger('error')->info('积分test44');
+		RC_Logger::getLogger('error')->info($cart_id);
+		RC_Logger::getLogger('error')->info(array('rec_id' => $cart_id));
+		RC_Logger::getLogger('error')->info($cart_where);
+		RC_Logger::getLogger('error')->info('积分test55');
+		
 // 		if (defined('SESS_ID')) {
 // 			$cart_where['c.session_id'] = SESS_ID;
 // 		}
