@@ -644,9 +644,6 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0,$warehouse
             } else {
 				return new ecjia_error('low_stocks', __('库存不足'));
             }
-            RC_Logger::getLogger('error')->info('积分test11');
-            RC_Logger::getLogger('error')->info($row);
-            
             $cart_id = $row['rec_id'];
         } else {
         	//购物车没有此物品，则插入
@@ -655,9 +652,6 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0,$warehouse
             $parent['goods_number'] = $num;
             $parent['parent_id']    = 0;
 			$cart_id = $db_cart->insert($parent);
-			RC_Logger::getLogger('error')->info('积分test22');
-			RC_Logger::getLogger('error')->info($parent);
-			RC_Logger::getLogger('error')->info($cart_id);
         }
     }
 
@@ -667,8 +661,6 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0,$warehouse
     } else {
     	$db_cart->where(array('session_id' => SESS_ID , 'is_gift' => array('neq' => 0)))->delete();
     }
-    RC_Logger::getLogger('error')->info('积分test33');
-    RC_Logger::getLogger('error')->info($cart_id);
     return $cart_id; 
 }
 

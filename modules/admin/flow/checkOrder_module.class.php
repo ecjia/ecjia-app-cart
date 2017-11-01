@@ -178,17 +178,28 @@ class checkOrder_module extends api_admin implements api_interface {
 			);
 		}
 		
-		$out['goods_list']		= $cart_goods;		//商品
 // 		$out['consignee']		= $consignee;		//收货地址
 // 		$out['shipping_list']	= $shipping_list;	//快递信息
 // 		$out['payment_list']	= $payment_list;
 		/* 如果使用积分，取得用户可用积分及本订单最多可以使用的积分 */
 		$rec_ids = array();
+		$spec = array();
+		/*会员价处理*/
 		if (!empty($cart_goods)) {
+			RC_Loader::load_app_class('goods_info', 'goods', false);
 			foreach ($cart_goods as $k => $v) {
 				$rec_ids[] = $v['rec_id'];
+				if ($_SESSION['user_id'] > 0) {
+					//$member_price = $_SESSION['discount']*$v['goods_price'];
+					//RC_DB::table('cart')->where('rec_id', $v['rec_id'])->update(array('goods_price' => $member_price));
+					$goods_price = goods_info::get_final_price($v['goods_id'], $v['goods_number'], true, $spec);
+					RC_DB::table('cart')->where('rec_id', $v['rec_id'])->update(array('goods_price' => $goods_price));
+					$cart_goods[$k]['goods_price'] = $goods_price;
+				}
 			}
 		}
+		
+		$out['goods_list']		= $cart_goods;		//商品
 		
 		if ((ecjia::config('use_integral', ecjia::CONFIG_CHECK) || ecjia::config('use_integral') == '1')
 		&& $_SESSION['user_id'] > 0
@@ -197,10 +208,6 @@ class checkOrder_module extends api_admin implements api_interface {
 		{
 			// 能使用积分
 			$allow_use_integral = 1;
-			
-			RC_Logger::getLogger('error')->info('积分test33');
-			RC_Logger::getLogger('error')->info($rec_ids);
-			
 			$order_max_integral = cart::flow_available_points($rec_ids, $device);
 		} else {
 			$allow_use_integral = 0;
