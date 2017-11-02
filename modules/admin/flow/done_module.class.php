@@ -29,7 +29,7 @@ class done_module extends api_admin implements api_interface
     	if ($_SESSION['cashdesk_temp_user_id'] > 0) {
     		$_SESSION['user_id'] = $_SESSION['cashdesk_temp_user_id'];
     	}
-    	
+
         RC_Loader::load_app_func('cart','cart');
         RC_Loader::load_app_func('admin_order','orders');
         
@@ -479,6 +479,9 @@ class done_module extends api_admin implements api_interface
         unset($_SESSION['cashdesk_temp_user_id']);
         unset($_SESSION['user_rank']);
         unset($_SESSION['discount']);
+        /*记录订单状态日志*/
+        Ecjia\App\Orders\OrderStatusLog::generate_order(array('order_id' => $new_order_id));
+        Ecjia\App\Orders\OrderStatusLog::remind_pay(array('order_id' => $new_order_id));
         
         $subject = $cart_goods[0]['goods_name'] . '等' . count($cart_goods) . '种商品';
         $out = array(
