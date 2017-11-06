@@ -327,9 +327,6 @@ function flow_update_cart($arr) {
  * @return  void
  */
 function flow_drop_cart_goods($id) {
-    $db_cart = RC_Loader::load_app_model('cart_model', 'cart');
-    $dbview  = RC_Loader::load_app_model('cart_group_goods_goods_viewmodel', 'cart');
-    
     /* 取得商品id */
     $row = RC_DB::table('cart')->where('rec_id', $id)->first();
     if ($row) {
@@ -349,7 +346,15 @@ function flow_drop_cart_goods($id) {
         } elseif ($row['parent_id'] == 0 && $row['is_gift'] == 0) {
         	//如果是普通商品，同时删除所有赠品及其配件
             /* 检查购物车中该普通商品的不可单独销售的配件并删除 */
-			$data = $dbview->join(array('group_goods','goods'))->field('c.rec_id')->where(array('gg.parent_id' => $row['goods_id'] , 'c.parent_id' => $row['goods_id'] , 'c.extension_code' => array('neq' => 'package_buy') , 'g.is_alone_sale' => 0))->select();
+            $data = RC_DB::table('cart as c')
+                ->leftJoin('group_goods as gg', RC_DB::raw('c.goods_id'), '=', RC_DB::raw('gg.goods_id'))
+                ->leftJoin('goods as g', RC_DB::raw('c.goods_id'), '=', RC_DB::raw('g.goods_id'))
+                ->selectRaw('c.rec_id')
+                ->where(RC_DB::raw('gg.parent_id'), $row['goods_id'])
+                ->where(RC_DB::raw('c.parent_id'), $row['goods_id'])
+                ->where(RC_DB::raw('c.extension_code'), '!=', 'package_buy')
+                ->where(RC_DB::raw('g.is_alone_sale'), 0)
+                ->get();
             
             $_del_str = $id . ',';
             if (!empty($data)) {
@@ -359,18 +364,28 @@ function flow_drop_cart_goods($id) {
             }
             
             $_del_str = trim($_del_str, ',');
-
+            $goods_id = $row['goods_id'];
 			if ($_SESSION['user_id']) {
-				$db_cart->where("user_id = '" . $_SESSION['user_id'] . "' and (rec_id IN ($_del_str) OR parent_id = '$row[goods_id]' OR is_gift <> 0)")->delete();
+                RC_DB::table('cart')
+                    ->where('user_id', $_SESSION['user_id'])
+                    ->where(function($query) use($_del_str, $goods_id) {
+                        $query->whereIn('rec_id', $_del_str)->orWhere('parent_id', $goods_id)->orWhere('is_gift', '!=', 0);
+                    })
+                    ->delete();
 			} else {
-				$db_cart->where("session_id = '" . SESS_ID . "' and (rec_id IN ($_del_str) OR parent_id = '$row[goods_id]' OR is_gift <> 0)")->delete();
+                RC_DB::table('cart')
+                    ->where('session_id', SESS_ID)
+                    ->where(function($query) use($_del_str, $goods_id) {
+                        $query->whereIn('rec_id', $_del_str)->orWhere('parent_id', $goods_id)->orWhere('is_gift', '!=', 0);
+                    })
+                    ->delete();
 			}
         } else {
         	//如果不是普通商品，只删除该商品即可
 			if ($_SESSION['user_id']) {
-				$db_cart->where(array('user_id' => $_SESSION['user_id'] , 'rec_id' => $id))->delete();
+                RC_DB::table('cart')->where('user_id', $_SESSION['user_id'])->where('rec_id', $id)->delete();
 			} else {
-				$db_cart->where(array('session_id' => SESS_ID , 'rec_id' => $id))->delete();
+                RC_DB::table('cart')->where('session_id', SESS_ID)->where('rec_id', $id)->delete();
 			}
         }
     }
@@ -405,9 +420,9 @@ function flow_clear_cart_alone() {
 
     /* 查询：购物车中所有商品 */
 	if ($_SESSION['user_id']) {
-		$res = $db_cart->field('DISTINCT goods_id')->where(array('user_id' => $_SESSION['user_id'] , 'extension_code' => array('neq' => 'package_buy')))->select();
+        $res = RC_DB::table('cart')->selectRaw('DISTINCT goods_id')->where('user_id', $_SESSION['user_id'])->where('extension_code', '!=', 'package_buy')->get();
 	} else {
-		$res = $db_cart->field('DISTINCT goods_id')->where(array('session_id' => SESS_ID , 'extension_code' => array('neq' => 'package_buy')))->select();
+        $res = RC_DB::table('cart')->selectRaw('DISTINCT goods_id')->where('session_id', SESS_ID)->where('extension_code', '!=', 'package_buy')->get();
 	}
     
     $cart_good = array();
@@ -439,9 +454,9 @@ function flow_clear_cart_alone() {
 
     /* 删除 */
     if ($_SESSION['user_id']) {
-    	$db_cart->where(array('user_id' => $_SESSION['user_id']))->in(array('rec_id' => $del_rec_id))->delete();
+        RC_DB::table('cart')->where('user_id', $_SESSION['user_id'])->whereIn('rec_id', $del_rec_id)->delete();
     } else {
-    	$db_cart->where(array('session_id' => SESS_ID))->in(array('rec_id' => $del_rec_id))->delete();
+        RC_DB::table('cart')->where('session_id', SESS_ID)->whereIn('rec_id', $del_rec_id)->delete();
     }
 }
 
