@@ -456,7 +456,8 @@ class cart {
 	 * @return  integral
 	 */
 	public static function flow_available_points($cart_id = array(), $device) {
-		if ($device['code'] == '8001') {
+		$codes = array('8001', '8011');
+		if (in_array($device['code'], $codes)) {
 			$rec_type = CART_CASHDESK_GOODS ;
 		} else {
 			$rec_type = CART_GENERAL_GOODS;

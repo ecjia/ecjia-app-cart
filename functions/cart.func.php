@@ -604,7 +604,8 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0,$warehouse
         //'area_id'  		=> $area_id, 				// 仓库地区
     );
     /*收银台商品购物车类型*/
-    if (!empty($device) && $device['code'] == '8001') {
+    $codes = array('8001', '8011');
+    if (!empty($device) && in_array($device['code'], $codes)) {
     	$parent['rec_type'] = CART_CASHDESK_GOODS;
     	$rec_type = CART_CASHDESK_GOODS;
     } else {
@@ -761,7 +762,8 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0,$warehouse
  * @return  integral
  */
 function flow_available_points($cart_id = array(), $device) {
-	if ($device['code'] == '8001') {
+	$codes = array('8001', '8011');
+	if (in_array($device['code'], $codes)) {
 		$rec_type = CART_CASHDESK_GOODS;
 	} else{
 		$rec_type = CART_GENERAL_GOODS;
@@ -843,8 +845,8 @@ function recalculate_price($device) {
 	// 链接数据库
 	$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
 	$dbview = RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
-	
-	if ($device['code'] == '8001') {
+	$codes = array('8001', '8011');
+	if (in_array($device['code'], $codes)) {
 		$rec_type = CART_CASHDESK_GOODS;
 	} else {
 		$rec_type = CART_GENERAL_GOODS;
