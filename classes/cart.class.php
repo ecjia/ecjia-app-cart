@@ -1694,7 +1694,7 @@ class cart {
 		if (!empty($product_id)) {
 			/* by will.chen start*/
 			$product_number = $db_products->where(array('goods_id' => $goods_id, 'product_id' => $product_id))->get_field('product_number');
-			if ($product_number < $number) {
+			if ($product_number < abs($number)) {
 				return new ecjia_error('low_stocks', __('库存不足'));
 			}
 			/* end*/
