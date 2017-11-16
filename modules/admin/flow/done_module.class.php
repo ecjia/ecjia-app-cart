@@ -154,12 +154,13 @@ class done_module extends api_admin implements api_interface
         	$info = RC_DB::table('store_franchisee')->where('store_id', $_SESSION['store_id'])->first();
         	$region_info = array(
         			'country'			=> ecjia::config('shop_country'),
-        			'province'			=> empty($info['province']) ? 0 : $info['province'],
-        			'city'				=> empty($info['city']) ? 0 : $info['city'],
-        			'district'		    => empty($info['district']) ? $info['district'] : 0,
-	       			'address'			=> empty($info['address']) ? '' : $info['address'],
-        			'longitude'			=> empty($info['longitude']) ? $info['longitude'] : '',
-        			'latitude'			=> empty($info['latitude']) ? '' : $info['latitude'],
+        			'province'			=> empty($info['province']) ? '' : $info['province'],
+        			'city'				=> empty($info['city'])     ? '' : $info['city'],
+        			'district'		    => empty($info['district']) ? '' : $info['district'],
+
+	       			'address'			=> empty($info['address'])   ? '' : $info['address'],
+        			'longitude'			=> empty($info['longitude']) ? '' : $info['longitude'],
+        			'latitude'			=> empty($info['latitude'])  ? '' : $info['latitude'],
         	);
         	$consignee = array_merge($consignee, $region_info);
         } else {
