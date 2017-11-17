@@ -473,18 +473,18 @@ class checkOrder_module extends api_front implements api_interface {
 			unset($out['consignee']['address_id']);
 			unset($out['consignee']['user_id']);
 			unset($out['consignee']['address_id']);
-			$ids = array($out['consignee']['country'], $out['consignee']['province'], $out['consignee']['city'], $out['consignee']['district']);
+			$ids = array($out['consignee']['province'], $out['consignee']['city'], $out['consignee']['district']);
 			$ids = array_filter($ids);
 
 			$db_region = RC_Model::model('shipping/region_model');
 			$data      = $db_region->in(array('region_id' => implode(',', $ids)))->select();
-
 			$a_out = array();
 			foreach ($data as $key => $val) {
 				$a_out[$val['region_id']] = $val['region_name'];
 			}
-
-			$out['consignee']['country_name']	= isset($a_out[$out['consignee']['country']]) 	? $a_out[$out['consignee']['country']] 	: '';
+			$country = with(new \Ecjia\App\Setting\Country)->getCountryName($out['consignee']['country']);
+			
+			$out['consignee']['country_name']	= $country;
 			$out['consignee']['province_name']	= isset($a_out[$out['consignee']['province']]) 	? $a_out[$out['consignee']['province']] : '';
 			$out['consignee']['city_name']		= isset($a_out[$out['consignee']['city']]) 		? $a_out[$out['consignee']['city']] 	: '';
 			$out['consignee']['district_name']	= isset($a_out[$out['consignee']['district']]) 	? $a_out[$out['consignee']['district']] : '';
