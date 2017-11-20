@@ -483,7 +483,7 @@ class checkOrder_module extends api_front implements api_interface {
 			foreach ($data as $key => $val) {
 				$a_out[$val['region_id']] = $val['region_name'];
 			}
-			$country = with(new \Ecjia\App\Setting\Country)->getCountryName($out['consignee']['country']);
+			$country = ecjia_region::getCountryName($out['consignee']['country']);
 			
 			$out['consignee']['country_name']	= $country;
 			$out['consignee']['province_name']	= isset($a_out[$out['consignee']['province']]) 	? $a_out[$out['consignee']['province']] : '';
