@@ -368,15 +368,15 @@ class cart {
 			if ($res) {
 				if (empty($consignee['province'])) {
 					/* 没有设置省份，检查当前国家下面有没有设置省份 */
-					$pro = RC_Model::model('shipping/region_model')->get_regions(1, $consignee['country']);
+					$pro = ecjia_region::getSubarea($consignee['country']);
 					$res = empty($pro);
 				} elseif (empty($consignee['city'])) {
 					/* 没有设置城市，检查当前省下面有没有城市 */
-					$city = RC_Model::model('shipping/region_model')->get_regions(2, $consignee['province']);
+					$city = ecjia_region::getSubarea($consignee['province']);
 					$res = empty($city);
 				} elseif (empty($consignee['district'])) {
-// 					$dist = RC_Model::model('shipping/region_model')->get_regions(3, $consignee['city']);
-// 					$res = empty($dist);
+					// $dist = ecjia_region::getSubarea($consignee['city']);
+					// $res = empty($dist);
 					$res = true;
 				}
 			}
