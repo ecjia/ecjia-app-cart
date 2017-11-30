@@ -271,11 +271,10 @@ class checkOrder_module extends api_front implements api_interface {
 		    
 		        // O2O的配送费用计算传参调整
 		        if ($val['shipping_code'] == 'ship_o2o_express') {
-		        	$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : ecjia_shipping::fee($val['shipping_code'], $distance, $cart_weight_price['amount'], $cart_weight_price['number']);
+		        	$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : ecjia_shipping::fee($val['shipping_area_id'], $distance, $cart_weight_price['amount'], $cart_weight_price['number']);
 		        } else {
-		        	$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : ecjia_shipping::fee($val['shipping_code'], $cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
+		        	$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : ecjia_shipping::fee($val['shipping_area_id'], $cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
 		        }
-		    
 		        $shipping_list[$key]['shipping_fee']        = $shipping_fee;
 		        $shipping_list[$key]['format_shipping_fee'] = price_format($shipping_fee, false);
 		        $shipping_list[$key]['free_money']          = price_format($shipping_cfg['free_money'], false);
