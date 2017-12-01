@@ -443,7 +443,10 @@ class done_module extends api_admin implements api_interface
         
         /* 如果使用库存，且下订单时减库存，则减少库存 */
         if (ecjia::config('use_storage') == '1' && ecjia::config('stock_dec_time') == SDT_PLACE) {
-            change_order_goods_storage($order['order_id'], true, SDT_PLACE);
+            $res = change_order_goods_storage($order['order_id'], true, SDT_PLACE);
+            if (is_ecjia_error($res)) {
+            	return $res;
+            }
         }
         
         /* 如果订单金额为0 处理虚拟卡 */
