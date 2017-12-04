@@ -226,7 +226,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		/* 配送方式 */
 		if ($order['shipping_id'] > 0) {
 // 			$shipping_method = RC_Loader::load_app_class('shipping_method', 'shipping');
-			$shipping = $shipping_method->pluginData($order['shipping_id']);
+			$shipping = ecjia_shipping::pluginData($order['shipping_id']);
 			$order['shipping_name'] = addslashes($shipping['shipping_name']);
 		}
 		$order['shipping_fee'] = $total['shipping_fee'];
