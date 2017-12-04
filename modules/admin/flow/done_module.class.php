@@ -298,13 +298,13 @@ class done_module extends api_admin implements api_interface
         }
         
         /* 配送方式 */
-        $shipping_method = RC_Loader::load_app_class('shipping_method', 'shipping');
+//         $shipping_method = RC_Loader::load_app_class('shipping_method', 'shipping');
         if ($order['shipping_id'] > 0) {
-            $shipping = $shipping_method->shipping_info($order['shipping_id']);
+            $shipping = ecjia_shipping::pluginData($order['shipping_id']);
             $order['shipping_name'] = addslashes($shipping['shipping_name']);
         } else {
             //自提
-            $shipping = $shipping_method->shipping_info('ship_cac');
+            $shipping = ecjia_shipping::pluginData('ship_cac');
             $order['shipping_id'] = $shipping['shipping_id'];
             $order['shipping_name'] = addslashes($shipping['shipping_name']);
         }
