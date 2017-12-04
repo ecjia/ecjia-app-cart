@@ -499,7 +499,7 @@ class checkOrder_module extends api_front implements api_interface {
 			unset($out['consignee']['address_id']);
 			unset($out['consignee']['user_id']);
 			unset($out['consignee']['address_id']);
-			$ids = array($out['consignee']['province'], $out['consignee']['city'], $out['consignee']['district']);
+			$ids = array($out['consignee']['province'], $out['consignee']['city'], $out['consignee']['district'], $out['consignee']['street']);
 			$ids = array_filter($ids);
 			$data      = ecjia_region::getRegions($ids);
 			
@@ -513,7 +513,7 @@ class checkOrder_module extends api_front implements api_interface {
 			$out['consignee']['province_name']	= isset($a_out[$out['consignee']['province']]) 	? $a_out[$out['consignee']['province']] : '';
 			$out['consignee']['city_name']		= isset($a_out[$out['consignee']['city']]) 		? $a_out[$out['consignee']['city']] 	: '';
 			$out['consignee']['district_name']	= isset($a_out[$out['consignee']['district']]) 	? $a_out[$out['consignee']['district']] : '';
-
+			$out['consignee']['street_name']	= isset($a_out[$out['consignee']['street']]) 	? $a_out[$out['consignee']['street']] : '';
 		}
 		if (!empty($out['inv_content_list'])) {
 			$temp = array();
