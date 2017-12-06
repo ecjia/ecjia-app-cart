@@ -501,7 +501,7 @@ class checkOrder_module extends api_front implements api_interface {
 			unset($out['consignee']['address_id']);
 			$ids = array($out['consignee']['province'], $out['consignee']['city'], $out['consignee']['district'], $out['consignee']['street']);
 			$ids = array_filter($ids);
-			$data      = ecjia_region::getRegions($ids);
+			$data = ecjia_region::getRegions($ids);
 			
 			$a_out = array();
 			foreach ($data as $key => $val) {
