@@ -202,7 +202,7 @@ class cart_flow_done_api extends Component_Event_Api {
 // 			$shipping_method = RC_Loader::load_app_class('shipping_method', 'shipping');
 			$order['shipping_id'] = intval($order['shipping_id']);
 // 			$data = $shipping_method->shipping_info($order['shipping_id']);
-			if (! ecjia_shipping::isEnabled($order['shipping_id'])) {
+			if (!ecjia_shipping::isEnabled($order['shipping_id'])) {
 				return new ecjia_error('shipping_error', '请选择一个配送方式！');
 			}
 		}
@@ -570,7 +570,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		$payment_info = $payment_method->payment_info_by_id($order['pay_id']);
 // 		RC_Logger::getLogger('info')->info(array('cart_flow_done_api-payment',$payment_info));
 
-		if (! empty($order['shipping_name'])) {
+		if (!empty($order['shipping_name'])) {
 			$order['shipping_name'] = trim(stripcslashes($order['shipping_name']));
 		}
 
