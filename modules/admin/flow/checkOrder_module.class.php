@@ -120,7 +120,7 @@ class checkOrder_module extends api_admin implements api_interface {
 			if (empty($goods)) {
 				return new ecjia_error('addgoods_error', '该商品不存在或已下架');
 			}
-			$result = addto_cart($goods['goods_id'], $addgoods['number'], $goods_spec, 0, 0, 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['price'] : 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['weight'] : 0, $device);
+			$result = addto_cart($goods['goods_id'], $addgoods['number'], $goods_spec, 0, 0, 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['price'] : 0, strlen($addgoods['goods_sn']) == 7 ? $addgoods['weight'] : 0, $flow_type);
 			
 			if (is_ecjia_error($result)) {
 				return $result;
