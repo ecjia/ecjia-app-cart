@@ -310,6 +310,15 @@ class done_module extends api_front implements api_interface
             $order['pay_name'] = addslashes($payment['pay_name']);
         	//如果是货到付款，状态设置为已确认。
  			if($payment['pay_code'] == 'pay_cod') { $order['order_status'] = 1; }
+        } else {
+            //默认指定微信小程序支付
+            $payinfo = with(new Ecjia\App\Payment\PaymentPlugin)->getPluginDataByCode('pay_wxpay_weapp');
+            if (empty($payinfo)) {
+                return new ecjia_error('no_pay_wxpay_weapp', '请先安装微信小程序支付方式');
+            }
+            $order['pay_id'] = $payinfo['pay_id'];
+            $order['pay_name'] = addslashes($payinfo['pay_name']);
+            
         }
         $order['pay_fee'] = $total['pay_fee'];
         $order['cod_fee'] = $total['cod_fee'];
