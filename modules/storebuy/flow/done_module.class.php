@@ -502,13 +502,13 @@ class done_module extends api_front implements api_interface
         }
         
         /* 订单信息 */
-        unset($_SESSION['flow_consignee']); // 清除session中保存的收货人信息
-        unset($_SESSION['flow_order']);
-        unset($_SESSION['direct_shopping']);
-        unset($_SESSION['user_id']);
-        unset($_SESSION['cashdesk_temp_user_id']);
-        unset($_SESSION['user_rank']);
-        unset($_SESSION['discount']);
+//         unset($_SESSION['flow_consignee']); // 清除session中保存的收货人信息
+//         unset($_SESSION['flow_order']);
+//         unset($_SESSION['direct_shopping']);
+//         unset($_SESSION['user_id']);
+//         unset($_SESSION['cashdesk_temp_user_id']);
+//         unset($_SESSION['user_rank']);
+//         unset($_SESSION['discount']);
         
         
         $subject = $cart_goods[0]['goods_name'] . '等' . count($cart_goods) . '种商品';
