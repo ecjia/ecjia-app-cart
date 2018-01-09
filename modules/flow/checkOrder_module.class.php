@@ -287,7 +287,7 @@ class checkOrder_module extends api_front implements api_interface {
 		        }
 		    
 		        /* o2o*/
-		        if ($val['shipping_code'] == 'ship_o2o_express') {
+		        if ($val['shipping_code'] == 'ship_o2o_express' || $val['shipping_code'] == 'ship_ecjia_express') {
 		            /* 获取最后可送的时间（当前时间+需提前下单时间）*/
 		            $time = RC_Time::local_date('H:i', RC_Time::gmtime() + $shipping_cfg['last_order_time'] * 60);
 		    
