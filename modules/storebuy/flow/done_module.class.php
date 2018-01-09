@@ -65,10 +65,9 @@ class done_module extends api_front implements api_interface
          */
     	
         $this->authSession();
-//     	if ($_SESSION['user_id'] <= 0) {
-//     		return new ecjia_error(100, 'Invalid session');
-//     	}
-        $_SESSION['user_id'] = 1040;
+    	if ($_SESSION['user_id'] <= 0) {
+    		return new ecjia_error(100, 'Invalid session');
+    	}
     	
         RC_Loader::load_app_func('cart','cart');
         RC_Loader::load_app_func('cashdesk','cart');
