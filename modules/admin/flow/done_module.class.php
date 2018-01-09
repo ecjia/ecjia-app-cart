@@ -209,7 +209,7 @@ class done_module extends api_admin implements api_interface
         
         /* 扩展信息 */
         if (isset($_SESSION['flow_type']) && intval($_SESSION['flow_type']) != CART_GENERAL_GOODS) {
-            $order['extension_code']	= $_SESSION['extension_code'];
+            $order['extension_code']	= 'cashdesk';//$_SESSION['extension_code'];
             $order['extension_id']		= $_SESSION['extension_id'];
         } else {
             $order['extension_code']	= '';

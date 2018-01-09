@@ -66,6 +66,7 @@ class create_module extends api_front implements api_interface {
 	    }
 	    
 	    $rec_type		= $this->requestData('rec_type', CART_STOREBUY_GOODS); //暂没用到
+	    $rec_type = CART_STOREBUY_GOODS;
 
 	    RC_Loader::load_app_func('cart', 'cart');
 

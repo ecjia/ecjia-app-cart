@@ -1628,7 +1628,7 @@ function formated_cart_list($cart_result, $store_id_group = array()) {
                     'seller_name'	=> $row['store_name'],
                     'manage_mode'   => $row['manage_mode'],
                     'is_disabled'   => 0,
-                    'disabled_label'=> "欢迎选购",
+                    'disabled_label'=> "",
                 );
             }
             $goods_attrs = null;
