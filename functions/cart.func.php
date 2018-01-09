@@ -1058,6 +1058,7 @@ function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
 		if ($value['extension_code'] == 'package_buy') {
 			$arr[$key]['package_goods_list'] = get_package_goods($value['goods_id']);
 		}
+		$arr[$key]['store_name'] = RC_DB::table('store_franchisee')->where('store_id', $value['store_id'])->pluck('merchants_name');
 	}
 	return $arr;
 }
