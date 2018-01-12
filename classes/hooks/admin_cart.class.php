@@ -76,6 +76,6 @@ class flow_hooks {
 	}
 }
 
-RC_Hook::add_action( 'ecjia_admin_finish_launching', array('flow_hooks', 'clear_cart') );
+// RC_Hook::add_action( 'ecjia_admin_finish_launching', array('flow_hooks', 'clear_cart') );
 
 // end
