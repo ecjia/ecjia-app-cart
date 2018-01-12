@@ -1679,7 +1679,8 @@ function formated_cart_list($cart_result, $store_id_group = array()) {
         $favourable             = RC_Api::api('favourable', 'favourable_list', array('store_id' => array(0, $seller['seller_id']), 'type' => 'on_going', 'sort_by' => 'store_id', 'sort_order' => 'ASC'));
         $promotions             = formated_favourable($favourable, $seller['goods_list']);
         $seller['promotions']   = $promotions;
-        
+        $min_goods_amount = RC_DB::table('merchants_config')->where('store_id', $seller['seller_id'])->where('code', 'min_goods_amount')->pluck('value');
+        $seller['store_min_goods_amount']   = sprintf("%.2f", $min_goods_amount);
         RC_Loader::load_app_class('cart', 'cart', false);
         //优惠价格
         $discount                   = cart::compute_discount_store($seller['seller_id']);
@@ -1697,7 +1698,7 @@ function formated_cart_list($cart_result, $store_id_group = array()) {
             'save_rate'    => 0, // 节省百分比
             'goods_amount' => 0, // 本店售价合计（无格式）
             'goods_number' => 0, // 商品总件数
-            'discount'     => 0,
+            'discount'     => 0
         );
         foreach ($seller['goods_list'] as $goods) {
             if ($goods['is_checked'] == 1) {
@@ -1717,6 +1718,18 @@ function formated_cart_list($cart_result, $store_id_group = array()) {
             $total['save_rate'] = $total['market_price'] ? round(($total['market_price'] - $total['goods_price']) *
                 100 / $total['market_price']).'%' : 0;
         }
+        
+        if ($total['goods_amount'] < $min_goods_amount) {
+        	$meet_min_amount = 0;
+        	$total['short_amount'] = sprintf("%.2f", ($min_goods_amount - $total['goods_amount']));
+        	$total['label_short_amount'] = price_format($total['short_amount']); 
+        } else {
+        	$meet_min_amount = 1;
+        	$total['short_amount'] = 0.00;
+        	$total['label_short_amount'] = price_format($total['short_amount']);
+        }
+        
+        $total['meet_min_amount'] = $meet_min_amount;
         
         $total['unformatted_goods_price']     = $total['goods_price'];
         $total['goods_price']  			      = price_format($total['goods_price'], false);
