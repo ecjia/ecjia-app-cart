@@ -12,7 +12,9 @@ class checkOrder_module extends api_admin implements api_interface {
         if ($_SESSION['admin_id'] <= 0 && $_SESSION['staff_id'] <= 0) {
             return new ecjia_error(100, 'Invalid session');
         }
-        define('SESS_ID', RC_Session::session()->getSessionKey());
+        //define('SESS_ID', RC_Session::session()->getSessionKey());
+        define('SESS_ID', RC_Session::session_id());
+        
         
         RC_Loader::load_app_class('cart', 'cart', false);
         
