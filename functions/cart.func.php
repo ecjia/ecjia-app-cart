@@ -831,7 +831,7 @@ function flow_cart_stock($arr) {
  * @access public
  * @return void
  */
-function recalculate_price($device) {
+function recalculate_price($device = array()) {
 	// 链接数据库
 	$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
 	$dbview = RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
