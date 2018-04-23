@@ -142,22 +142,25 @@ function cashdesk_order_fee($order, $goods, $consignee = array()) {
         }
     }
     $total['discount_formated'] = price_format($total['discount'], false);
-
     /* 税额 */
     if (!empty($order['need_inv']) && $order['inv_type'] != '') {
-        /* 查税率 */
-        $rate = 0;
-        $invoice_type=ecjia::config('invoice_type');
-        foreach ($invoice_type['type'] as $key => $type) {
-            if ($type == $order['inv_type']) {
-                $rate_str = $invoice_type['rate'];
-                $rate = floatval($rate_str[$key]) / 100;
-                break;
-            }
-        }
-        if ($rate > 0) {
-            $total['tax'] = $rate * $total['goods_price'];
-        }
+    	/* 查税率 */
+    	$rate = 0;
+    	$invoice_type = ecjia::config('invoice_type');
+    	if ($invoice_type) {
+    		$invoice_type = unserialize($invoice_type);
+    		foreach ($invoice_type['type'] as $key => $type) {
+    			if ($type == $order['inv_type']) {
+    				$rate_str = $invoice_type['rate'];
+    				$rate = floatval($rate_str[$key]) / 100;
+    				break;
+    			}
+    		}
+    	}
+    	if ($rate > 0) {
+    		$total['tax'] = $rate * $total['goods_price'];
+    		$total['tax'] = round($total['tax'], 2);
+    	}
     }
     $total['tax_formated'] = price_format($total['tax'], false);
     //	TODO：暂时注释

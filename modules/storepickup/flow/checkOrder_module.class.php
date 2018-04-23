@@ -136,6 +136,10 @@ class checkOrder_module extends api_front implements api_interface {
 			$store_id = $store_group['0'];
 		}
 		
+		/*店铺信息*/
+		$store_info = RC_DB::table('store_franchisee')->where('store_id', $store_id)->selectRaw('merchants_name, province, city, district, street, address')->first();
+		$store_address = ecjia_region::getRegionName($store_info['province']).ecjia_region::getRegionName($store_info['city']).ecjia_region::getRegionName($store_info['district']).ecjia_region::getRegionName($store_info['street']).$store_info['address']; 
+		$out['store_info'] = array('store_name' => $store_info['merchants_name'], 'store_address' => $store_address);
 		$payment_list = RC_Api::api('payment', 'available_payments', array('store_id' => $store_id, 'cod_fee' => 0));
 		$out['payment_list']	= $payment_list;//支付信息
 		
