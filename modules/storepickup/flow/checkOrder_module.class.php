@@ -48,7 +48,7 @@ defined('IN_ECJIA') or exit('No permission resources.');
 
 /**
  * 门店提货购物流检查订单
- * @author royalwang
+ * @author zrl
  */
 class checkOrder_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
@@ -79,6 +79,9 @@ class checkOrder_module extends api_front implements api_interface {
 
 		/* 对商品信息赋值 */
 		$cart_goods = cart_goods($flow_type, $cart_id); // 取得商品列表，计算合计
+		if (empty($cart_goods)) {
+			return new ecjia_error('not_found_cart_goods', '购物车中还没有商品');
+		}
 		
 		/* 取得订单信息*/
 		$order = flow_order_info();
@@ -132,6 +135,9 @@ class checkOrder_module extends api_front implements api_interface {
 			$store_group = array_unique($store_group);
 			$store_id = $store_group['0'];
 		}
+		
+		$payment_list = RC_Api::api('payment', 'available_payments', array('store_id' => $store_id, 'cod_fee' => 0));
+		$out['payment_list']	= $payment_list;//支付信息
 		
 		if ((ecjia::config('use_integral', ecjia::CONFIG_CHECK) || ecjia::config('use_integral') == '1')
 		&& $_SESSION['user_id'] > 0
