@@ -246,31 +246,33 @@ class checkOrder_module extends api_front implements api_interface {
 				$expect_pickup_date = array();
 			} else {
 				$shipping_cfg = ecjia_shipping::unserializeConfig($shipping_cac_info['configure']);
-				/* 获取最后可取货的时间（当前时间）*/
-				$time = RC_Time::local_date('H:i', RC_Time::gmtime());
-				if (empty($shipping_cfg['pickup_time'])) {
-					$expect_pickup_date = array();
-				}
-				$pickup_date = 0;
-				/*取货日期*/
-				if (empty($shipping_cfg['pickup_days'])) {
-					$shipping_cfg['pickup_days'] = 7;
-				}
-				while ($shipping_cfg['pickup_days']) {
-					foreach ($shipping_cfg['pickup_time'] as $k => $v) {
-						if ($v['end'] > $time || $pickup_date > 0) {
-							$expect_pickup_date[$pickup_date]['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$pickup_date.' day'));
-							$expect_pickup_date[$pickup_date]['time'][] = array(
-									'start_time' 	=> $v['start'],
-									'end_time'		=> $v['end'],
-							);
-						}
+				if (!empty($shipping_cfg['pickup_time'])) {
+					/* 获取最后可取货的时间（当前时间）*/
+					$time = RC_Time::local_date('H:i', RC_Time::gmtime());
+					if (empty($shipping_cfg['pickup_time'])) {
+						$expect_pickup_date = array();
 					}
-				
-					$pickup_date ++;
-				
-					if (count($expect_pickup_date) >= $shipping_cfg['pickup_days']) {
-						break;
+					$pickup_date = 0;
+					/*取货日期*/
+					if (empty($shipping_cfg['pickup_days'])) {
+						$shipping_cfg['pickup_days'] = 7;
+					}
+					while ($shipping_cfg['pickup_days']) {
+						foreach ($shipping_cfg['pickup_time'] as $k => $v) {
+							if ($v['end'] > $time || $pickup_date > 0) {
+								$expect_pickup_date[$pickup_date]['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$pickup_date.' day'));
+								$expect_pickup_date[$pickup_date]['time'][] = array(
+										'start_time' 	=> $v['start'],
+										'end_time'		=> $v['end'],
+								);
+							}
+						}
+					
+						$pickup_date ++;
+					
+						if (count($expect_pickup_date) >= $shipping_cfg['pickup_days']) {
+							break;
+						}
 					}
 				}
 			}
