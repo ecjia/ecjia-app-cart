@@ -208,6 +208,27 @@ class checkOrder_module extends api_front implements api_interface {
 		}
 		$out['inv_content_list']	= empty($inv_content_list) ? array() : $inv_content_list;//发票内容项
 		$out['inv_type_list']		= empty($inv_type_list) ? array() : $inv_type_list;//发票类型及税率
+		/*发票内容处理*/
+		if (!empty($out['inv_content_list'])) {
+			$temp = array();
+			foreach ($out['inv_content_list'] as $key => $value) {
+				$temp[] = array('id'=>$key, 'value'=>$value);
+			}
+			$out['inv_content_list'] = $temp;
+		}
+		if (!empty($out['inv_type_list'])) {
+			$temp = array();
+			$i = 1;
+			foreach ($out['inv_type_list'] as $key => $value) {
+				$temp[] = array(
+						'id'	       => $i,
+						'value'	       => $value['label'],
+						'label_value'  => $value['label_type'],
+						'rate'	       => $value['rate']);
+				$i++;
+			}
+			$out['inv_type_list'] = $temp;
+		}
 		
 		$out['your_integral']	= $user_info['pay_points'];//用户可用积分
 		
