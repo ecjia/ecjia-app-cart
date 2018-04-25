@@ -184,7 +184,7 @@ class done_module extends api_front implements api_interface
         
         //发票抬头处理
 		$need_inv = $this->requestData('need_inv', 0);
-		if (empty($need_inv)) {
+		if (!empty($need_inv)) {
 			$inv_title_type = trim($this->requestData('inv_title_type', ''));
 			if (!empty($inv_title_type)) {
 				if ($inv_title_type == 'personal') {
