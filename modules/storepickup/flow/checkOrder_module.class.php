@@ -167,16 +167,22 @@ class checkOrder_module extends api_front implements api_interface {
 				&& ($flow_type != CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS)){
 			// 取得用户可用红包
 			$user_bonus = user_bonus($_SESSION['user_id'], $total['goods_price'], array(), $_SESSION['store_id']);
-			
 			if (!empty($user_bonus)) {
 				foreach ($user_bonus AS $key => $val) {
-					$user_bonus[$key]['formatted_bonus_amount'] = price_format($val['type_money'], false);//use_start_date  use_end_date
-					$user_bonus[$key]['formatted_start_date'] = RC_Time::local_date(ecjia::config('date_format'), $val['use_start_date']);
-					$user_bonus[$key]['formatted_end_date'] = RC_Time::local_date(ecjia::config('date_format'), $val['use_end_date']);
-					$user_bonus[$key]['formatted_request_amount'] = $val['min_goods_amount'];
-					$user_bonus[$key]['label_min_amount'] = '满'.$val['min_goods_amount'].'可使用';
+					$bonus_list[] = array(
+							'bonus_id' 					=> $val['bonus_id'],
+							'bonus_name' 				=> $val['type_name'],
+							'bonus_amount'				=> $val['type_money'],
+							'formatted_bonus_amount' 	=>  price_format($val['type_money'], false),
+							'start_date'               	=> $val['use_start_date'],
+							'end_date'               	=> $val['use_end_date'],
+							'formatted_start_date' 		=> RC_Time::local_date(ecjia::config('date_format'), $val['use_start_date']),
+							'formatted_end_date' 		=> RC_Time::local_date(ecjia::config('date_format'), $val['use_end_date']),
+							'request_amount' 			=> $val['min_goods_amount'],
+							'formatted_request_amount' 	=> $val['min_goods_amount'],
+							'label_min_amount' 			=> '满'.$val['min_goods_amount'].'可使用',
+					);
 				}
-				$bonus_list = $user_bonus;
 			}
 			// 能使用红包
 			$allow_use_bonus = 1;
