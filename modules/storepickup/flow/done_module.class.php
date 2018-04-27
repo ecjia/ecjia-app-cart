@@ -397,7 +397,7 @@ class done_module extends api_front implements api_interface
         				'title_name' 		=> $f_inv_payee,
         				'title_type' 		=> $inv_title_type_new,
         				'user_mobile' 		=> $order['mobile'],
-        				'tax_register_no'	=> $inv_tax_no,
+        				'tax_register_no'	=> empty($inv_tax_no) ? '' : $inv_tax_no,
         				'user_address'		=> $order['address'],
         				'add_time'			=> RC_Time::gmtime(),
         				'is_default'		=> 1,
