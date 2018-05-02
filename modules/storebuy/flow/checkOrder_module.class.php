@@ -126,7 +126,10 @@ class checkOrder_module extends api_front implements api_interface {
 			RC_Loader::load_app_class('goods_info', 'goods', false);
 			foreach ($cart_goods as $k => $v) {
 				$rec_ids[] = $v['rec_id'];
+				$store_group[] = $v['store_id'];
 			}
+			$store_group = array_unique($store_group);
+			$store_id = $store_group['0'];
 		}
 		
 		if ((ecjia::config('use_integral', ecjia::CONFIG_CHECK) || ecjia::config('use_integral') == '1')
@@ -169,19 +172,9 @@ class checkOrder_module extends api_front implements api_interface {
 		
 		$out['discount']		= number_format($discount['discount'], 2, '.', '');//用户享受折扣数
 		$out['discount_formated'] = $total['discount_formated'];
-				
-		if (!empty($out['payment_list'])) {
-			foreach ($out['payment_list'] as $key => $value) {
-				unset($out['payment_list'][$key]['pay_config']);
-				unset($out['payment_list'][$key]['pay_desc']);
-				$out['payment_list'][$key]['pay_name'] = strip_tags($value['pay_name']);
-				// cod 货到付款，alipay支付宝，bank银行转账
-				if (in_array($value['pay_code'], array('post', 'balance'))) {
-					unset($out['payment_list'][$key]);
-				}
-			}
-			$out['payment_list'] = array_values($out['payment_list']);
-		}
+
+		$payment_list = RC_Api::api('payment', 'available_payments', array('store_id' => $store_id, 'cod_fee' => 0));
+		$out['payment_list']	= $payment_list;//支付信息
 					
 		if (!empty($out['goods_list'])) {
 			foreach ($out['goods_list'] as $key => $value) {
