@@ -455,13 +455,7 @@ class cart {
 	 * @access  private
 	 * @return  integral
 	 */
-	public static function flow_available_points($cart_id = array(), $device) {
-		$codes = array('8001', '8011');
-		if (in_array($device['code'], $codes)) {
-			$rec_type = CART_CASHDESK_GOODS ;
-		} else {
-			$rec_type = CART_GENERAL_GOODS;
-		}
+	public static function flow_available_points($cart_id = array(), $rec_type = CART_GENERAL_GOODS) {
 		$cart_where = array('c.user_id' => $_SESSION['user_id'], 'c.is_gift' => 0 , 'g.integral' => array('gt' => 0) , 'c.rec_type' => $rec_type);
 		if (!empty($cart_id)) {
 			$cart_where = array_merge($cart_where, array('rec_id' => $cart_id));
@@ -710,7 +704,7 @@ class cart {
 					/* ===== 计算收件人距离 END ===== */
 					$total['shipping_fee'] = ($shipping_count == 0 AND $weight_price['free_shipping'] == 1) ? 0 : ecjia_shipping::fee($shipping_info['shipping_area_id'], $distance, $total['goods_price'], $weight_price['number']);
 				} else {
-					$total['shipping_fee'] = ($shipping_count == 0 AND $weight_price['free_shipping'] == 1) ? 0 : ecjia_shipping::fee($shipping_info['shipping_area_id'], $weight_price['weight'], $total['amount'], $weight_price['number']);
+					$total['shipping_fee'] = ($shipping_count == 0 AND $weight_price['free_shipping'] == 1) ? 0 : ecjia_shipping::fee($shipping_info['shipping_area_id'], $weight_price['weight'], $total['goods_price'], $weight_price['number']);
 				}
 
 				if (!empty($order['need_insure']) && $shipping_info['insure'] > 0) {

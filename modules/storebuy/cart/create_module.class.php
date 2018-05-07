@@ -45,50 +45,66 @@
 //  ---------------------------------------------------------------------------------
 //
 defined('IN_ECJIA') or exit('No permission resources.');
+
 /**
- * 收银台红包验证
+ * 到店购物添加到购物车
  * @author 
- *
  */
-class validate_module extends api_admin implements api_interface
-{
-    public function handleRequest(\Royalcms\Component\HttpKernel\Request $request)
-    {	
-		$this->authadminSession();
-		if ($_SESSION['admin_id'] <= 0 && $_SESSION['staff_id'] <= 0) {
-			return new ecjia_error(100, 'Invalid session');
-		}
+class create_module extends api_front implements api_interface {
+    public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
+
+    	$this->authSession();
+    	if ($_SESSION['user_id'] <= 0) {
+    		return new ecjia_error(100, 'Invalid session');
+    	}
+
+	    $goods_sn		= $this->requestData('goods_sn', '');
+	    $goods_number	= $this->requestData('number', 1);
+	    $store_id		= $this->requestData('store_id', 0);
+	    if (!$goods_sn) {
+	        return new ecjia_error(101, '参数错误');
+	    }
+	    
+	    $rec_type		= $this->requestData('rec_type', CART_STOREBUY_GOODS); //暂没用到
+	    $rec_type = CART_STOREBUY_GOODS;
+
+	    RC_Loader::load_app_func('cart', 'cart');
+
+	    unset($_SESSION['flow_type']);
+    	if (!$goods_sn) {
+    		return new ecjia_error('not_found_goods', '请选择您所需要购买的商品！');
+    	}
+
+        $products_db = RC_Loader::load_app_model('products_model', 'goods');
+		$goods_db = RC_Loader::load_app_model('goods_model', 'goods');
+		$goods_spec = array();
 		
-		$bonus_sn = $this->requestData('bonus_sn');
-		if (empty($bonus_sn)) {
-			return new ecjia_error(101, '错误的参数提交');
-		}
-		RC_Loader::load_app_func('admin_bonus', 'bonus');
-		RC_Loader::load_app_func('cart', 'cart');
-		$bonus = bonus_info(0, $bonus_sn);
-		$now = RC_Time::gmtime();
-		
-		/* 取得购物类型 */
-		$flow_type  = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
-		
-        if (empty($bonus)) {
-			return new ecjia_error('bonus_error', '红包信息有误！');
-		}
-		if ($bonus['order_id'] > 0) {
-		    return new ecjia_error('bonus_error', '红包已使用！');
-		}
-		if ($bonus['min_goods_amount'] > cart_amount(true, $flow_type)) {
-		    return new ecjia_error('bonus_error', '红包使用最小金额为'.$bonus['min_goods_amount'].'！');
-		}
-		if ($now < $bonus['use_start_date'] ||  $now > $bonus['use_end_date']) {
-		    return new ecjia_error('bonus_error', '红包不在有效期！');
-		}
-		
-		if (isset($_SESSION['user_id']) && $bonus['user_id'] > 0 && $_SESSION['user_id'] != $bonus['user_id']) {
-		    return new ecjia_error('bonus_error', '红包信息有误！');
+		$products_goods = $products_db->where(array('product_sn' => $goods_sn))->find();
+		if (!empty($products_goods)) {
+			$goods_spec = explode('|', $products_goods['goods_attr']);
+			$where = array('goods_id' => $products_goods['goods_id']);
+			if (isset($store_id) && $store_id > 0) {
+				$where['store_id'] = $store_id;
+			}
 		} else {
-		    return array('bonus' => $bonus['type_money'], 'bonus_formated' => price_format($bonus['type_money']));
+			$where = array('goods_sn' => $goods_sn);
+		    if (isset($store_id) && $store_id > 0) {
+				$where['store_id'] = $store_id;
+			}
 		}
+		$goods = $goods_db->where($where)->find();
+		if (empty($goods)) {
+			return new ecjia_error('addgoods_error', '该商品不存在或已下架');
+		}
+		$result = addto_cart($goods['goods_id'], $goods_number, $goods_spec, 0, 0, 0, 0, 0, $rec_type);
+		
+		if (is_ecjia_error($result)) {
+			return $result;
+		}
+	     
+	    $cart_result = RC_Api::api('cart', 'cart_list', array('store_group' => '', 'flow_type' => CART_STOREBUY_GOODS));
+	     
+	    return formated_cart_list($cart_result);
 	}
 }
 
