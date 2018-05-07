@@ -270,7 +270,7 @@ class checkOrder_module extends api_front implements api_interface {
 		        $shipping_cfg = ecjia_shipping::unserializeConfig($val['configure']);
 		    
 		        // O2O的配送费用计算传参调整
-		        if ($val['shipping_code'] == 'ship_o2o_express') {
+		        if ($val['shipping_code'] == 'ship_o2o_express' || $val['shipping_code'] == 'ship_ecjia_express') {
 		        	$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : ecjia_shipping::fee($val['shipping_area_id'], $distance, $cart_weight_price['amount'], $cart_weight_price['number']);
 		        } else {
 		        	$shipping_fee = ($shipping_count == 0 AND $cart_weight_price['free_shipping'] == 1) ? 0 : ecjia_shipping::fee($val['shipping_area_id'], $cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
@@ -287,7 +287,7 @@ class checkOrder_module extends api_front implements api_interface {
 		        }
 		    
 		        /* o2o*/
-		        if ($val['shipping_code'] == 'ship_o2o_express') {
+		        if ($val['shipping_code'] == 'ship_o2o_express' || $val['shipping_code'] == 'ship_ecjia_express') {
 		            /* 获取最后可送的时间（当前时间+需提前下单时间）*/
 		            $time = RC_Time::local_date('H:i', RC_Time::gmtime() + $shipping_cfg['last_order_time'] * 60);
 		    
