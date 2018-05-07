@@ -308,7 +308,7 @@ class checkOrder_module extends api_front implements api_interface {
 			}
 		}
 		
-		$out['expect_pickup_date'] = $expect_pickup_date;
+		$out['expect_pickup_date'] = array_merge($expect_pickup_date);
 		
 		if (!empty($out['goods_list'])) {
 			foreach ($out['goods_list'] as $key => $value) {
