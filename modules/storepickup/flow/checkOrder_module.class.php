@@ -114,7 +114,7 @@ class checkOrder_module extends api_front implements api_interface {
 					'user_id'	=> intval($user_info['user_id']),
 					'user_name'	=> $user_info['user_name'],
 					'mobile'	=> $user_info['mobile_phone'],
-					'integral'	=> intval($user_info['pay_points']),
+					'integral'	=> $user_info['pay_points'] > 0 ? intval($user_info['pay_points']) : 0,
 			);
 		}
 		
@@ -152,7 +152,8 @@ class checkOrder_module extends api_front implements api_interface {
 			// 能使用积分
 			$allow_use_integral = 1;
 			$order_max_integral = cart::flow_available_points($rec_ids, $flow_type);
-			$order_max_integral  = min($order_max_integral, $user_info['pay_points']);
+			$user_pay_points = $user_info['pay_points'] > 0 ? $user_info['pay_points'] : 0;
+			$order_max_integral  = min($order_max_integral, $user_pay_points);
 		} else {
 			$allow_use_integral = 0;
 			$order_max_integral = 0;
@@ -236,7 +237,7 @@ class checkOrder_module extends api_front implements api_interface {
 			$out['inv_type_list'] = $temp;
 		}
 		
-		$out['your_integral']	= $user_info['pay_points'];//用户可用积分
+		$out['your_integral']	= $user_info['pay_points'] > 0 ? $user_info['pay_points'] : 0;//用户可用积分
 		
 		$out['discount']		= number_format($discount['discount'], 2, '.', '');//用户享受折扣数
 		$out['discount_formated'] = $total['discount_formated'];

@@ -398,7 +398,8 @@ class checkOrder_module extends api_front implements api_interface {
 			// 能使用积分
 			$allow_use_integral = 1;
 			$order_max_integral = cart::flow_available_points($cart_id);
-			$order_max_integral  = min($order_max_integral, $user_info['pay_points']);
+			$user_pay_points 	= $user_info['pay_points'] > 0 ? $user_info['pay_points'] : 0;
+			$order_max_integral = min($order_max_integral, $user_pay_points);
 		} else {
 			$allow_use_integral = 0;
 			$order_max_integral = 0;
@@ -494,7 +495,7 @@ class checkOrder_module extends api_front implements api_interface {
 		}
 		$out['inv_content_list']	= empty($inv_content_list) ? null : $inv_content_list;//发票内容项
 		$out['inv_type_list']		= $inv_type_list;//发票类型及税率
-		$out['your_integral']		= $user_info['pay_points'];//用户可用积分
+		$out['your_integral']		= $user_info['pay_points'] > 0 ? $user_info['pay_points'] : 0;//用户可用积分
 // 		$out['your_discount']		= $your_discount;//用户享受折扣说明
 		$out['discount']			= number_format($total['discount'], 2, '.', '');//用户享受折扣数
 		$out['discount_formated']	= $total['discount_formated'];
