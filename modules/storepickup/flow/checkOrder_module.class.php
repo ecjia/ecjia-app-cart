@@ -286,18 +286,20 @@ class checkOrder_module extends api_front implements api_interface {
 						$shipping_cfg['pickup_days'] = 7;
 					}
 					while ($shipping_cfg['pickup_days']) {
+						$pickup = [];
+						
 						foreach ($shipping_cfg['pickup_time'] as $k => $v) {
 							if ($v['end'] > $time || $pickup_date > 0) {
-								$pickup = [];
+								
 								$pickup['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$pickup_date.' day'));
 								$pickup['time'][] = array(
 									'start_time' 	=> $v['start'],
 									'end_time'		=> $v['end'],
 								);
-								$expect_pickup_date[] = $pickup;
+								
 							}
 						}
-					
+						$expect_pickup_date[] = $pickup;
 						$pickup_date ++;
 					
 						if (count($expect_pickup_date) >= $shipping_cfg['pickup_days']) {
