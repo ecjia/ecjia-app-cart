@@ -605,6 +605,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
     	'model_attr'  	=> $goods['model_attr'], 	//属性方式
 //         'warehouse_id'  => $warehouse_id,  			//仓库
         //'area_id'  		=> $area_id, 				// 仓库地区
+        'add_time'      => RC_Time::gmtime()
     );
     
 
