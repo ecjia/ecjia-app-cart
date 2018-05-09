@@ -1744,6 +1744,9 @@ function formated_cart_list($cart_result, $store_id_group = array()) {
         $seller['total'] = $total;
     }
     
+    RC_Logger::getlogger('info')->info($_REQUEST);
+    RC_Logger::getlogger('info')->info($cart_goods);
+    
     return $cart_goods;
 }
 
