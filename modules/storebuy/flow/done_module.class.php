@@ -77,6 +77,9 @@ class done_module extends api_front implements api_interface
         //获取所需购买购物车id  will.chen
         $rec_id = $this->requestData('rec_id', 0);
         $rec_id = empty($rec_id) ? $_SESSION['cart_id'] : $rec_id;
+        if (empty($rec_id)) {
+            return new ecjia_error( 'invalid_parameter', RC_Lang::get ('system::system.invalid_parameter'));
+        }
 		$cart_id = empty($rec_id) ? '' : explode(',', $rec_id);
 		
         /* 取得购物类型 */
@@ -126,7 +129,6 @@ class done_module extends api_front implements api_interface
         /* 订单中的商品 */
         $cart_goods = cart_goods($flow_type, $cart_id);
         if (empty($cart_goods)) {
-            //EM_Api::outPut(10002);
             return new ecjia_error('no_goods_in_cart', '购物车中没有商品');
         }
         
@@ -203,6 +205,9 @@ class done_module extends api_front implements api_interface
             'agency_id'			=> 0,
             'store_id'          => $store_id
         );
+        if (empty($order['pay_id'])) {
+            return new ecjia_error( 'invalid_parameter', RC_Lang::get ('system::system.invalid_parameter'));
+        }
         
         /* 扩展信息 */
         if ($flow_type != CART_GENERAL_GOODS) {

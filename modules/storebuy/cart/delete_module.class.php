@@ -64,6 +64,9 @@ class delete_module extends api_front implements api_interface {
 	    RC_Loader::load_app_func('cart', 'cart');
 		
 	    $rec_id = $this->requestData('rec_id');
+	    if (empty($rec_id)) {
+            return new ecjia_error(101, '参数错误');
+	    }
 	    $rec_id = explode(',', $rec_id);
 	    
 	    if (is_array($rec_id)) {
