@@ -286,16 +286,20 @@ class checkOrder_module extends api_front implements api_interface {
 						$shipping_cfg['pickup_days'] = 7;
 					}
 					while ($shipping_cfg['pickup_days']) {
+						$pickup = [];
+						
 						foreach ($shipping_cfg['pickup_time'] as $k => $v) {
 							if ($v['end'] > $time || $pickup_date > 0) {
-								$expect_pickup_date[$pickup_date]['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$pickup_date.' day'));
-								$expect_pickup_date[$pickup_date]['time'][] = array(
-										'start_time' 	=> $v['start'],
-										'end_time'		=> $v['end'],
+								
+								$pickup['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$pickup_date.' day'));
+								$pickup['time'][] = array(
+									'start_time' 	=> $v['start'],
+									'end_time'		=> $v['end'],
 								);
+								
 							}
 						}
-					
+						$expect_pickup_date[] = $pickup;
 						$pickup_date ++;
 					
 						if (count($expect_pickup_date) >= $shipping_cfg['pickup_days']) {
@@ -306,7 +310,7 @@ class checkOrder_module extends api_front implements api_interface {
 			}
 		}
 		
-		$out['expect_pickup_date'] = $expect_pickup_date;
+		$out['expect_pickup_date'] = array_merge($expect_pickup_date);
 		
 		if (!empty($out['goods_list'])) {
 			foreach ($out['goods_list'] as $key => $value) {
