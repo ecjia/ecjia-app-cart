@@ -127,13 +127,18 @@ class checkOrder_module extends api_front implements api_interface {
 		$store_group = array();
 		$rec_ids = array();
 		if (!empty($cart_goods)) {
-			RC_Loader::load_app_class('goods_info', 'goods', false);
 			foreach ($cart_goods as $k => $v) {
 				$rec_ids[] = $v['rec_id'];
 				$store_group[] = $v['store_id'];
 			}
 			$store_group = array_unique($store_group);
 			$store_id = $store_group['0'];
+		}
+		
+		if (count($store_group) > 1) {
+			return new ecjia_error('pls_single_shop_for_settlement', '请单个店铺进行结算!');
+		} else {
+			$store_id = $store_group[0];
 		}
 		
 		/*店铺信息*/
