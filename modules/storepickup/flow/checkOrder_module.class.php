@@ -304,7 +304,9 @@ class checkOrder_module extends api_front implements api_interface {
 								
 							}
 						}
-						$expect_pickup_date[] = $pickup;
+						if (!empty($pickup['date']) && !empty($pickup['time'])) {
+							$expect_pickup_date[] = $pickup;
+						}
 						$pickup_date ++;
 					
 						if (count($expect_pickup_date) >= $shipping_cfg['pickup_days']) {
