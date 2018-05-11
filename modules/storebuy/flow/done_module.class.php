@@ -423,9 +423,11 @@ class done_module extends api_front implements api_interface
         /* 处理积分、红包 */
 		if ($order['user_id'] > 0 && $order['integral'] > 0) {
         	$options = array(
-        			'user_id'=>$order['user_id'],
-        			'pay_points'=> $order['integral'] * (- 1),
-        			'change_desc'=>sprintf(RC_Lang::get('cart::shopping_flow.pay_order'), $order['order_sn'])
+        			'user_id'		=> $order['user_id'],
+        			'pay_points'	=> $order['integral'] * (- 1),
+        			'change_desc'	=> sprintf(RC_Lang::get('cart::shopping_flow.pay_order'), $order['order_sn']),
+        			'from_type'		=> 'order_use_integral',
+        			'from_value'	=> $order['order_sn']
         	);
         	$result = RC_Api::api('user', 'account_change_log', $options);
         	if (is_ecjia_error($result)) {
