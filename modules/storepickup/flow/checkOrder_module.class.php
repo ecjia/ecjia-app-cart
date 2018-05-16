@@ -79,6 +79,7 @@ class checkOrder_module extends api_front implements api_interface {
 
 		/* 对商品信息赋值 */
 		$cart_goods = cart_goods($flow_type, $cart_id); // 取得商品列表，计算合计
+		
 		if (empty($cart_goods)) {
 			return new ecjia_error('not_found_cart_goods', '购物车中还没有商品');
 		}
@@ -312,23 +313,6 @@ class checkOrder_module extends api_front implements api_interface {
 		}
 		
 		$out['expect_pickup_date'] = array_merge($expect_pickup_date);
-		
-		if (!empty($out['goods_list'])) {
-			foreach ($out['goods_list'] as $key => $value) {
-				if (!empty($value['goods_attr'])) {
-					$goods_attr = explode("\n", $value['goods_attr']);
-					$goods_attr = array_filter($goods_attr);
-					$out['goods_list'][$key]['goods_attr'] = array();
-					foreach ($goods_attr as  $v) {
-						$a = explode(':',$v);
-						if (!empty($a[0]) && !empty($a[1])) {
-							$out['goods_list'][$key]['goods_attr'][] = array('name' => $a[0], 'value' => $a[1]);
-						}
-					}
-				}
-			}
-		}
-		
 		return $out;
 	}
 }
