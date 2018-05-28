@@ -159,10 +159,10 @@ class checkOrder_module extends api_front implements api_interface {
 		$cart_goods  = array();
 		foreach ($get_cart_goods['goods_list'] as $row) {
 			$store_group[] = $row['store_id'];
+			$goods_attr_gourp = array();
 			if (!empty($row['goods_attr'])) {
 				$goods_attr = explode("\n", $row['goods_attr']);
 				$goods_attr = array_filter($goods_attr);
-				$goods_attr_gourp = array();
 // 				$out['goods_list'][$key]['goods_attr'] = array();
 				foreach ($goods_attr as  $v) {
 					$a = explode(':',$v);
@@ -192,9 +192,9 @@ class checkOrder_module extends api_front implements api_interface {
 				'is_real'		=> $row['is_real'],
 				'goods_attr'	=> $goods_attr_gourp,
 				'img' => array(
-					'thumb'	=> RC_Upload::upload_url($row['goods_img']),
-					'url'	=> RC_Upload::upload_url($row['original_img']),
-					'small'	=> RC_Upload::upload_url($row['goods_img']),
+					'thumb'	=> !empty($row['goods_thumb']) ? RC_Upload::upload_url($row['goods_thumb']) : '',
+					'url'	=> !empty($row['original_img']) ? RC_Upload::upload_url($row['original_img']) : '',
+					'small'	=> !empty($row['goods_img']) ? RC_Upload::upload_url($row['goods_img']) : '',
 				)
 			);
 		}
@@ -204,6 +204,7 @@ class checkOrder_module extends api_front implements api_interface {
 			return new ecjia_error('pls_single_shop_for_settlement', '请单个店铺进行结算!');
 		} else {
 			$order['store_id'] = $store_group[0];
+			$store_id =  $store_group[0];
 		}
 
 		/* 计算折扣 */
@@ -380,6 +381,11 @@ class checkOrder_module extends api_front implements api_interface {
 		$payment_list = RC_Api::api('payment', 'available_payments', array('store_id' => $order['store_id'], 'cod_fee' => $cod_fee));
 		
 		$user_info = RC_Api::api('user', 'user_info', array('user_id' => $_SESSION['user_id']));
+		
+		if (is_ecjia_error($user_info)) {
+			return $user_info;
+		}
+		
 		/* 保存 session */
 		$_SESSION['flow_order'] = $order;
 
@@ -432,11 +438,11 @@ class checkOrder_module extends api_front implements api_interface {
 					'ub.user_id'          => array('neq' => 0),
 					'ub.user_id'          => $_SESSION['user_id'],
 					'ub.order_id'         => 0,
-					'bt.min_goods_amount' => array('lt' => $total['goods_price']),
+					'bt.min_goods_amount' => array('elt' => $total['goods_price']),
 				))
         		->in(array('bt.store_id'  => array($order['store_id'], '0')))
 				->select();
-
+			
 			$user_bonus_list = array();
 			if (!empty($user_bonus)) {
 				foreach ($user_bonus AS $key => $val) {
@@ -548,6 +554,130 @@ class checkOrder_module extends api_front implements api_interface {
 			$out['inv_type_list'] = $temp;
 		}
 
+		/*商家配送方式只有一个，且此配送方式为上门取货时，返回值结构处理同门店提货接口storepickup/flow/checkOrder一样*/
+		if (!empty($out['shipping_list'])) {
+			$count_ship_list = count($out['shipping_list']);
+			if ($count_ship_list == 1 && $out['shipping_list']['0']['shipping_code'] == 'ship_cac') {
+				$out_new = array();
+				$out_new['user_info'] 	= array();
+				$out_new['goods_list']  = array();
+				$out_new['store_info']  = array();
+				$out_new['bonus']		= array();
+				if (!empty($user_info)) {
+					$out_new['user_info'] = array(
+							'user_id'	=> intval($user_info['user_id']),
+							'user_name'	=> empty($user_info['user_name']) ? '' : $user_info['user_name'],
+							'mobile'	=> empty($user_info['mobile_phone']) ? '' : $user_info['mobile_phone'],
+							'integral'	=> $user_info['pay_points'] > 0 ? intval($user_info['pay_points']) : 0,
+					);
+				}
+				
+				if (!empty($out['goods_list'])) {
+					foreach ($out['goods_list'] as $row) {
+						$out_new['goods_list'][] = array(
+								'store_id' 				=> $row['seller_id'],
+								'store_name'			=> $row['seller_name'],
+								'rec_id'				=> $row['rec_id'],
+								'goods_id'				=> $row['goods_id'],
+								'goods_name'			=> $row['goods_name'],
+								'goods_sn'				=> $row['goods_sn'],
+								'goods_number'			=> $row['goods_number'],
+								'market_price'			=> $row['market_price'],
+								'goods_price'			=> $row['goods_price'],
+								'goods_attr'			=> $row['goods_attr'],
+								'is_real'				=> $row['is_real'],
+								'subtotal'				=> $row['subtotal'],
+								'goods_attr_id'			=> $row['goods_attr_id'],
+								'attr'					=> $row['attr'],
+								'is_real'				=> $row['is_real'],
+								'formated_market_price'	=> $row['formated_market_price'],
+								'formated_goods_price'	=> $row['formated_goods_price'],
+								'formated_subtotal'		=> price_format($row['subtotal'], false),
+								'img'					=> $row['img'],
+						);
+					}
+				}
+				
+				/*店铺信息*/
+				$shop_kf_mobile = RC_DB::table('merchants_config')->where('store_id', $store_id)->where('code', 'shop_kf_mobile')->pluck('value');
+				$store_info = RC_DB::table('store_franchisee')->where('store_id', $store_id)->selectRaw('merchants_name, province, city, district, street, address, longitude, latitude')->first();
+				$store_address = ecjia_region::getRegionName($store_info['province']).ecjia_region::getRegionName($store_info['city']).ecjia_region::getRegionName($store_info['district']).ecjia_region::getRegionName($store_info['street']).$store_info['address'];
+				$out_new['store_info'] = array('store_name' => $store_info['merchants_name'], 'store_address' => $store_address, 'shop_kf_mobile' => $shop_kf_mobile, 'location' => array('longitude' => $store_info['longitude'], 'latitude' => $store_info['latitude']));
+				
+				$out_new['payment_list']		= $out['payment_list'];//支付信息
+				$out_new['allow_use_integral'] 	= $out['allow_use_integral'];//积分 是否使用积分
+				$out_new['order_max_integral'] 	= $out['order_max_integral'];//订单最大可使用积分
+				$out_new['allow_use_bonus']		= $out['allow_use_bonus'];//是否使用红包
+				
+				if (!empty($out['bonus'])) {
+					foreach ($out['bonus'] as $res ) {
+						$out_new['bonus'][] = array(
+								'bonus_id' 					=> $res['bonus_id'],
+								'bonus_name' 				=> $res['bonus_name'],
+								'bonus_amount' 				=> $res['bonus_amount'],
+								'formatted_bonus_amount' 	=> $res['formatted_bonus_amount'],
+								'start_date' 				=> $res['start_date'],
+								'end_date' 					=> $res['end_date'],
+								'formatted_start_date' 		=> $res['formatted_start_date'],
+								'formatted_end_date' 		=> $res['formatted_end_date'],
+								'request_amount' 			=> $res['request_amount'],
+								'formatted_request_amount' 	=> $res['formatted_request_amount'],
+								'label_min_amount' 			=> '满'.$res['request_amount'].'可使用',
+						);
+					}
+				}
+				
+				$out_new['allow_can_invoice']	= ecjia::config('can_invoice');//能否开发票
+				$out_new['inv_content_list']	= empty($out['inv_content_list']) ? array() : $out['inv_content_list'];//发票内容项
+				$out_new['inv_type_list']		= empty($out['inv_type_list']) 	  ? array() : $out['inv_type_list'];
+				$out_new['your_integral']		= $out['your_integral'];
+				$out_new['discount']			= $out['discount'];
+				$out_new['discount_formated']	= $out['discount_formated'];
+				
+				if (empty($out['shipping_list']['0'])) {
+					$expect_pickup_date = array();
+				} else {
+					$shipping_cfg = ecjia_shipping::unserializeConfig($out['shipping_list']['0']['configure']);
+					if (!empty($shipping_cfg['pickup_time'])) {
+						/* 获取最后可取货的时间（当前时间）*/
+						$time = RC_Time::local_date('H:i', RC_Time::gmtime());
+						if (empty($shipping_cfg['pickup_time'])) {
+							$expect_pickup_date = array();
+						}
+						$pickup_date = 0;
+						/*取货日期*/
+						if (empty($shipping_cfg['pickup_days'])) {
+							$shipping_cfg['pickup_days'] = 7;
+						}
+						while ($shipping_cfg['pickup_days']) {
+							$pickup = [];
+				
+							foreach ($shipping_cfg['pickup_time'] as $k => $v) {
+								if ($v['end'] > $time || $pickup_date > 0) {
+				
+									$pickup['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$pickup_date.' day'));
+									$pickup['time'][] = array(
+											'start_time' 	=> $v['start'],
+											'end_time'		=> $v['end'],
+									);
+				
+								}
+							}
+							if (!empty($pickup['date']) && !empty($pickup['time'])) {
+								$expect_pickup_date[] = $pickup;
+							}
+							$pickup_date ++;
+								
+							if (count($expect_pickup_date) >= $shipping_cfg['pickup_days']) {
+								break;
+							}
+						}
+					}
+				}
+				$out_new['expect_pickup_date'] = array_merge($expect_pickup_date);
+				return $out_new;
+			}
+		} 
 		//去掉系统使用的字段
 		if (!empty($out['shipping_list'])) {
 			foreach ($out['shipping_list'] as $key => $value) {
