@@ -301,7 +301,7 @@ class done_module extends api_front implements api_interface
         }
 
         /* 订单中的总额 *///$order['bonus_id']
-        $total = cashdesk_order_fee($order, $cart_goods, $consignee);
+        $total = cashdesk_order_fee($order, $cart_goods, $consignee, $cart_id);
         $order['bonus']			= $total['bonus'];
         $order['goods_amount']	= $total['goods_price'];
         $order['discount']		= $total['discount'];
