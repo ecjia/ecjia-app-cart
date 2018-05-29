@@ -133,6 +133,9 @@ class checkOrder_module extends api_front implements api_interface {
 			}
 		}
 		
+		if (empty($consignee)) {
+			return new ecjia_error('fill_consignee_address', '请完善收货地址信息！');
+		}
 
 		/* 检查收货人信息是否完整 */
 // 		if (!cart::check_consignee_info($consignee, $flow_type)) {
