@@ -103,6 +103,7 @@ class checkOrder_module extends api_front implements api_interface {
 		
 		
 		$out = array();
+		$out['checkorder_mode']	= 'storepickup';
 		$out['user_info'] = array();
 		if (isset($_SESSION['user_id']) && $_SESSION['user_id']) {
 			$user_info = RC_Model::model('user/users_model')->find(array('user_id' => $_SESSION['user_id']));

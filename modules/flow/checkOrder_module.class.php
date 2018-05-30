@@ -393,7 +393,7 @@ class checkOrder_module extends api_front implements api_interface {
 		$out['consignee']		= $consignee;//收货地址
 		$out['shipping_list']	= $shipping_list;//快递信息
 		$out['payment_list']	= $payment_list;//支付信息
-
+		$out['checkorder_mode']	= 'default';
 		/* 如果使用积分，取得用户可用积分及本订单最多可以使用的积分 */
 		if ((ecjia_config::has('use_integral') || ecjia::config('use_integral') == '1')
 				&& $_SESSION['user_id'] > 0
@@ -558,10 +558,11 @@ class checkOrder_module extends api_front implements api_interface {
 			$count_ship_list = count($out['shipping_list']);
 			if ($count_ship_list == 1 && $out['shipping_list']['0']['shipping_code'] == 'ship_cac') {
 				$out_new = array();
-				$out_new['user_info'] 	= array();
-				$out_new['goods_list']  = array();
-				$out_new['store_info']  = array();
-				$out_new['bonus']		= array();
+				$out_new['user_info'] 		= array();
+				$out_new['goods_list']  	= array();
+				$out_new['store_info']  	= array();
+				$out_new['bonus']			= array();
+				$out_new['checkorder_mode']	= 'storepickup';
 				if (!empty($user_info)) {
 					$out_new['user_info'] = array(
 							'user_id'	=> intval($user_info['user_id']),
