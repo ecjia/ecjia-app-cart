@@ -393,7 +393,17 @@ class checkOrder_module extends api_front implements api_interface {
 		$out['consignee']		= $consignee;//收货地址
 		$out['shipping_list']	= $shipping_list;//快递信息
 		$out['payment_list']	= $payment_list;//支付信息
-		$out['checkorder_mode']	= 'default';
+		$out['checkorder_mode']	= 'default';  //订单结算模式只有配送上门
+		
+		if (!empty($shipping_list)) {
+			$count = count($shipping_list);
+			foreach ($shipping_list as $k => $v) {
+				if ($count > 1 && $v['shipping_code'] == 'ship_cac') {
+					$out['checkorder_mode']	= 'default_storepickup';  //订单结算模式有配送上门也有门店自提，方便切换使用
+				}
+			}
+		}
+		
 		/* 如果使用积分，取得用户可用积分及本订单最多可以使用的积分 */
 		if ((ecjia_config::has('use_integral') || ecjia::config('use_integral') == '1')
 				&& $_SESSION['user_id'] > 0
