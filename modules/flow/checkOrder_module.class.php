@@ -405,6 +405,8 @@ class checkOrder_module extends api_front implements api_interface {
 				foreach ($shipping_area_list as $k => $v) {
 					if ($v['shipping_code'] == 'ship_cac') {
 						$out['checkorder_mode']	= 'default_storepickup';//运费模板关联的快递有配送上门也有上门取货
+					} else {
+						$out['checkorder_mode']	= 'default';
 					}
 				}
 			} elseif ($count == 1) {
