@@ -262,55 +262,61 @@ class checkOrder_module extends api_front implements api_interface {
 		$store_region_info = RC_DB::table('store_franchisee')->where('store_id', $store_id)->select('province', 'city', 'district', 'street')->first();
 		$store_region_info['country'] = ecjia::config('shop_country');
 		$region            = array($store_region_info['country'], $store_region_info['province'], $store_region_info['city'], $store_region_info['district'], $store_region_info['street']);
-		$shipping_list     = ecjia_shipping::availableUserShippings($region, $store_id);
-		if (!empty($shipping_list)) {
-			foreach ($shipping_list as $k => $v) {
-				if ($v['shipping_code'] !='ship_cac') {
-					unset($shipping_list[$k]);
-				}
+		//$shipping_list     = ecjia_shipping::availableUserShippings($region, $store_id);
+		//根据店铺id，店铺有没设置运费模板，查找店铺设置的运费模板关联的快递
+		$shipping_area_list = RC_DB::table('shipping_area')->selectRaw('shipping_id')->where('store_id', $store_id)->groupBy('shipping_id')->get();
+		foreach ($shipping_area_list as $key => $val) {
+			$shipping_area_list[$key]['shipping_code'] = RC_DB::table('shipping')->where('shipping_id', $val['shipping_id'])->pluck('shipping_code');
+		}
+		$count = count($shipping_area_list);
+		if ($count == 1) {
+			//运费模板关联的快递只有一个且是上门取货
+			if ($shipping_area_list['0']['shipping_code'] == 'ship_cac') {
+				$ship_id = $shipping_area_list['0']['shipping_id'];
 			}
-			$shipping_list = array_values($shipping_list);
-			$shipping_cac_info = $shipping_list['0'];
-			if (empty($shipping_cac_info)) {
-				$expect_pickup_date = array();
-			} else {
-				$shipping_cfg = ecjia_shipping::unserializeConfig($shipping_cac_info['configure']);
-				if (!empty($shipping_cfg['pickup_time'])) {
-					/* 获取最后可取货的时间（当前时间）*/
-					$time = RC_Time::local_date('H:i', RC_Time::gmtime());
-					if (empty($shipping_cfg['pickup_time'])) {
-						$expect_pickup_date = array();
-					}
-					$pickup_date = 0;
-					/*取货日期*/
-					if (empty($shipping_cfg['pickup_days'])) {
-						$shipping_cfg['pickup_days'] = 7;
-					}
-					while ($shipping_cfg['pickup_days']) {
-						$pickup = [];
-						
-						foreach ($shipping_cfg['pickup_time'] as $k => $v) {
-							if ($v['end'] > $time || $pickup_date > 0) {
-								
-								$pickup['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$pickup_date.' day'));
-								$pickup['time'][] = array(
-									'start_time' 	=> $v['start'],
-									'end_time'		=> $v['end'],
-								);
-								
-							}
-						}
-						if (!empty($pickup['date']) && !empty($pickup['time'])) {
-							$expect_pickup_date[] = $pickup;
-						}
-						$pickup_date ++;
+		}
+		
+		$shipping_area_list = RC_DB::table('shipping_area')->where('store_id', $store_id)->where('shipping_id', $ship_id)->get();
+		
+		if (!empty($shipping_area_list)) {
+			$shipping_cfg = ecjia_shipping::unserializeConfig($shipping_area_list['0']['configure']);
+			if (!empty($shipping_cfg['pickup_time'])) {
+				/* 获取最后可取货的时间（当前时间）*/
+				$time = RC_Time::local_date('H:i', RC_Time::gmtime());
+				if (empty($shipping_cfg['pickup_time'])) {
+					$expect_pickup_date = array();
+				}
+				$pickup_date = 0;
+				/*取货日期*/
+				if (empty($shipping_cfg['pickup_days'])) {
+					$shipping_cfg['pickup_days'] = 7;
+				}
+				while ($shipping_cfg['pickup_days']) {
+					$pickup = [];
 					
-						if (count($expect_pickup_date) >= $shipping_cfg['pickup_days']) {
-							break;
+					foreach ($shipping_cfg['pickup_time'] as $k => $v) {
+						if ($v['end'] > $time || $pickup_date > 0) {
+							
+							$pickup['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$pickup_date.' day'));
+							$pickup['time'][] = array(
+								'start_time' 	=> $v['start'],
+								'end_time'		=> $v['end'],
+							);
+							
 						}
+					}
+					if (!empty($pickup['date']) && !empty($pickup['time'])) {
+						$expect_pickup_date[] = $pickup;
+					}
+					$pickup_date ++;
+				
+					if (count($expect_pickup_date) >= $shipping_cfg['pickup_days']) {
+						break;
 					}
 				}
 			}
+		} else {
+			$expect_pickup_date = array();
 		}
 		
 		$out['expect_pickup_date'] = array_merge($expect_pickup_date);
