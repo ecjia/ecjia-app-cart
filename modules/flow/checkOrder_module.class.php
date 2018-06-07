@@ -669,10 +669,12 @@ class checkOrder_module extends api_front implements api_interface {
 			$out_new['discount_formated']	= $out['discount_formated'];
 			
 			$shipping_area_list = RC_DB::table('shipping_area')->where('store_id', $store_id)->where('shipping_id', $ship_id)->get();
+			
 			if (empty($shipping_area_list)) {
 				$expect_pickup_date = array();
 			} else {
 				$shipping_cfg = $shipping_area_list['0']['configure'];
+				$shipping_cfg = ecjia_shipping::unserializeConfig($shipping_cfg);
 				if (empty($shipping_cfg)) {
 					$expect_pickup_date = array();
 				} else {
