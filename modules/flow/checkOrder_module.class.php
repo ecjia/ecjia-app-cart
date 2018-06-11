@@ -398,16 +398,23 @@ class checkOrder_module extends api_front implements api_interface {
 		$shipping_area_list = RC_DB::table('shipping_area')->selectRaw('shipping_id')->where('store_id', $store_id)->groupBy('shipping_id')->get();
 		if (!empty($shipping_area_list)) {
 			foreach ($shipping_area_list as $key => $val) {
-				$shipping_area_list[$key]['shipping_code'] = RC_DB::table('shipping')->where('shipping_id', $val['shipping_id'])->pluck('shipping_code');
+				//$shipping_area_list[$key]['shipping_code'] = RC_DB::table('shipping')->where('shipping_id', $val['shipping_id'])->pluck('shipping_code');
+				$shipping_code[] =  RC_DB::table('shipping')->where('shipping_id', $val['shipping_id'])->pluck('shipping_code');
 			}
-			$count = count($shipping_area_list);
+
+			$count = count($shipping_code);
 			if ($count > 1) {
-				foreach ($shipping_area_list as $k => $v) {
-					if ($v['shipping_code'] == 'ship_cac') {
-						$out['checkorder_mode']	= 'default_storepickup';//运费模板关联的快递有配送上门也有上门取货
-					} else {
-						$out['checkorder_mode']	= 'default';
-					}
+				//foreach ($shipping_area_list as $k => $v) {
+				//	if ($v['shipping_code'] == 'ship_cac') {
+				//		$out['checkorder_mode']	= 'default_storepickup';//运费模板关联的快递有配送上门也有上门取货
+				//	} else {
+				//		$out['checkorder_mode']	= 'default';
+				//	}
+				//}
+				if (in_array('ship_cac', $shipping_code)) {
+					$out['checkorder_mode']	= 'default_storepickup';//运费模板关联的快递有配送上门也有上门取货
+				} else {
+					$out['checkorder_mode']	= 'default';
 				}
 			} elseif ($count == 1) {
 				if ($shipping_area_list['0']['shipping_code'] == 'ship_cac') {
@@ -420,16 +427,6 @@ class checkOrder_module extends api_front implements api_interface {
 		} else {
 			$out['shipping_list'] = array();
 			$out['checkorder_mode']	= 'default';  //没有任何配送方式，订单结算模式只有配送上门
-		}
-		
-		
-		if (!empty($shipping_list)) {
-			$count = count($shipping_list);
-			foreach ($shipping_list as $k => $v) {
-				if ($count > 1 && $v['shipping_code'] == 'ship_cac') {
-					$out['checkorder_mode']	= 'default_storepickup';  //订单结算模式有配送上门也有门店自提，方便切换使用
-				}
-			}
 		}
 		
 		/* 如果使用积分，取得用户可用积分及本订单最多可以使用的积分 */
