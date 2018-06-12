@@ -590,7 +590,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
         'user_id'       => $_SESSION['user_id'],
         'session_id'    => SESS_ID,
         'goods_id'      => $goods_id,
-        'goods_sn'      => addslashes($goods['goods_sn']),
+        'goods_sn'      => $product_info['product_id'] > 0 ? addslashes($product_info['product_sn']) : addslashes($goods['goods_sn']),
         'product_id'    => $product_info['product_id'],
         'goods_name'    => addslashes($goods['goods_name']),
         'market_price'  => $goods['market_price'],
