@@ -217,7 +217,7 @@ class cart_cart_manage_api extends Component_Event_Api {
             $where_gr .= "parent_id = '$_parent_id'";
         }
         $data = $db_group_goods
-            ->select('parent_id, goods_price')
+            ->select('parent_id', 'goods_price')
             ->whereRaw($where_gr)
             ->orderBy('goods_price', 'asc')
             ->get();
@@ -259,7 +259,7 @@ class cart_cart_manage_api extends Component_Event_Api {
                 $basic_l_w .= "and session_id='$session_id'";
             }
             $data = $db_cart
-                    ->select('parent_id, SUM(goods_number) as count')
+                    ->select('parent_id', 'SUM(goods_number) as count')
                     ->where('user_id', $_SESSION['user_id'])
                     ->where('goods_id', $goods_id)
                     ->where('extension_code', '<>', 'package_buy'.$basic_l_w)
