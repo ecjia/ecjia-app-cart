@@ -220,7 +220,7 @@ class cart_cart_manage_api extends Component_Event_Api {
             ->select('parent_id, goods_price')
             ->whereRaw($where_gr)
             ->orderBy('goods_price', 'asc')
-            ->select();
+            ->get();
 
         if(!empty($data)) {
             foreach ($data as $row) {
