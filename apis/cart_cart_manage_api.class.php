@@ -206,19 +206,17 @@ class cart_cart_manage_api extends Component_Event_Api {
         $basic_list = array();
         
         $db_group_goods = RC_DB::table('group_goods');
-        $where_gr = '';
         if (!empty($goods_id)) {
-            $where_gr .= "goods_id = '$goods_id'";
+            $db_group_goods->where('goods_id', $goods_id);
         }
         if (!empty($goods_price)) {
-            $where_gr .= "goods_price < '$goods_price'";
+        	$db_group_goods->where('goods_price', '<', $goods_price);
         }
         if (!empty($_parent_id)) {
-            $where_gr .= "parent_id = '$_parent_id'";
+        	$db_group_goods->where('parent_id', $_parent_id);
         }
         $data = $db_group_goods
             ->select('parent_id', 'goods_price')
-            ->whereRaw($where_gr)
             ->orderBy('goods_price', 'asc')
             ->get();
 
@@ -230,16 +228,18 @@ class cart_cart_manage_api extends Component_Event_Api {
         /* 取得购物车中该商品每个基本件的数量 */
         $basic_count_list = array();
         if ($basic_list) {
-            $basic_w = '';
+        	$db_cart_bisic = RC_DB::table('cart');
+            //$basic_w = '';
             if (defined('SESS_ID')) {
                 $session_id = SESS_ID;
-                $basic_w .= "and session_id='$session_id'";
+                //$basic_w .= "and session_id='$session_id'";
+                $db_cart_bisic->where('session_id', $session_id);
             }
 
-            $data = $db_cart
+            $data = $db_cart_bisic
                     ->where('user_id', $_SESSION['user_id'])
                     ->where('parent_id', 0)
-                    ->where('extension_code', '<>', 'package_buy'.$basic_w)
+                    ->where('extension_code', '<>', 'package_buy')
                     ->whereIn('goods_id', array_keys($basic_list))
                     ->orderBy('goods_id', 'asc')
                     ->get();
@@ -253,16 +253,18 @@ class cart_cart_manage_api extends Component_Event_Api {
         /* 取得购物车中该商品每个基本件已有该商品配件数量，计算出每个基本件还能有几个该商品配件 */
         /* 一个基本件对应一个该商品配件 */
         if ($basic_count_list) {
-            $basic_l_w = '';
+        	$db_cart_bisic_l_w = RC_DB::table('cart');
+            //$basic_l_w = '';
             if (defined('SESS_ID')) {
                 $session_id = SESS_ID;
-                $basic_l_w .= "and session_id='$session_id'";
+                //$basic_l_w .= "and session_id='$session_id'";
+                $db_cart_bisic_l_w->where('session_id', $session_id);
             }
-            $data = $db_cart
+            $data = $db_cart_bisic_l_w
                     ->select('parent_id', 'SUM(goods_number) as count')
                     ->where('user_id', $_SESSION['user_id'])
                     ->where('goods_id', $goods_id)
-                    ->where('extension_code', '<>', 'package_buy'.$basic_l_w)
+                    ->where('extension_code', '<>', 'package_buy')
                     ->whereIn('parent_id', array_keys($basic_count_list))
                     ->get();
             if(!empty($data)) {
@@ -272,6 +274,8 @@ class cart_cart_manage_api extends Component_Event_Api {
             }
         }
 
+        
+        
         /* 循环插入配件 如果是配件则用其添加数量依次为购物车中所有属于其的基本件添加足够数量的该配件 */
         if  (!empty($basic_list)) {
             foreach ($basic_list as $parent_id => $fitting_price) {
@@ -306,26 +310,7 @@ class cart_cart_manage_api extends Component_Event_Api {
         $user_id = $_SESSION['user_id'];
         if ($num > 0) {
             /* 检查该商品是否已经存在在购物车中 */
-            if (!empty($goods_id)) {
-                $cart_w = '';
-                $rec_type = CART_GENERAL_GOODS;
-                $cart_w = "user_id = '$user_id'"
-                ."and goods_id = '$goods_id'"
-                ."and parent_id = 0"
-                ." and extension_code <>'package_buy'"
-                ."and rec_type='$rec_type'";
-            }
-
-            if (!empty($goods_attr)) {
-                $cart_w .= "and goods_attr='$goods_attr'";
-            }
-            if (defined('SESS_ID')) {
-                $session_id = SESS_ID;
-                $cart_w .= "and session_id='$session_id'";
-            }
-            // 终止各种参数携带
-            $db_cart->get();
-            RC_DB::table('cart')->get();
+        	$rec_type = CART_GENERAL_GOODS;
             // 重新赋值查询
             $db_cart_model = RC_DB::table('cart');
             $row = $db_cart_model
@@ -333,6 +318,7 @@ class cart_cart_manage_api extends Component_Event_Api {
                 ->where('user_id', $_SESSION['user_id'])
                 ->where('goods_id', $goods_id)
                 ->where('parent_id', $parent_id)
+                ->where('extension_code', '<>', 'package_buy')
                 ->where('rec_type', '=', $rec_type)
                 ->where('goods_attr_id', $goods_attr_id)
                 ->first();
@@ -352,18 +338,14 @@ class cart_cart_manage_api extends Component_Event_Api {
                     	'goods_price'  => $goods_price,
                         'is_checked'   => 1,//增加已有商品，更新选中状态
                     );
-                    $db_where = array(
-                        'user_id' => $_SESSION['user_id'],
-                        'goods_id' => $goods_id,
-                        'parent_id' => $parent_id,
-                        'extension_code' => array(
-                            'neq' => 'package_buy'
-                        ),
-                        'rec_type' => $rec_type,
-                        'goods_attr_id' => $goods_attr_id,
-                    );
-                    $db_cart_model = RC_Model::model('cart/cart_model');
-                    $db_cart_model->where($db_where)->update($data);
+                    RC_DB::table('cart')
+                    				->where('user_id', $_SESSION['user_id'])
+                    				->where('goods_id', $goods_id)
+                    				->where('parent_id', $parent_id)
+                    				->where('extension_code', '<>', 'package_buy')
+                    				->where('rec_type', $rec_type)
+                    				->where('goods_attr_id', $goods_attr_id)
+                    				->update($data);
 
                 } else {
                     return new ecjia_error('low_stocks', __('库存不足'));
@@ -375,19 +357,22 @@ class cart_cart_manage_api extends Component_Event_Api {
                 $parent['goods_price']  = empty($goods_price) ? 0.00 : max($goods_price, 0);
                 $parent['goods_number'] = $num;
                 $parent['parent_id']    = 0;
-                $cart_id = $db_cart->insertGetId($parent);
+                $cart_id = RC_DB::table('cart')->insertGetId($parent);
             }
         }
 
         /* 把赠品删除 */
-        $delete_w = '';
-        $delete_w = "user_id = '$user_id'"."and is_gift <> 0";
+        //$delete_w = '';
+        $db_delete_w = RC_DB::table('cart');
+        //$delete_w = "user_id = '$user_id'"."and is_gift <> 0";
+        $db_delete_w->where('user_id', $_SESSION['user_id'])->where('is_gift', '<>', 0);
         if (defined('SESS_ID')) {
             $session_id = SESS_ID;
-            $delete_w .= " and session_id='$session_id'";
+            //$delete_w .= " and session_id='$session_id'";
+            $db_delete_w->where('session_id', $session_id);
         }
 
-        $db_cart->whereRaw($delete_w)->delete();
+        $db_delete_w->delete();
         return $cart_id;
     }
 }
