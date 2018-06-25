@@ -206,6 +206,7 @@ class cart_cart_manage_api extends Component_Event_Api {
         $basic_list = array();
         
         $db_group_goods = RC_DB::table('group_goods');
+
         if (!empty($goods_id)) {
             $db_group_goods->where('goods_id', $goods_id);
         }
