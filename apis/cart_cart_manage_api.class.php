@@ -206,19 +206,22 @@ class cart_cart_manage_api extends Component_Event_Api {
         $basic_list = array();
         
         $db_group_goods = RC_DB::table('group_goods');
-        $where_gr = '';
+//         $where_gr = '';
         if (!empty($goods_id)) {
-            $where_gr .= "goods_id = '$goods_id'";
+//             $where_gr .= "goods_id = '$goods_id'";
+            $db_group_goods->where('goods_id', $goods_id);
         }
         if (!empty($goods_price)) {
-            $where_gr .= "goods_price < '$goods_price'";
+//             $where_gr .= "goods_price < '$goods_price'";
+            $db_group_goods->where('goods_price', '<', $goods_price);
         }
         if (!empty($_parent_id)) {
-            $where_gr .= "parent_id = '$_parent_id'";
+//             $where_gr .= "parent_id = '$_parent_id'";
+            $db_group_goods->where('parent_id', $_parent_id);
         }
         $data = $db_group_goods
             ->select('parent_id', 'goods_price')
-            ->whereRaw($where_gr)
+//             ->whereRaw($where_gr)
             ->orderBy('goods_price', 'asc')
             ->get();
 
