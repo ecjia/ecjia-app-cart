@@ -837,8 +837,10 @@ function recalculate_price($device = array()) {
 	$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
 	$dbview = RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
 	$codes = array('8001', '8011');
-	if (in_array($device['code'], $codes)) {
-		$rec_type = CART_CASHDESK_GOODS;
+	if (!empty($device)) {
+		if (in_array($device['code'], $codes)) {
+			$rec_type = CART_CASHDESK_GOODS;
+		}
 	} else {
 		$rec_type = CART_GENERAL_GOODS;
 	}
