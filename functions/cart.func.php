@@ -1330,7 +1330,7 @@ function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $us
 		$total_amount = 0;
 		if ($favourable['act_range'] == FAR_ALL) {
 			foreach ($goods_list as $goods) {
-				if ($use_type == 1) {
+				if ($user_type == 1) {
 					if($favourable['store_id'] == $goods['store_id']){
 						$total_amount += $goods['subtotal'];
 					}
@@ -1338,7 +1338,7 @@ function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $us
 					if (isset($favourable['userFav_type']) && $favourable['userFav_type'] == 1) {
 						$total_amount += $goods['subtotal'];
 					} else {
-						if($favourable['store_id'] == $goods['store_id']){
+					    if(isset($goods['store_id']) && $favourable['store_id'] == $goods['store_id']){
 							$total_amount += $goods['subtotal'];
 						}
 					}
@@ -1355,7 +1355,7 @@ function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $us
 
 			foreach ($goods_list as $goods) {
 				if (strpos(',' . $ids . ',', ',' . $goods['cat_id'] . ',') !== false) {
-					if ($use_type == 1) {
+					if ($user_type == 1) {
 						if ($favourable['store_id'] == $goods['store_id'] && $favourable['userFav_type'] == 0) {
 							$total_amount += $goods['subtotal'];
 						}
@@ -1373,7 +1373,7 @@ function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $us
 		} elseif ($favourable['act_range'] == FAR_BRAND) {
 			foreach ($goods_list as $goods) {
 				if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['brand_id'] . ',') !== false) {
-					if ($use_type == 1) {
+					if ($user_type == 1) {
 						if ($favourable['store_id'] == $goods['store_id']) {
 							$total_amount += $goods['subtotal'];
 						}
@@ -1392,7 +1392,7 @@ function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $us
 		} elseif ($favourable['act_range'] == FAR_GOODS) {
 			foreach ($goods_list as $goods) {
 				if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
-					if ($use_type == 1) {
+					if ($user_type == 1) {
 						if ($favourable['store_id'] == $goods['store_id']) {
 							$total_amount += $goods['subtotal'];
 						}
