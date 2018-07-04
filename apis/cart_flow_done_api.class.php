@@ -588,8 +588,10 @@ class cart_flow_done_api extends Component_Event_Api {
 		unset($_SESSION['direct_shopping']);
 		$subject = $cart_goods[0]['goods_name'] . '等' . count($cart_goods) . '种商品';
 		$order_info = array(
-			'order_sn'   => $order['order_sn'],
-			'order_id'   => $order['order_id'],
+			'order_sn'   	=> $order['order_sn'],
+			'order_id'   	=> $order['order_id'],
+			'extension_code'=> $order['extension_code'],
+			'extension_id'  => $order['extension_id'],
 			'order_info' => array(
 				'pay_code'               => $payment_info['pay_code'],
 				'order_amount'           => $order['order_amount'],
