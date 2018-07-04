@@ -240,7 +240,7 @@ class cart_cart_manage_api extends Component_Event_Api {
             $data = $db_cart_bisic
                     ->where('user_id', $_SESSION['user_id'])
                     ->where('parent_id', 0)
-                    ->where('extension_code', '<>', 'package_buy')
+                    //->where('extension_code', '<>', 'package_buy')
                     ->whereIn('goods_id', array_keys($basic_list))
                     ->orderBy('goods_id', 'asc')
                     ->get();
@@ -265,7 +265,7 @@ class cart_cart_manage_api extends Component_Event_Api {
                     ->select('parent_id', 'SUM(goods_number) as count')
                     ->where('user_id', $_SESSION['user_id'])
                     ->where('goods_id', $goods_id)
-                    ->where('extension_code', '<>', 'package_buy')
+                    //->where('extension_code', '<>', 'package_buy')
                     ->whereIn('parent_id', array_keys($basic_count_list))
                     ->get();
             if(!empty($data)) {
@@ -318,12 +318,12 @@ class cart_cart_manage_api extends Component_Event_Api {
                 ->selectRaw('rec_id, goods_number')
                 ->where('user_id', $_SESSION['user_id'])
                 ->where('goods_id', $goods_id)
-                ->where('parent_id', $parent_id)
-                ->where('extension_code', '<>', 'package_buy')
+                ->where('parent_id', 0)
+                //->where('extension_code', '!=', 'package_buy')
                 ->where('rec_type', '=', $rec_type)
                 ->where('goods_attr_id', $goods_attr_id)
                 ->first();
-
+          
             if($row) {
                 //如果购物车已经有此物品，则更新
                 $num += $row['goods_number'];
@@ -342,8 +342,8 @@ class cart_cart_manage_api extends Component_Event_Api {
                     RC_DB::table('cart')
                     				->where('user_id', $_SESSION['user_id'])
                     				->where('goods_id', $goods_id)
-                    				->where('parent_id', $parent_id)
-                    				->where('extension_code', '<>', 'package_buy')
+                    				->where('parent_id', 0)
+                    				//->where('extension_code', '<>', 'package_buy')
                     				->where('rec_type', $rec_type)
                     				->where('goods_attr_id', $goods_attr_id)
                     				->update($data);
