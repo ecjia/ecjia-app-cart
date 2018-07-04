@@ -68,11 +68,15 @@ class create_module extends api_front implements api_interface {
 	    }
 	    $goods_spec		= $this->requestData('spec', array());
 	    
-	    $rec_type		= $this->requestData('rec_type', 0); //暂没用到
+	    $rec_type		= trim($this->requestData('rec_type', 'GENERAL_GOODS')); 
+	    $object_id 		= $this->requestData('goods_activity_id', 0);
 
 	    RC_Loader::load_app_func('cart', 'cart');
 
 	    unset($_SESSION['flow_type']);
+	    unset($_SESSION['extension_code']);
+	    unset($_SESSION['extension_id']);
+	    
     	if (!$goods_id) {
     		return new ecjia_error('not_found_goods', '请选择您所需要购买的商品！');
     	}
@@ -90,8 +94,14 @@ class create_module extends api_front implements api_interface {
     		$store_id_group = array(0);
     	}
 
-    	$result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'store_group' => $store_id_group));
-
+    	if ($rec_type == 'GROUPBUY_GOODS') {
+    		$flow_type = CART_GROUP_BUY_GOODS;
+    		$result = RC_Api::api('cart', 'cart_groupbuy_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'store_group' => $store_id_group, 'goods_activity_id' => $object_id));
+    	} else {
+    		$flow_type = CART_GENERAL_GOODS;
+    		$result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods_id, 'goods_number' => $goods_number, 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'store_group' => $store_id_group));
+    	}
+    	
 	    // 更新：添加到购物车
 	    if (is_ecjia_error($result)){
 	        return $result;
@@ -109,8 +119,8 @@ class create_module extends api_front implements api_interface {
 	        return new ecjia_error('location_error', '请定位您当前所在地址！');
 	    }
 	     
-	    $cart_result = RC_Api::api('cart', 'cart_list', array('store_group' => '', 'flow_type' => CART_GENERAL_GOODS));
-	     
+	    $cart_result = RC_Api::api('cart', 'cart_list', array('store_group' => '', 'flow_type' => $flow_type));
+	    
 	    return formated_cart_list($cart_result, $store_id_group);
 	}
 }

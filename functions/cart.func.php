@@ -1636,7 +1636,7 @@ function formated_cart_list($cart_result, $store_id_group = array()) {
         return $cart_result;
     }
     recalculate_price();
-    unset($_SESSION['flow_type']);
+    //unset($_SESSION['flow_type']);
     $cart_goods = array('cart_list' => array(), 'total' => $cart_result['total']);
     
     if (!empty($cart_result['goods_list'])) {

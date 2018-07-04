@@ -74,7 +74,7 @@ class checkOrder_module extends api_front implements api_interface {
 
 		/* 取得购物类型 */
 		$flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
-
+	
 		/* 团购标志 */
 		if ($flow_type == CART_GROUP_BUY_GOODS) {
 			$is_group_buy = 1;
@@ -511,7 +511,7 @@ class checkOrder_module extends api_front implements api_interface {
 			$allow_use_bonus = 0;
 		}
 		$out['allow_use_bonus']		= $allow_use_bonus;//是否使用红包
-		$out['bonus']				= $bonus_list;//红包
+		$out['bonus']				= !empty($bonus_list) ? $bonus_list : array();//红包
 		$out['allow_can_invoice']	= ecjia::config('can_invoice');//能否开发票
 		/* 如果能开发票，取得发票内容列表 */
 		if ((ecjia_config::has('can_invoice') || ecjia::config('can_invoice') == '1')
