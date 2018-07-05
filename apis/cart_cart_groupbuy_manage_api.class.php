@@ -484,7 +484,7 @@ class cart_cart_groupbuy_manage_api extends Component_Event_Api {
     			'goods_attr_id'  => $goods_attr_id,
     			'store_id'		 => $goods['store_id'],
     			'is_real'        => $goods['is_real'],
-    			'extension_code' => 'groupbuy',
+    			'extension_code' => 'group_buy',
     			'parent_id'      => 0,
     			'rec_type'       => CART_GROUP_BUY_GOODS,
     			'is_gift'        => 0,
@@ -496,7 +496,7 @@ class cart_cart_groupbuy_manage_api extends Component_Event_Api {
     
     	/* 更新：记录购物流程类型：团购 */
     	$_SESSION['flow_type'] = CART_GROUP_BUY_GOODS;
-    	$_SESSION['extension_code'] = 'groupbuy';
+    	$_SESSION['extension_code'] = 'group_buy';
     	$_SESSION['extension_id'] = $act_id;
     	return $result;
     }
