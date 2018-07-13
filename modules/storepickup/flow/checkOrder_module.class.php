@@ -75,7 +75,9 @@ class checkOrder_module extends api_front implements api_interface {
 		RC_Loader::load_app_func('admin_bonus','bonus');
 
 		/* 取得购物类型 */
-		$flow_type = CART_GENERAL_GOODS;
+		//$flow_type = CART_GENERAL_GOODS;
+		/* 取得购物类型 */
+		$flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
 
 		/* 对商品信息赋值 */
 		$cart_goods = cart_goods($flow_type, $cart_id); // 取得商品列表，计算合计
