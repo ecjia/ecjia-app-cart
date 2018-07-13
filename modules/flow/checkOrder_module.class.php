@@ -432,13 +432,10 @@ class checkOrder_module extends api_front implements api_interface {
 		}
 		
 		if ($order_activity_type == 'group_buy') {
-			if ($out['checkorder_mode'] == 'default' || $out['checkorder_mode'] == 'default_storepickup') {
+			if ($out['checkorder_mode'] == 'storepickup' || $out['checkorder_mode'] == 'default_storepickup') {
 				$out['checkorder_mode']	= 'default';
-				$out['activity_type']	= 'group_buy';
 			}
-		} else {
-			$out['activity_type']	= 'default';
-		}
+		} 
 		
 		/* 如果使用积分，取得用户可用积分及本订单最多可以使用的积分 */
 		if ((ecjia_config::has('use_integral') || ecjia::config('use_integral') == '1')
