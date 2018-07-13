@@ -78,12 +78,14 @@ class checkOrder_module extends api_front implements api_interface {
 		/* 团购标志 */
 		if ($flow_type == CART_GROUP_BUY_GOODS) {
 			$is_group_buy = 1;
+			$order_activity_type = 'group_buy';
 		} elseif ($flow_type == CART_EXCHANGE_GOODS) {
 			/* 积分兑换商品 */
 			$is_exchange_goods = 1;
 		} else {
 			//正常购物流程  清空其他购物流程情况
 			$_SESSION['flow_order']['extension_code'] = '';
+			$order_activity_type = 'default';
 		}
 		
 		/* 检查购物车中是否有商品 */
@@ -427,6 +429,15 @@ class checkOrder_module extends api_front implements api_interface {
 		} else {
 			$out['shipping_list'] = array();
 			$out['checkorder_mode']	= 'default';  //没有任何配送方式，订单结算模式只有配送上门
+		}
+		
+		if ($order_activity_type == 'group_buy') {
+			if ($out['checkorder_mode'] == 'default' || $out['checkorder_mode'] == 'default_storepickup') {
+				$out['checkorder_mode']	= 'default';
+				$out['activity_type']	= 'group_buy';
+			}
+		} else {
+			$out['activity_type']	= 'default';
 		}
 		
 		/* 如果使用积分，取得用户可用积分及本订单最多可以使用的积分 */
