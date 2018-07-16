@@ -484,7 +484,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
 			"g.is_xiangou, g.xiangou_start_date, g.xiangou_end_date, g.xiangou_num, ".
 // 			"wg.w_id, wg.warehouse_price, wg.warehouse_promote_price, wg.region_number as wg_number, wag.region_price, wag.region_promote_price, wag.region_number as wag_number, ".
 // 			"IF(g.model_price < 1, g.shop_price, IF(g.model_price < 2, wg.warehouse_price, wag.region_price)) AS org_price,  ".
-			"g.model_price, g.model_attr,g.market_price, ".
+			"g.model_price, g.market_price, ".
 			"g.promote_price as promote_price, ".
 			" g.promote_start_date, g.promote_end_date, g.goods_weight, g.integral, g.extension_code, g.goods_number, g.is_alone_sale, g.is_shipping, ".
 			"IFNULL(mp.user_price, g.shop_price * '$_SESSION[discount]') AS shop_price ";
@@ -602,7 +602,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
         'is_shipping'   => $goods['is_shipping'],
         'rec_type'      => $rec_type,
     	'store_id'		=> $goods['store_id'],
-    	'model_attr'  	=> $goods['model_attr'], 	//属性方式
+//     	'model_attr'  	=> $goods['model_attr'], 	//属性方式
 //         'warehouse_id'  => $warehouse_id,  			//仓库
         //'area_id'  		=> $area_id, 				// 仓库地区
         'add_time'      => RC_Time::gmtime()
