@@ -847,39 +847,37 @@ function recalculate_price($device = array()) {
 	}
 	
 	/* 取得有可能改变价格的商品：除配件和赠品之外的商品 */
+	// @update 180719 选择性更新内容mark_changed=1
 	if ($_SESSION['user_id']) {
 		$res = $dbview->join(array(
 			'goods',
 			'member_price'
 		))
-		->where('c.user_id = "' . $_SESSION['user_id'] . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" AND c.extension_code <> "package_buy"')
+		->where('c.mark_changed =1 AND c.user_id = "' . $_SESSION['user_id'] . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" AND c.extension_code <> "package_buy"')
 		->select();
 	} else {
 		$res = $dbview->join(array(
 			'goods',
 			'member_price'
 		))
-		->where('c.session_id = "' . SESS_ID . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" AND c.extension_code <> "package_buy"')
+		->where('c.mark_changed =1 AND c.session_id = "' . SESS_ID . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" AND c.extension_code <> "package_buy"')
 		->select();
 	}
-
+	
 	if (! empty($res)) {
 		RC_Loader::load_app_func('global', 'goods');
 		foreach ($res as $row) {
-		    // @update 180719 选择性更新内容
-		    if($row['mark_changed'] == 1) {
-		        $attr_id = empty($row['goods_attr_id']) ? array() : explode(',', $row['goods_attr_id']);
-		        $goods_price = get_final_price($row['goods_id'], $row['goods_number'], true, $attr_id);
-		        $data = array(
-		            'goods_price' => $goods_price,
-		            'mark_changed' => 0
-		        );
-		        if ($_SESSION['user_id']) {
-		            $db_cart->where('goods_id = ' . $row['goods_id'] . ' AND user_id = "' . $_SESSION['user_id'] . '" AND rec_id = "' . $row['rec_id'] . '"')->update($data);
-		        } else {
-		            $db_cart->where('goods_id = ' . $row['goods_id'] . ' AND session_id = "' . SESS_ID . '" AND rec_id = "' . $row['rec_id'] . '"')->update($data);
-		        }
-		    }
+	        $attr_id = empty($row['goods_attr_id']) ? array() : explode(',', $row['goods_attr_id']);
+	        $goods_price = get_final_price($row['goods_id'], $row['goods_number'], true, $attr_id);
+	        $data = array(
+	            'goods_price' => $goods_price,
+	            'mark_changed' => 0
+	        );
+	        if ($_SESSION['user_id']) {
+	            $db_cart->where('goods_id = ' . $row['goods_id'] . ' AND user_id = "' . $_SESSION['user_id'] . '" AND rec_id = "' . $row['rec_id'] . '"')->update($data);
+	        } else {
+	            $db_cart->where('goods_id = ' . $row['goods_id'] . ' AND session_id = "' . SESS_ID . '" AND rec_id = "' . $row['rec_id'] . '"')->update($data);
+	        }
 		}
 	}
 	/* 删除赠品，重新选择 */
