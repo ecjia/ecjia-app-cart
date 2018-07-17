@@ -834,7 +834,6 @@ function flow_cart_stock($arr) {
  * @update 180719 选择性更新内容
  */
 function recalculate_price($device = array()) {
-
 	$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
 	$dbview = RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
 	$codes = array('8001', '8011');
@@ -853,18 +852,18 @@ function recalculate_price($device = array()) {
 			'goods',
 			'member_price'
 		))
-		->where('c.mark_changed =1 AND c.user_id = "' . $_SESSION['user_id'] . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" AND c.extension_code <> "package_buy"')
+		->where('c.mark_changed =1 AND c.user_id = "' . $_SESSION['user_id'] . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" ')
 		->select();
 	} else {
 		$res = $dbview->join(array(
 			'goods',
 			'member_price'
 		))
-		->where('c.mark_changed =1 AND c.session_id = "' . SESS_ID . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" AND c.extension_code <> "package_buy"')
+		->where('c.mark_changed =1 AND c.session_id = "' . SESS_ID . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" ')
 		->select();
 	}
 	RC_Logger::getlogger('info')->info('cart.func.php');
-	RC_Logger::getlogger('info')->info($res);
+	RC_Logger::getLogger('info')->info($res);
 	
 	if (! empty($res)) {
 		RC_Loader::load_app_func('global', 'goods');
