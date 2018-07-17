@@ -831,9 +831,10 @@ function flow_cart_stock($arr) {
  * 如果商品有促销，价格不变
  * @access public
  * @return void
+ * @update 180719 选择性更新内容
  */
 function recalculate_price($device = array()) {
-	// 链接数据库
+
 	$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
 	$dbview = RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
 	$codes = array('8001', '8011');
@@ -865,16 +866,20 @@ function recalculate_price($device = array()) {
 	if (! empty($res)) {
 		RC_Loader::load_app_func('global', 'goods');
 		foreach ($res as $row) {
-			$attr_id = empty($row['goods_attr_id']) ? array() : explode(',', $row['goods_attr_id']);
-			$goods_price = get_final_price($row['goods_id'], $row['goods_number'], true, $attr_id);
-			$data = array(
-					'goods_price' => $goods_price
-			);
-			if ($_SESSION['user_id']) {
-				$db_cart->where('goods_id = ' . $row['goods_id'] . ' AND user_id = "' . $_SESSION['user_id'] . '" AND rec_id = "' . $row['rec_id'] . '"')->update($data);
-			} else {
-				$db_cart->where('goods_id = ' . $row['goods_id'] . ' AND session_id = "' . SESS_ID . '" AND rec_id = "' . $row['rec_id'] . '"')->update($data);
-			}
+		    // @update 180719 选择性更新内容
+		    if($row['mark_changed'] == 1) {
+		        $attr_id = empty($row['goods_attr_id']) ? array() : explode(',', $row['goods_attr_id']);
+		        $goods_price = get_final_price($row['goods_id'], $row['goods_number'], true, $attr_id);
+		        $data = array(
+		            'goods_price' => $goods_price,
+		            'mark_changed' => 0
+		        );
+		        if ($_SESSION['user_id']) {
+		            $db_cart->where('goods_id = ' . $row['goods_id'] . ' AND user_id = "' . $_SESSION['user_id'] . '" AND rec_id = "' . $row['rec_id'] . '"')->update($data);
+		        } else {
+		            $db_cart->where('goods_id = ' . $row['goods_id'] . ' AND session_id = "' . SESS_ID . '" AND rec_id = "' . $row['rec_id'] . '"')->update($data);
+		        }
+		    }
 		}
 	}
 	/* 删除赠品，重新选择 */
@@ -1635,7 +1640,6 @@ function formated_cart_list($cart_result, $store_id_group = array()) {
     if (is_ecjia_error($cart_result)) {
         return $cart_result;
     }
-    recalculate_price();
     //unset($_SESSION['flow_type']);
     $cart_goods = array('cart_list' => array(), 'total' => $cart_result['total']);
     
