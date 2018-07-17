@@ -863,6 +863,8 @@ function recalculate_price($device = array()) {
 		->where('c.mark_changed =1 AND c.session_id = "' . SESS_ID . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" AND c.extension_code <> "package_buy"')
 		->select();
 	}
+	RC_Logger::getlogger('info')->info('cart.func.php');
+	RC_Logger::getlogger('info')->info($res);
 	
 	if (! empty($res)) {
 		RC_Loader::load_app_func('global', 'goods');
