@@ -845,23 +845,53 @@ function recalculate_price($device = array()) {
 		$rec_type = CART_GENERAL_GOODS;
 	}
 	
+	$discount = $_SESSION['discount'];
+	$user_rank = $_SESSION['user_rank'];
+	
+	$db = RC_DB::table('cart as c')
+			->leftJoin('goods as g', RC_DB::raw('c.goods_id'), '=', RC_DB::raw('g.goods_id'))
+			->leftJoin('member_price as mp', function($join) {
+				$join->where(RC_DB::raw('mp.goods_id'), '=', RC_DB::raw('g.goods_id'))
+				->where(RC_DB::raw('mp.user_rank'), '=', $user_rank);
+			})
+			->selectRaw("c.rec_id, c.goods_id, c.goods_attr_id, g.promote_price, g.promote_start_date, c.goods_number,g.promote_end_date, IFNULL(mp.user_price, g.shop_price * $discount) AS member_price");
+			
 	/* 取得有可能改变价格的商品：除配件和赠品之外的商品 */
 	// @update 180719 选择性更新内容mark_changed=1
 	if ($_SESSION['user_id']) {
-		$res = $dbview->join(array(
-			'goods',
-			'member_price'
-		))
-		->where('c.mark_changed =1 AND c.user_id = "' . $_SESSION['user_id'] . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" ')
-		->select();
+// 		$res = $dbview->join(array(
+// 			'goods',
+// 			'member_price'
+// 		))
+// 		->where('c.mark_changed =1 AND c.user_id = "' . $_SESSION['user_id'] . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" ')
+// 		->select();
+		
+		
+		$res = $db
+			->where(RC_DB::raw('c.user_id'), $_SESSION['user_id'])
+			->where(RC_DB::raw('c.parent_id'), 0)
+			->where(RC_DB::raw('c.is_gift'), 0)
+			->where(RC_DB::raw('c.goods_id'), '>', 0)
+			->where(RC_DB::raw('c.rec_type'), $rec_type)
+			->get();
+		
 	} else {
-		$res = $dbview->join(array(
-			'goods',
-			'member_price'
-		))
-		->where('c.mark_changed =1 AND c.session_id = "' . SESS_ID . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" ')
-		->select();
+// 		$res = $dbview->join(array(
+// 			'goods',
+// 			'member_price'
+// 		))
+// 		->where('c.mark_changed =1 AND c.session_id = "' . SESS_ID . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" ')
+// 		->select();
+		
+		$res = $db
+			->where(RC_DB::raw('c.session_id'), SESS_ID)
+			->where(RC_DB::raw('c.parent_id'), 0)
+			->where(RC_DB::raw('c.is_gift'), 0)
+			->where(RC_DB::raw('c.goods_id'), '>', 0)
+			->where(RC_DB::raw('c.rec_type'), $rec_type)
+			->get();
 	}
+	
 	
 	if (! empty($res)) {
 		RC_Loader::load_app_func('global', 'goods');
