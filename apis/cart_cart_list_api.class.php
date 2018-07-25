@@ -83,11 +83,6 @@ class cart_cart_list_api extends Component_Event_Api {
 			'goods_amount' => 0, // 本店售价合计（无格式）
 	        'goods_number' => 0, // 商品总件数
 		);
-		
-		RC_Logger::getLogger('debug')->debug('line-87-'.json_encode($_SESSION));
-		RC_Logger::getLogger('debug')->debug('line-75-'.session_id());
-		RC_Logger::getLogger('debug')->debug('line-86-'.$flow_type);
-		
 		$dbview_cart->where(RC_DB::raw('c.rec_type'), '=', $flow_type);
 		$dbview_cart->where(RC_DB::raw('s.shop_close'), '=', '0');
 

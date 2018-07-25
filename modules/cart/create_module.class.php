@@ -69,8 +69,6 @@ class create_module extends api_front implements api_interface {
 	    $goods_spec		= $this->requestData('spec', array());
 	    
 	    $rec_type		= trim($this->requestData('rec_type', 'GENERAL_GOODS')); 
-	    RC_Logger::getLogger('debug')->debug('rec_type-'.$rec_type);
-	    
 	    $object_id 		= $this->requestData('goods_activity_id', 0);
 
 	    RC_Loader::load_app_func('cart', 'cart');
@@ -120,6 +118,7 @@ class create_module extends api_front implements api_interface {
 	    } else {
 	        return new ecjia_error('location_error', '请定位您当前所在地址！');
 	    }
+
 	    $cart_result = RC_Api::api('cart', 'cart_list', array('store_group' => '', 'flow_type' => $flow_type));
 	    
 	    return formated_cart_list($cart_result, $store_id_group);

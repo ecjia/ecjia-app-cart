@@ -72,7 +72,6 @@ class checkOrder_module extends api_front implements api_interface {
 		}
 		RC_Loader::load_app_class('cart', 'cart', false);
 
-		RC_Logger::getLogger('debug')->debug('line-75-'.session_id());
 		/* 取得购物类型 */
 		$flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
 	
