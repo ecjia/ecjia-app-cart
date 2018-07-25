@@ -118,7 +118,7 @@ class create_module extends api_front implements api_interface {
 	    } else {
 	        return new ecjia_error('location_error', '请定位您当前所在地址！');
 	    }
-	    RC_Logger::getLogger('error')->error($flow_type);
+	    RC_Logger::getLogger('error')->error('line-121'.$flow_type);
 
 	    $cart_result = RC_Api::api('cart', 'cart_list', array('store_group' => '', 'flow_type' => $flow_type));
 	    
