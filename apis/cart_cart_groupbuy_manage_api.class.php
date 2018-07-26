@@ -498,7 +498,6 @@ class cart_cart_groupbuy_manage_api extends Component_Event_Api {
     	$_SESSION['flow_type'] = CART_GROUP_BUY_GOODS;
     	$_SESSION['extension_code'] = 'group_buy';
     	$_SESSION['extension_id'] = $act_id;
-    	$_SESSION['flow_order']['extension_code'] = 'group_buy';
     	return $result;
     }
 }
