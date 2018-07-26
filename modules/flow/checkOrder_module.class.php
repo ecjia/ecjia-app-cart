@@ -74,6 +74,13 @@ class checkOrder_module extends api_front implements api_interface {
 
 		/* 取得购物类型 */
 		$flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
+		
+		RC_Logger::getLogger('debug')->debug('checkOrder_module.class.php_line-78-'.json_encode($_SESSION));
+		if (isset($_SESSION['flow_order']['extension_code']) && $_SESSION['flow_order']['extension_code'] == 'group_buy') {
+			$flow_type = CART_GROUP_BUY_GOODS;
+		} else {
+			$flow_type = CART_GENERAL_GOODS;
+		}
 	
 		/* 团购标志 */
 		if ($flow_type == CART_GROUP_BUY_GOODS) {
