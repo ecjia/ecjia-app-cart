@@ -73,8 +73,19 @@ class checkOrder_module extends api_front implements api_interface {
 		RC_Loader::load_app_class('cart', 'cart', false);
 
 		/* 取得购物类型 */
-		$flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
-		
+		//$flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
+		$rec_type = RC_DB::table('cart')->whereIn('rec_id', $cart_id)->lists('rec_type');
+		$rec_type = array_unique($rec_type);
+		if (count($rec_type) > 1) {
+			return new ecjia_error( 'error_rec_type', '购物车类型不一致！');
+		} else {
+			$rec_type = $rec_type['0'];
+			if ($rec_type == 1) {
+				$flow_type = CART_GROUP_BUY_GOODS;
+			} else {
+				$flow_type = CART_GENERAL_GOODS;
+			}
+		}
 		/* 团购标志 */
 		if ($flow_type == CART_GROUP_BUY_GOODS) {
 			$is_group_buy = 1;
