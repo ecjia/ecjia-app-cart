@@ -102,7 +102,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		}
 
 		$cart_goods = $get_cart_goods['goods_list'];
-
+		
 		/* 判断是不是实体商品  及店铺数量如有多家店铺返回错误*/
 		$store_group = array();
 		foreach ($cart_goods as $val) {
@@ -141,8 +141,14 @@ class cart_flow_done_api extends Component_Event_Api {
 
 		/* 扩展信息 */
 		if (isset($_SESSION['flow_type']) && intval($_SESSION['flow_type']) != CART_GENERAL_GOODS) {
-			$order['extension_code']	= $_SESSION['extension_code'];
-			$order['extension_id']		= $_SESSION['extension_id'];
+			//$order['extension_code']	= $_SESSION['extension_code'];
+			//$order['extension_id']		= $_SESSION['extension_id'];
+			$order['extension_code'] = 'group_buy';
+			if (!empty($cart_goods)) {
+				$goods_id = $cart_goods['goods_id'];
+			}
+			$extension_id = RC_DB::table('goods_activity')->where('store_id', $cart_goods['store_id'])->where('goods_id', $goods_id)->where('act_type', GAT_GROUP_BUY)->pluck('act_id');
+			$order['extension_id'] = empty($extension_id) ? 0 : $extension_id;
 		} else {
 			$order['extension_code'] = '';
 			$order['extension_id']   = 0;
@@ -316,9 +322,6 @@ class cart_flow_done_api extends Component_Event_Api {
 		$new_order_id = RC_DB::table('order_info')->insertGetId($order);
 		$order['order_id'] = $new_order_id;
 		
-		RC_Logger::getLogger('error')->info('test111');
-		RC_Logger::getLogger('error')->info($new_order_id);
-		RC_Logger::getLogger('pay')->debug('test222');
 		
 		if (!empty($order['inv_payee'])) {
 			$inv_payee = explode(',', $order['inv_payee']);
@@ -681,9 +684,6 @@ class cart_flow_done_api extends Component_Event_Api {
 				RC_Logger::getLogger('info')->error($e);
 			}
 		}
-		RC_Logger::getLogger('error')->info('test333');
-		RC_Logger::getLogger('error')->info($new_order_id);
-		RC_Logger::getLogger('pay')->debug('test444');
 		
 		return $order_info;
 	}

@@ -159,10 +159,6 @@ class done_module extends api_front implements api_interface {
     	
     	$result = RC_Api::api('cart', 'flow_done', array('cart_id' => $cart_id, 'order' => $order, 'address_id' => $address_id, 'flow_type' => $flow_type, 'bonus_sn' => $this->requestData('bonus_sn'), 'location' => $location, 'device' => $this->device));
     	
-    	RC_Logger::getLogger('error')->info('test555');
-    	RC_Logger::getLogger('error')->info($result);
-    	RC_Logger::getLogger('pay')->debug('test666');
-    	
     	return $result;
     }
 }
