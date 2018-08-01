@@ -145,7 +145,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			//$order['extension_id']		= $_SESSION['extension_id'];
 			$order['extension_code'] = 'group_buy';
 			if (!empty($cart_goods)) {
-				$goods_id = $cart_goods['goods_id'];
+				$goods_id = $cart_goods['0']['goods_id'];
 			}
 			$extension_id = RC_DB::table('goods_activity')->where('store_id', $cart_goods['store_id'])->where('goods_id', $goods_id)->where('act_type', GAT_GROUP_BUY)->pluck('act_id');
 			$order['extension_id'] = empty($extension_id) ? 0 : $extension_id;
