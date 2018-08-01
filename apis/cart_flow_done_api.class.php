@@ -154,7 +154,7 @@ class cart_flow_done_api extends Component_Event_Api {
 					$goods_id = $cart_goods['0']['goods_id'];
 				}
 				$extension_id = RC_DB::table('goods_activity')->where('store_id', $cart_goods['0']['store_id'])->where('goods_id', $goods_id)->where('act_type', GAT_GROUP_BUY)->pluck('act_id');
-				$order['extension_id'] = empty($extension_id) ? 0 : $extension_id;
+				$order['extension_id'] = empty($extension_id) ? 0 : intval($extension_id);
 				
 				RC_Logger::getLogger('error')->info('test333');
 				RC_Logger::getLogger('error')->info($order);
@@ -307,12 +307,6 @@ class cart_flow_done_api extends Component_Event_Api {
 
 		$order['from_ad'] = ! empty($_SESSION['from_ad']) ? $_SESSION['from_ad'] : '0';
 		$order['referer'] = ! empty($options['device']['client']) ? $options['device']['client'] : 'mobile';
-
-		/* 记录扩展信息 */
-		if ($options['flow_type'] != CART_GENERAL_GOODS) {
-			$order['extension_code'] = $_SESSION['extension_code'];
-			$order['extension_id'] = $_SESSION['extension_id'];
-		}
 
 		$parent_id = 0;
 		$order['parent_id'] = $parent_id;
