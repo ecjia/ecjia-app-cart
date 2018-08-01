@@ -316,6 +316,10 @@ class cart_flow_done_api extends Component_Event_Api {
 		$new_order_id = RC_DB::table('order_info')->insertGetId($order);
 		$order['order_id'] = $new_order_id;
 		
+		RC_Logger::getLogger('error')->info('test111');
+		RC_Logger::getLogger('error')->info($new_order_id);
+		RC_Logger::getLogger('pay')->debug('test222');
+		
 		if (!empty($order['inv_payee'])) {
 			$inv_payee = explode(',', $order['inv_payee']);
 			$order['inv_payee'] = $inv_payee['0'];
@@ -677,6 +681,9 @@ class cart_flow_done_api extends Component_Event_Api {
 				RC_Logger::getLogger('info')->error($e);
 			}
 		}
+		RC_Logger::getLogger('error')->info('test333');
+		RC_Logger::getLogger('error')->info($new_order_id);
+		RC_Logger::getLogger('pay')->debug('test444');
 		
 		return $order_info;
 	}
