@@ -574,7 +574,7 @@ class cart_cashdesk {
 			if (!empty($goods_id)) {
 				$store_id 		= Ecjia\App\Cart\StoreStatus::GetStoreId($goods_id);
 				$store_status 	= Ecjia\App\Cart\StoreStatus::GetStoreStatus($store_id);
-				if ($store_status == '2') {
+				if ($store_status == Ecjia\App\Cart\StoreStatus::LOCKED) {
 					return new ecjia_error('store_locked', '对不起，该商品所属的店铺已锁定！');
 				}
 			}

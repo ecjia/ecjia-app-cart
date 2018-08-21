@@ -54,6 +54,8 @@ use RC_DB;
  */
 class StoreStatus
 {
+	const NORMAL 	 = 1;//正常
+	const LOCKED 	 = 2;//锁定
 	
     /**
      * 获取商品对应的店铺id
