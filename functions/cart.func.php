@@ -153,6 +153,16 @@ function flow_update_cart($arr) {
         if ($val <= 0 || !is_numeric($key)) {
             continue;
         }
+        //要更新的购物车商品对应店铺有没锁定
+        $goods_id = Ecjia\App\Cart\StoreStatus::GetGoodsId($key);
+        if (!empty($goods_id)) {
+        	$store_id 		= Ecjia\App\Cart\StoreStatus::GetStoreId($goods_id);
+        	$store_status 	= Ecjia\App\Cart\StoreStatus::GetStoreStatus($store_id);
+        	if ($store_status == '2') {
+        		return new ecjia_error('store_locked', '对不起，该商品所属的店铺已锁定！');
+        	}
+        }
+        
         //查询：     
         if ($_SESSION['user_id']) {
             $goods = RC_DB::table('cart')
