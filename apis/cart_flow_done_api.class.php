@@ -45,6 +45,7 @@
 //  ---------------------------------------------------------------------------------
 //
 use Ecjia\System\Notifications\OrderPlaced;
+use Ecjia\System\Notifications\OrderPickup;
 defined('IN_ECJIA') or exit('No permission resources.');
 
 
@@ -485,13 +486,17 @@ class cart_flow_done_api extends Component_Event_Api {
 		/*如果订单金额为0，并且配送方式为上门取货时发送提货码*/
 		if (($order['order_amount'] + $order['surplus']) == '0.00' && (!empty($shipping_code) && ($shipping_code == 'ship_cac'))) {
 			/*短信给用户发送收货验证码*/
-			$mobile = RC_DB::table('users')->where('user_id', $order['user_id'])->pluck('mobile_phone');
+			$userinfo = RC_DB::table('users')->where('user_id', $order['user_id'])->selectRaw('user_name, mobile_phone')->first();
+			$mobile = $userinfo['mobile_phone'];
 			if (!empty($mobile)) {
 				$db_term_meta = RC_DB::table('term_meta');
 				$max_code = $db_term_meta->where('object_type', 'ecjia.order')->where('object_group', 'order')->where('meta_key', 'receipt_verification')->max('meta_value');
 				$max_code = $max_code ? ceil($max_code/10000) : 1000000;
 				$code = $max_code . str_pad(mt_rand(0, 9999), 4, '0', STR_PAD_LEFT);
-					
+
+				$orm_user_db = RC_Model::model('orders/orm_users_model');
+				$user_ob = $orm_user_db->find($order['user_id']);
+				
 				try {
 					//发送短信
 					$options = array(
@@ -505,6 +510,22 @@ class cart_flow_done_api extends Component_Event_Api {
 							),
 					);
 					RC_Api::api('sms', 'send_event_sms', $options);
+					//消息通知
+					$order_pickup_data = array(
+							'title'	=> '订单收货验证码',
+							'body'	=> '尊敬的'.$userinfo['user_name'].'，您在我们网站已成功下单。订单号：'.$order['order_sn'].'，收货验证码为：'.$code.'。请保管好您的验证码，以便收货验证',
+							'data'	=> array(
+									'user_id'				=> $order['user_id'],
+									'user_name'				=> $userinfo['user_name'],
+									'order_id'				=> $new_order_id,
+									'order_sn'				=> $order['order_sn'],
+									'code'					=> $code,
+							),
+					);
+					 
+					$push_orderpickup_data = new OrderPickup($order_pickup_data);
+					RC_Notification::send($user_ob, $push_orderpickup_data);
+					
 				} catch (PDOException $e) {
 					RC_Logger::getLogger('info')->error($e);
 				}
