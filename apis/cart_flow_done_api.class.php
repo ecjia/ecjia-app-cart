@@ -45,7 +45,7 @@
 //  ---------------------------------------------------------------------------------
 //
 use Ecjia\System\Notifications\OrderPlaced;
-use Ecjia\System\Notifications\OrderPickup;
+use Ecjia\App\Orders\Notifications\OrderPickup;
 defined('IN_ECJIA') or exit('No permission resources.');
 
 
