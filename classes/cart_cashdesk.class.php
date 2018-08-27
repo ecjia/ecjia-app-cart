@@ -271,7 +271,7 @@ class cart_cashdesk {
 	 * @param   integer $parent     基本件
 	 * @return  boolean
 	 */
-	public static function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehouse_id = 0, $area_id = 0, $price = 0, $weight = 0, $flow_type = CART_GENERAL_GOODS) {
+	public static function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $price = 0, $weight = 0, $flow_type = CART_GENERAL_GOODS) {
 		$dbview 		= RC_Loader::load_app_model('sys_goods_member_viewmodel', 'goods');
 		$db_cart 		= RC_Loader::load_app_model('cart_model', 'cart');
 		$db_products 	= RC_Loader::load_app_model('products_model', 'goods');
@@ -282,25 +282,12 @@ class cart_cashdesk {
 		RC_Loader::load_app_func('global', 'goods');
 	
 		$field = "g.goods_id, g.market_price, g.goods_name, g.goods_sn, g.is_on_sale, g.is_real, g.store_id as store_id, g.model_inventory, g.model_attr, ".
-				"g.is_xiangou, g.xiangou_start_date, g.xiangou_end_date, g.xiangou_num, ".
-				// 			"wg.w_id, wg.warehouse_price, wg.warehouse_promote_price, wg.region_number as wg_number, wag.region_price, wag.region_promote_price, wag.region_number as wag_number, ".
-		// 			"IF(g.model_price < 1, g.shop_price, IF(g.model_price < 2, wg.warehouse_price, wag.region_price)) AS org_price,  ".
-		"g.model_price, g.market_price, ".
+				"g.is_xiangou, g.xiangou_start_date, g.xiangou_end_date, g.xiangou_num, "."g.model_price, g.market_price, ".
 		"g.promote_price as promote_price, ".
 		" g.promote_start_date, g.promote_end_date, g.goods_weight, g.integral, g.extension_code, g.goods_number, g.is_alone_sale, g.is_shipping, ".
 		"IFNULL(mp.user_price, g.shop_price * '$_SESSION[discount]') AS shop_price ";
 		/* 取得商品信息 */
 		$dbview->view = array(
-		//    		'warehouse_goods' => array(
-				//    			'type'  => Component_Model_View::TYPE_LEFT_JOIN,
-				//    			'alias' => 'wg',
-				//    			'on'   	=> "g.goods_id = wg.goods_id and wg.region_id = '$warehouse_id'"
-				//    		),
-		//    		'warehouse_area_goods' => array(
-				//    			'type'  => Component_Model_View::TYPE_LEFT_JOIN,
-				//    			'alias' => 'wag',
-				//    			'on'   	=> "g.goods_id = wag.goods_id and wag.region_id = '$area_id'"
-				//    		),
 				'member_price' => array(
 						'type'     => Component_Model_View::TYPE_LEFT_JOIN,
 						'alias'    => 'mp',
@@ -315,7 +302,7 @@ class cart_cashdesk {
 		if (ecjia::config('review_goods') == 1) {
 			$where['g.review_status'] = array('gt' => 2);
 		}
-		$goods = $dbview->field($field)->join(array(/* 'warehouse_goods', 'warehouse_area_goods', */ 'member_price'))->find($where);
+		$goods = $dbview->field($field)->join(array('member_price'))->find($where);
 		if (empty($goods)) {
 			return new ecjia_error('no_goods', __('对不起，指定的商品不存在！'));
 		}
@@ -350,12 +337,6 @@ class cart_cashdesk {
 			$product_info = array('product_number' => '', 'product_id' => 0 , 'goods_attr'=>'');
 		}
 	
-		//     if ($goods['model_inventory'] == 1) {
-		//     	$goods['goods_number'] = $goods['wg_number'];
-		//     } elseif($goods['model_inventory'] == 2) {
-		//     	$goods['goods_number'] = $goods['wag_number'];
-		//     }
-	
 		/* 检查：库存 */
 		if (ecjia::config('use_storage') == 1) {
 			//检查：商品购买数量是否大于总库存
@@ -374,12 +355,8 @@ class cart_cashdesk {
 		}
 	
 		/* 计算商品的促销价格 */
-		//     $warehouse_area['warehouse_id'] = $warehouse_id;
-		//     $warehouse_area['area_id']      = $area_id;
-	
 		$spec_price             = spec_price($spec, $goods_id);
 		$goods_price            = get_final_price($goods_id, $num, true, $spec);
-		//     $goods['market_price'] += $spec_price;
 		$goods_attr             = get_goods_attr_info($spec, 'pice');
 		$goods_attr_id          = join(',', $spec);
 	
@@ -403,9 +380,6 @@ class cart_cashdesk {
 				'is_shipping'   => $goods['is_shipping'],
 				'rec_type'      => $rec_type,
 				'store_id'		=> $goods['store_id'],
-				//     	'model_attr'  	=> $goods['model_attr'], 	//属性方式
-		//         'warehouse_id'  => $warehouse_id,  			//仓库
-				//'area_id'  		=> $area_id, 				// 仓库地区
 				'add_time'      => RC_Time::gmtime()
 		);
 	
