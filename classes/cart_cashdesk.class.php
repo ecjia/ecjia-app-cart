@@ -194,7 +194,7 @@ class cart_cashdesk {
 			$join->where(RC_DB::raw('mp.goods_id'), '=', RC_DB::raw('g.goods_id'))
 			->where(RC_DB::raw('mp.user_rank'), '=', $user_rank);
 		})
-		->selectRaw("c.rec_id, c.goods_id, c.goods_attr_id, g.promote_price, g.promote_start_date, c.goods_number,g.promote_end_date, IFNULL(mp.user_price, g.shop_price * $discount) AS member_price");
+		->select(RC_DB::raw("c.rec_id, c.goods_id, c.goods_attr_id, g.promote_price, g.promote_start_date, c.goods_number,g.promote_end_date, IFNULL(mp.user_price, g.shop_price * $discount) AS member_price"));
 			
 		/* 取得有可能改变价格的商品：除配件和赠品之外的商品 */
 		// @update 180719 选择性更新内容mark_changed=1
@@ -556,14 +556,14 @@ class cart_cashdesk {
 			//查询：
 			if ($_SESSION['user_id']) {
 				$goods = RC_DB::table('cart')
-				->selectRaw('goods_id, goods_attr_id, product_id, extension_code')
+				->select(RC_DB::raw('goods_id, goods_attr_id, product_id, extension_code'))
 				->where('rec_id', $key)
 				->where('user_id', $_SESSION['user_id'])
 				->first();
 	
 			} else {
 				$goods = RC_DB::table('cart')
-				->selectRaw('goods_id, goods_attr_id, product_id, extension_code')
+				->select(RC_DB::raw('goods_id, goods_attr_id, product_id, extension_code'))
 				->where('rec_id', $key)
 				->where('session_id', SESS_ID)
 				->first();
@@ -571,7 +571,7 @@ class cart_cashdesk {
 			$row = RC_DB::table('goods as g')
 			->leftJoin('cart as c', RC_DB::raw('g.goods_id'), '=', RC_DB::raw('c.goods_id'))
 			->where(RC_DB::raw('c.rec_id'), $key)
-			->selectRaw('g.goods_number as g_number, c.*')
+			->select(RC_DB::raw('g.goods_number as g_number, c.*'))
 			->first();
 	
 			//查询：系统启用了库存，检查输入的商品数量是否有效

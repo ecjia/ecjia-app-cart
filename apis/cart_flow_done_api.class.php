@@ -376,7 +376,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		$field = 'goods_id, goods_name, goods_sn, product_id, goods_number, market_price,goods_price, goods_attr, is_real, extension_code, parent_id, is_gift, goods_attr_id, store_id';
 
 		$data_row = RC_DB::table('cart')
-			->selectRaw($field)
+			->select(RC_DB::raw($field))
 			->where('user_id', $_SESSION['user_id'])
 			->where('rec_type', $options['flow_type'])
 			->whereIn('rec_id', $options['cart_id'])
@@ -486,7 +486,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		/*如果订单金额为0，并且配送方式为上门取货时发送提货码*/
 		if (($order['order_amount'] + $order['surplus']) == '0.00' && (!empty($shipping_code) && ($shipping_code == 'ship_cac'))) {
 			/*短信给用户发送收货验证码*/
-			$userinfo = RC_DB::table('users')->where('user_id', $order['user_id'])->selectRaw('user_name, mobile_phone')->first();
+			$userinfo = RC_DB::table('users')->where('user_id', $order['user_id'])->select('user_name', 'mobile_phone')->first();
 			$mobile = $userinfo['mobile_phone'];
 			if (!empty($mobile)) {
 				$db_term_meta = RC_DB::table('term_meta');
