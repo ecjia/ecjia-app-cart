@@ -696,7 +696,7 @@ class cart {
 				$shipping_count_where['is_shipping'] = array('neq' => 1);
 				$shipping_count       = $db->where($shipping_count_where)->count();
 
-				if ($shipping_info['shipping_code'] == 'ship_o2o_express') {
+				if (($shipping_info['shipping_code'] == 'ship_o2o_express') || ($shipping_info['shipping_code'] == 'ship_ecjia_express')) {
 				
 					/* ===== 计算收件人距离 START ===== */
 					// 收件人地址，带坐标 $consignee
