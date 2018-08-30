@@ -1058,6 +1058,7 @@ class cart {
 		RC_Loader::load_app_class('goods_category', 'goods', false);
 		/* 循环计算每个优惠活动的折扣 */
 		if (!empty($favourable_list)) {
+			$discount_temp = [];
 			foreach ($favourable_list as $favourable) {
 			    /* 初始化折扣 */
 			    $discount = 0;
@@ -1129,7 +1130,7 @@ class cart {
 					}
 				}
 			}
-			$discount = max($discount_temp);
+			$discount = !empty($discount_temp) ? max($discount_temp) : 0.00;
 			//优惠金额不能超过订单本身
 			if ($total_amount && $discount > $total_amount) {
 			    $discount = $total_amount;

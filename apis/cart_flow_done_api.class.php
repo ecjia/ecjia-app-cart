@@ -81,7 +81,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		if (isset($consignee['latitude']) && isset($consignee['longitude']) && $mobile_location_range > 0) {
 			$geohash = RC_Loader::load_app_class('geohash', 'store');
 			$geohash_code = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
-			$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code));
+			$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code, 'city_id' => ''));
 			
 		} elseif (isset($consignee['city']) && $consignee['city'] > 0) {
 			$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('city_id' => $consignee['city']));
@@ -130,14 +130,16 @@ class cart_flow_done_api extends Component_Event_Api {
 		if (ecjia::config('use_storage') == '1' && ecjia::config('stock_dec_time') == SDT_PLACE) {
 			$cart_goods_stock = $get_cart_goods['goods_list'];
 			$_cart_goods_stock = array();
-			foreach ($cart_goods_stock['goods_list'] as $value) {
-				$_cart_goods_stock[$value['rec_id']] = $value['goods_number'];
+			if (!empty($cart_goods_stock['goods_list'])) {
+				foreach ($cart_goods_stock['goods_list'] as $value) {
+					$_cart_goods_stock[$value['rec_id']] = $value['goods_number'];
+				}
+				$result = cart::flow_cart_stock($_cart_goods_stock);
+				if (is_ecjia_error($result)) {
+					return $result;
+				}
+				unset($cart_goods_stock, $_cart_goods_stock);
 			}
-			$result = cart::flow_cart_stock($_cart_goods_stock);
-			if (is_ecjia_error($result)) {				
-				return $result;
-			}
-			unset($cart_goods_stock, $_cart_goods_stock);
 		}
 
 		/* 扩展信息 */
@@ -667,24 +669,28 @@ class cart_flow_done_api extends Component_Event_Api {
 // 			/* 通知记录*/
 			$orm_staff_user_db = RC_Model::model('express/orm_staff_user_model');
 			$staff_user_ob = $orm_staff_user_db->find($staff_user['user_id']);
-			$order_data = array(
-			    'title'	=> '客户下单',
-			    'body'	=> '您有一笔新订单，订单号为：'.$order['order_sn'],
-			    'data'	=> array(
-			        'order_id'		         => $order['order_id'],
-			        'order_sn'		         => $order['order_sn'],
-			        'order_amount'	         => $order['order_amount'],
-			        'formatted_order_amount' => price_format($order['order_amount']),
-			        'consignee'		         => $order['consignee'],
-			        'mobile'		         => $order['mobile'],
-			        'address'		         => $order['address'],
-			        'order_time'	         => RC_Time::local_date(ecjia::config('time_format'), $order['add_time']),
-			    ),
-			);
-			
-			$push_order_placed = new OrderPlaced($order_data);
-			RC_Notification::send($staff_user_ob, $push_order_placed);
-
+			try {
+				$order_data = array(
+						'title'	=> '客户下单',
+						'body'	=> '您有一笔新订单，订单号为：'.$order['order_sn'],
+						'data'	=> array(
+								'order_id'		         => $order['order_id'],
+								'order_sn'		         => $order['order_sn'],
+								'order_amount'	         => $order['order_amount'],
+								'formatted_order_amount' => price_format($order['order_amount']),
+								'consignee'		         => $order['consignee'],
+								'mobile'		         => $order['mobile'],
+								'address'		         => $order['address'],
+								'order_time'	         => RC_Time::local_date(ecjia::config('time_format'), $order['add_time']),
+						),
+				);
+					
+				$push_order_placed = new OrderPlaced($order_data);
+				RC_Notification::send($staff_user_ob, $push_order_placed);
+			} catch (PDOException $e) {
+				RC_Logger::getLogger('info')->error($e);
+			}
+		
 			try {
 				//新的推送消息方法
 				$options = array(

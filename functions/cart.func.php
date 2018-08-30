@@ -860,7 +860,7 @@ function recalculate_price($device = array()) {
 	
 	$db = RC_DB::table('cart as c')
 			->leftJoin('goods as g', RC_DB::raw('c.goods_id'), '=', RC_DB::raw('g.goods_id'))
-			->leftJoin('member_price as mp', function($join) {
+			->leftJoin('member_price as mp', function($join) use ($user_rank) {
 				$join->where(RC_DB::raw('mp.goods_id'), '=', RC_DB::raw('g.goods_id'))
 				->where(RC_DB::raw('mp.user_rank'), '=', $user_rank);
 			})
