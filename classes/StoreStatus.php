@@ -57,8 +57,8 @@ class StoreStatus
 	const NORMAL 	 = 1;//正常
 	const LOCKED 	 = 2;//锁定
 	
-	const AUTOCONFIRM 	 = 0;//自动接单
-	const UNAUTOCONFIRM  = 1;//手动接单
+	const AUTOCONFIRM 	 = 1;//自动接单
+	const UNAUTOCONFIRM  = 0;//手动接单
 	
     /**
      * 获取商品对应的店铺id
