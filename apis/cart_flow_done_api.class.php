@@ -327,11 +327,6 @@ class cart_flow_done_api extends Component_Event_Api {
 		$new_order_id = RC_DB::table('order_info')->insertGetId($order);
 		$order['order_id'] = $new_order_id;
 		
-		if($payment['pay_code'] == 'pay_cod' && $order['order_status'] == '1') {
-			RC_Loader::load_app_class('OrderStatusLog', 'orders', false);
-			OrderStatusLog::orderpaid_autoconfirm(array('order_id' => $new_order_id));
-		}
-		
 		if (!empty($order['inv_payee'])) {
 			$inv_payee = explode(',', $order['inv_payee']);
 			$order['inv_payee'] = $inv_payee['0'];
@@ -653,6 +648,11 @@ class cart_flow_done_api extends Component_Event_Api {
 				'message'		=> '请尽快支付该订单，超时将会自动取消订单',
 				'add_time'		=> RC_Time::gmtime(),
 			));
+		}
+		
+		if($payment_info['is_cod'] && $order['order_status'] == '1') {
+			RC_Loader::load_app_class('OrderStatusLog', 'orders', false);
+			OrderStatusLog::orderpaid_autoconfirm(array('order_id' => $new_order_id));
 		}
 		
 // 		if ($payment_info['is_cod']) {
