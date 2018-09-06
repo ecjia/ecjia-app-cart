@@ -535,7 +535,7 @@ class cart_cashdesk {
 						$parent['goods_buy_weight'] = self::formated_weight_bulk($weight);
 					} else {
 						//根据商品货号找对应的电子秤设置信息
-						$weight_final = self::get_total_bulkgoods_price(array('goods_sn' => $goods['goods_sn'], 'store_id' => $goods['store_id'], 'price' => $price, 'goods_price' => $parent['goods_price'], 'weight_unit' => $goods['weight_unit']));
+						$weight_final = self::get_total_bulkgoods_weight(array('goods_sn' => $goods['goods_sn'], 'store_id' => $goods['store_id'], 'price' => $price, 'goods_price' => $parent['goods_price'], 'weight_unit' => $goods['weight_unit']));
 						//根据总价获取散装商品总重量
 						$parent['goods_price'] = self::formated_price_bulk($price);
 						$parent['goods_buy_weight'] = self::formated_weight_bulk($weight_final);
@@ -954,7 +954,7 @@ class cart_cashdesk {
 	public static function cashdesk_order_fee($order, $goods, $consignee = array(), $cart_id = array(), $rec_type = CART_GENERAL_GOODS) {
 	
 		RC_Loader::load_app_func('global','goods');
-		RC_Loader::load_app_func('cart','cart');
+// 		RC_Loader::load_app_func('cart','cart');
 		$db 	= RC_Loader::load_app_model('cart_model', 'cart');
 		$dbview = RC_Loader::load_app_model('cart_exchange_viewmodel', 'cart');
 		/* 初始化订单的扩展code */
@@ -1078,7 +1078,7 @@ class cart_cashdesk {
 		$total['shipping_insure_formated'] = price_format($total['shipping_insure'], false);
 	
 		// 活动优惠总金额
-		$discount_amount = compute_discount_amount();
+		$discount_amount = self::compute_discount_amount();
 		// 红包和积分最多能支付的金额为商品总额
 		//$max_amount 还需支付商品金额=商品金额-红包-优惠-积分
 		$max_amount = $total['goods_price'] == 0 ? $total['goods_price'] : $total['goods_price'] - $discount_amount;
@@ -1152,7 +1152,7 @@ class cart_cashdesk {
 		} elseif ($order['extension_code'] == 'exchange_goods') {
 			$total['will_get_integral'] = 0;
 		} else {
-			$total['will_get_integral'] = get_give_integral($goods);
+			$total['will_get_integral'] = self::get_give_integral($goods);
 		}
 	
 		$total['will_get_bonus']        = $order['extension_code'] == 'exchange_goods' ? 0 : price_format(get_total_bonus(), false);
@@ -1314,10 +1314,156 @@ class cart_cashdesk {
 	 */
 	public static function formated_weight_bulk($weight) {
 		//格式化散装商品重量
-		$weight = sprintf("%.1f", $weight);
-		$weight = sprintf("%01.3f",$weight);
+		$weight = sprintf("%.3f",$weight);
 		return $weight;
 	}
+	
+	/**
+	 * 计算购物车中的商品能享受红包支付的总额
+	 * @return  float   享受红包支付的总额
+	 */
+	public static function compute_discount_amount($cart_id = array()) {
+		$db 			= RC_Loader::load_app_model('favourable_activity_model', 'favourable');
+		$db_cartview 	= RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
+		/* 查询优惠活动 */
+		$now = RC_Time::gmtime();
+		$user_rank = ',' . $_SESSION['user_rank'] . ',';
+	
+		$favourable_list = $db->where('start_time <= '.$now.' AND end_time >= '.$now.' AND CONCAT(",", user_rank, ",") LIKE "%' . $user_rank . '%" ')->in(array('act_type' => array(FAT_DISCOUNT, FAT_PRICE)))->select();
+		if (!$favourable_list) {
+			return 0;
+		}
+	
+		/* 查询购物车商品 */
+		$db_cartview->view = array(
+				'goods' => array(
+						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
+						'alias' => 'g',
+						'field' => " c.goods_id, c.goods_price * c.goods_number AS subtotal, g.cat_id, g.brand_id",
+						'on'    => 'c.goods_id = g.goods_id'
+				)
+		);
+		$cart_where = array('c.parent_id' => 0 , 'c.is_gift' => 0 , 'rec_type' => CART_GENERAL_GOODS);
+		if (!empty($cart_id)) {
+			$cart_where = array_merge($cart_where, array('c.rec_id' => $cart_id));
+		}
+		if ($_SESSION['user_id']) {
+			$cart_where = array_merge($cart_where, array('c.user_id' => $_SESSION['user_id']));
+			$goods_list = $db_cartview->where($cart_where)->select();
+		} else {
+			$cart_where = array_merge($cart_where, array('c.session_id' => SESS_ID));
+			$goods_list = $db_cartview->where($cart_where)->select();
+		}
+	
+		if (!$goods_list) {
+			return 0;
+		}
+	
+		/* 初始化折扣 */
+		$discount = 0;
+		$favourable_name = array();
+	
+		/* 循环计算每个优惠活动的折扣 */
+		foreach ($favourable_list as $favourable) {
+			$total_amount = 0;
+			if ($favourable['act_range'] == FAR_ALL) {
+				foreach ($goods_list as $goods) {
+					if($favourable['store_id'] == $goods['store_id']){
+						$total_amount += $goods['subtotal'];
+					}
+				}
+			} elseif ($favourable['act_range'] == FAR_CATEGORY) {
+				/* 找出分类id的子分类id */
+				$id_list = array();
+				$raw_id_list = explode(',', $favourable['act_range_ext']);
+				foreach ($raw_id_list as $id) {
+					$id_list = array_merge($id_list, array_keys(cat_list($id, 0, false)));
+				}
+				$ids = join(',', array_unique($id_list));
+	
+				foreach ($goods_list as $goods) {
+					if (strpos(',' . $ids . ',', ',' . $goods['cat_id'] . ',') !== false) {
+						if($favourable['store_id'] == $goods['store_id']){
+							$total_amount += $goods['subtotal'];
+						}
+					}
+				}
+			} elseif ($favourable['act_range'] == FAR_BRAND) {
+				foreach ($goods_list as $goods) {
+					if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['brand_id'] . ',') !== false) {
+						if($favourable['store_id'] == $goods['store_id']){
+							$total_amount += $goods['subtotal'];
+						}
+					}
+				}
+			} elseif ($favourable['act_range'] == FAR_GOODS) {
+				foreach ($goods_list as $goods) {
+					if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
+						if($favourable['store_id'] == $goods['store_id']){
+							$total_amount += $goods['subtotal'];
+						}
+					}
+				}
+			} else {
+				continue;
+			}
+	
+			if ($total_amount > 0 && $total_amount >= $favourable['min_amount'] && ($total_amount <= $favourable['max_amount'] || $favourable['max_amount'] == 0)) {
+				if ($favourable['act_type'] == FAT_DISCOUNT) {
+					$discount += $total_amount * (1 - $favourable['act_type_ext'] / 100);
+				} elseif ($favourable['act_type'] == FAT_PRICE) {
+					$discount += $favourable['act_type_ext'];
+				}
+			}
+		}
+		return $discount;
+	}
+	
+	
+	/**
+	 * 取得购物车该赠送的积分数
+	 * @return  int	 积分数
+	 */
+	public static function get_give_integral() {
+	
+		$db_cartview = RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
+	
+		$db_cartview->view = array(
+				'goods' => array(
+						'type'  => Component_Model_View::TYPE_LEFT_JOIN,
+						'alias' => 'g',
+						'field' => "c.rec_id, c.goods_id, c.goods_attr_id, g.promote_price, g.promote_start_date, c.goods_number,g.promote_end_date, IFNULL(mp.user_price, g.shop_price * '$_SESSION[discount]') AS member_price",
+						'on'    => 'g.goods_id = c.goods_id'
+				),
+		);
+		$field = array();
+		if ($_SESSION['user_id']) {
+			return  intval($db_cartview->where(array('c.user_id' => $_SESSION['user_id'] , 'c.goods_id' => array('gt' => 0) ,'c.parent_id' => 0 ,'c.rec_type' => 0 , 'c.is_gift' => 0))->sum('c.goods_number * IF(g.give_integral > -1, g.give_integral, c.goods_price)'));
+		} else {
+			return  intval($db_cartview->where(array('c.session_id' => SESS_ID , 'c.goods_id' => array('gt' => 0) ,'c.parent_id' => 0 ,'c.rec_type' => 0 , 'c.is_gift' => 0))->sum('c.goods_number * IF(g.give_integral > -1, g.give_integral, c.goods_price)'));
+		}
+	}
+	
+	
+	/**
+	 * 清空购物车
+	 * @param   int	 $type   类型：默认普通商品
+	 */
+	public static function clear_cart($type = CART_GENERAL_GOODS, $cart_id = array()) {
+		$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
+		$cart_w = array('rec_type' => $type);
+		if (!empty($cart_id)) {
+			$cart_w = array_merge($cart_w, array('rec_id' => $cart_id));
+		}
+		if ($_SESSION['user_id']) {
+			$cart_w = array_merge($cart_w, array('user_id' => $_SESSION['user_id']));
+			$db_cart->where($cart_w)->delete();
+		} else {
+			$cart_w = array_merge($cart_w, array('session_id' => SESS_ID));
+			$db_cart->where($cart_w)->delete();
+		}
+	}
+	
 }	
 
 
