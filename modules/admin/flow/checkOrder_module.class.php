@@ -181,7 +181,7 @@ class checkOrder_module extends api_admin implements api_interface {
 		}
 		//删除购物车商品
 		if (!empty($deletegoods)) {
-			$result = deletecart($deletegoods);
+			$result = $this->deletecart($deletegoods);
 		}
 		
 		if (is_ecjia_error($result)) {
@@ -312,24 +312,26 @@ class checkOrder_module extends api_admin implements api_interface {
 		}
 		//EM_API::outPut($out);
 		return $out;
-	}		
-}
-
-//存在，更新(编辑)到购物车
-function updatecart($updategoods){
-	$db_carts = RC_Loader::load_app_model('cart_model', 'cart');
-	$data	= array(
-		'goods_number'	=>	$updategoods['number']
-	);
-	$count = $db_carts->where(array('rec_id' => $updategoods['rec_id']))->update($data);
-	if($count>0){
-		return true;
+	}	
+	
+	//存在，更新(编辑)到购物车
+	private function updatecart($updategoods){
+		$db_carts = RC_Loader::load_app_model('cart_model', 'cart');
+		$data	= array(
+			'goods_number'	=>	$updategoods['number']
+		);
+		$count = $db_carts->where(array('rec_id' => $updategoods['rec_id']))->update($data);
+		if($count>0){
+			return true;
+		}
+	}
+	
+	//删除购物车商品(购物车可以批量删除)
+	private function deletecart($deletegoods){
+		$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
+		$rec_id = explode(',', $deletegoods['rec_id']);
+		$db_cart->in(array('rec_id'=> $rec_id))->delete();
 	}
 }
-//删除购物车商品(购物车可以批量删除)
-function deletecart($deletegoods){
-	$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
-	$rec_id = explode(',', $deletegoods['rec_id']);
-	$db_cart->in(array('rec_id'=> $rec_id))->delete();
-}
 
+// end
