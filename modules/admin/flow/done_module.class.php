@@ -257,13 +257,11 @@ class admin_flow_done_module extends api_admin implements api_interface
         /* 订单中的商品 */
         $cart_goods = cart_goods($flow_type, $cart_id);
         if (empty($cart_goods)) {
-            //EM_Api::outPut(10002);
         	return new ecjia_error('no_goods_in_cart', '购物车中没有商品');
         }
         
         /* 检查商品总额是否达到最低限购金额 */
         if ($flow_type == CART_GENERAL_GOODS && cart_amount(true, CART_GENERAL_GOODS, $cart_id) < ecjia::config('min_goods_amount')) {
-            //EM_Api::outPut(10003);
         	return new ecjia_error('insufficient_balance', '您的余额不足以支付整个订单，请选择其他支付方式。');
         }
         

@@ -310,7 +310,6 @@ class admin_flow_checkOrder_module extends api_admin implements api_interface {
 				}
 			}
 		}
-		//EM_API::outPut($out);
 		return $out;
 	}	
 	

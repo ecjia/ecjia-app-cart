@@ -130,7 +130,6 @@ class storepickup_flow_done_module extends api_front implements api_interface
         /* 订单中的商品 */
         $cart_goods = cart_goods($flow_type, $cart_id);
         if (empty($cart_goods)) {
-            //EM_Api::outPut(10002);
             return new ecjia_error('no_goods_in_cart', '购物车中没有商品');
         }
         
