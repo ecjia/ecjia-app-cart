@@ -79,6 +79,8 @@ class admin_flow_done_module extends api_admin implements api_interface
         RC_Loader::load_app_func('cashdesk','cart');
         RC_Loader::load_app_func('admin_order','orders');
         
+        RC_Loader::load_app_class('cart_cashdesk', 'cart', false);
+        
         $device = $this->device;
         //获取所需购买购物车id  will.chen
         $rec_id = $this->requestData('rec_id', 0);
@@ -278,8 +280,9 @@ class admin_flow_done_module extends api_admin implements api_interface
         }
 
         /* 订单中的总额 *///$order['bonus_id']
-        $total = cashdesk_order_fee($order, $cart_goods, $consignee);
-        RC_Logger::getlogger('info')->info(array('total',$total));
+        //$total = cashdesk_order_fee($order, $cart_goods, $consignee);
+        $total = cart_cashdesk::cashdesk_order_fee($order, $cart_goods, $consignee, array(), CART_CASHDESK_GOODS);
+       
         $order['bonus']			= $total['bonus'];
         $order['goods_amount']	= $total['goods_price'];
         $order['discount']		= $total['discount'];

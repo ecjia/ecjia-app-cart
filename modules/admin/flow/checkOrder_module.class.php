@@ -71,6 +71,8 @@ class admin_flow_checkOrder_module extends api_admin implements api_interface {
 		RC_Loader::load_app_func('admin_bonus','bonus');
 		$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
 		
+		RC_Loader::load_app_class('cart_cashdesk', 'cart', false);
+		
 		//从移动端接收数据
 		$addgoods		= $this->requestData('addgoods');	//添加商品
 		$updategoods	= $this->requestData('updategoods');	//更新商品数量
@@ -194,13 +196,9 @@ class admin_flow_checkOrder_module extends api_admin implements api_interface {
 	
 		/* 取得订单信息*/
 		$order = flow_order_info();
-		/* 计算折扣 */
-		if ($flow_type != CART_EXCHANGE_GOODS && $flow_type != CART_GROUP_BUY_GOODS) {
-			$discount = compute_discount();
-			$favour_name = empty($discount['name']) ? '' : join(',', $discount['name']);
-		}
 		/* 计算订单的费用 */
-		$total = cashdesk_order_fee($order, $cart_goods);
+		//$total = cashdesk_order_fee($order, $cart_goods);
+		$total = cart_cashdesk::cashdesk_order_fee($order, $cart_goods, array(), array(), CART_CASHDESK_GOODS);
 	
 // 		/* 取得支付列表 */
 // 		$cod_fee    = 0;
@@ -279,7 +277,7 @@ class admin_flow_checkOrder_module extends api_admin implements api_interface {
 		$out['bonus'] 			= $bonus_list;//红包
 		$out['your_integral']	= $user_info['pay_points'];//用户可用积分
 		
-		$out['discount']		= number_format($discount['discount'], 2, '.', '');//用户享受折扣数
+		$out['discount']		= number_format($total['discount'], 2, '.', '');//用户享受折扣数
 		$out['discount_formated'] = $total['discount_formated'];
 				
 		if (!empty($out['payment_list'])) {
