@@ -85,8 +85,6 @@ class admin_flow_checkOrder_module extends api_admin implements api_interface {
 			if ($user_id > 0) {
 				$_SESSION['cashdesk_temp_user_id']	= $user_id;
 				$_SESSION['user_id']		= $user_id;
-				//$db_cart->where(array('session_id' => SESS_ID))->update(array('user_id' => $user_id));
-				//$row = RC_Model::model('user/users_model')->find(array('user_id' => $_SESSION['user_id']));
 				RC_DB::table('cart')->where('session_id', SESS_ID)->update(array('user_id' => $user_id));
 				$row = RC_DB::table('users')->where('user_id', $_SESSION['user_id'])->first();
 				
@@ -99,7 +97,6 @@ class admin_flow_checkOrder_module extends api_admin implements api_interface {
 							$data = array(
 									'user_rank' => '0'
 							);
-							//RC_Model::model('user/users_model')->where(array('user_id' => $_SESSION['user_id']))->update($data);
 							RC_DB::table('users')->where('user_id', $_SESSION['user_id'])->update($data);
 							$row['user_rank'] = 0;
 						}
@@ -216,7 +213,9 @@ class admin_flow_checkOrder_module extends api_admin implements api_interface {
 		$out = array();
 		$out['user_info'] = array();
 		if (isset($_SESSION['user_id']) && $_SESSION['user_id']) {
-			$user_info = RC_Model::model('user/users_model')->find(array('user_id' => $_SESSION['user_id']));
+			//$user_info = RC_Model::model('user/users_model')->find(array('user_id' => $_SESSION['user_id']));
+			$user_info = Ecjia\App\User\Users::UserInfo($_SESSION['user_id']);
+			
 			$out['user_info'] = array(
 					'user_id'	=> intval($user_info['user_id']),
 					'user_name'	=> $user_info['user_name'],

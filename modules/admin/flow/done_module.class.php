@@ -130,10 +130,12 @@ class admin_flow_done_module extends api_admin implements api_interface
         /* 判断是否是会员 */
         $consignee = array();
         if ($_SESSION['user_id']) {
-        	$db_user_model = RC_Loader::load_app_model('users_model','user');
-        	$user_info = $db_user_model->field('user_name, mobile_phone, email')
-							        	->where(array('user_id'=>$_SESSION['user_id']))
-							        	->find();
+//         	$db_user_model = RC_Loader::load_app_model('users_model','user');
+//         	$user_info = $db_user_model->field('user_name, mobile_phone, email')
+// 							        	->where(array('user_id'=>$_SESSION['user_id']))
+// 							        	->find();
+        	$user_info = Ecjia\App\User\Users::UserInfo($_SESSION['user_id']);
+        	
         	$consignee = array(
         			'consignee'		=> $user_info['user_name'],
         			'mobile'		=> $user_info['mobile_phone'],
