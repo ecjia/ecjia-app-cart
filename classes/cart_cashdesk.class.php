@@ -70,7 +70,7 @@ class cart_cashdesk {
 		if (!empty($_SESSION['store_id'])) {
 			$cart_where = array_merge($cart_where, array('c.store_id' => $_SESSION['store_id']));
 		}
-		$field = 'g.store_id, goods_img, original_img, goods_thumb, c.rec_id, c.user_id, c.goods_id, c.goods_name, c.goods_sn, c.goods_number, c.market_price, c.goods_price, c.goods_attr, c.is_real, c.extension_code, c.parent_id, c.is_gift, c.is_shipping, c.goods_price * c.goods_number|subtotal, goods_weight as goodsWeight, c.goods_attr_id';
+		$field = 'g.store_id, goods_img, original_img, goods_thumb, c.rec_id, c.goods_buy_weight, c.user_id, c.goods_id, c.goods_name, c.goods_sn, c.goods_number, c.market_price, c.goods_price, c.goods_attr, c.is_real, c.extension_code, c.parent_id, c.is_gift, c.is_shipping, c.goods_price * c.goods_number|subtotal, goods_weight as goodsWeight, c.goods_attr_id';
 		if ($_SESSION['user_id']) {
 			$cart_where = array_merge($cart_where, array('c.user_id' => $_SESSION['user_id']));
 			$arr        = $db->field($field)->where($cart_where)->select();
@@ -110,27 +110,7 @@ class cart_cashdesk {
 			$arr[$key]['formated_goods_price']  = $value['goods_price'] > 0 ? price_format($value['goods_price'], false) : __('免费');
 			$arr[$key]['formated_subtotal']     = price_format($value['subtotal'], false);
 	
-			/* 查询规格 */
-			// 		if (trim($value['goods_attr']) != '' && $value['group_id'] == '') {//兼容官网套餐问题增加条件group_id
-			// 			$value['goods_attr_id'] = empty($value['goods_attr_id']) ? '' : explode(',', $value['goods_attr_id']);
-			// 			$attr_list = $db_goods_attr->field('attr_value')->in(array('goods_attr_id' => $value['goods_attr_id']))->select();
-			// 			foreach ($attr_list AS $attr) {
-			// 				$arr[$key]['goods_name'] .= ' [' . $attr['attr_value'] . '] ';
-			// 			}
-			// 		}
-	
-			// 		$arr[$key]['goods_attr'] = array();
-			// 		if (!empty($value['goods_attr'])) {
-			// 			$goods_attr = explode("\n", $value['goods_attr']);
-			// 			$goods_attr = array_filter($goods_attr);
-				
-			// 			foreach ($goods_attr as  $v) {
-			// 				$a = explode(':',$v);
-			// 				if (!empty($a[0]) && !empty($a[1])) {
-			// 					$arr[$key]['goods_attr'][] = array('name'=>$a[0], 'value'=>$a[1]);
-			// 				}
-			// 			}
-			// 		}
+			
 			$store_group[] = $value['store_id'];
 			$goods_attr_gourp = array();
 			if (!empty($value['goods_attr'])) {
@@ -143,10 +123,10 @@ class cart_cashdesk {
 					}
 				}
 			}
-			$arr[$key]['goods_attr_new'] = empty($value['goods_attr']) ? '' : trim($value['goods_attr']);
-			$arr[$key]['attr'] =  $value['goods_attr'];
-			$arr[$key]['goods_attr'] =  $goods_attr_gourp;
-	
+			$arr[$key]['goods_attr_new'] 	= empty($value['goods_attr']) ? '' : trim($value['goods_attr']);
+			$arr[$key]['attr'] 			 	=  $value['goods_attr'];
+			$arr[$key]['goods_attr'] 		=  $goods_attr_gourp;
+			$arr[$key]['goods_buy_weight'] 	= $value['goods_buy_weight'] > 0 ? $value['goods_buy_weight'] : '';
 	
 			RC_Loader::load_app_func('global', 'goods');
 			$arr[$key]['img'] = array(
