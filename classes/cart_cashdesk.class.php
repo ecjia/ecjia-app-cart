@@ -1217,7 +1217,7 @@ class cart_cashdesk {
 	public static function get_scales_info($options) {
 		$scales_info = [];
 		if (!empty($options['store_id']) && !empty($options['scale_sn'])) {
-			$scales_info = RC_DB::table('cashdesk_scales')->where('scale_sn', $options['scale_sn'])->where('store_id', $options['store_id'])->first();
+			$scales_info = RC_DB::table('cashier_scales')->where('scale_sn', $options['scale_sn'])->where('store_id', $options['store_id'])->first();
 		}
 		return $scales_info;
 	}
