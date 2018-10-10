@@ -66,6 +66,8 @@ class cart_cashdesk {
 		}
 		if (!empty($pendorder_id)) {
 			$cart_where = array_merge($cart_where,  array('pendorder_id' => $pendorder_id));
+		} else {
+			$cart_where = array_merge($cart_where,  array('pendorder_id' => 0));
 		}
 		if (!empty($_SESSION['store_id'])) {
 			$cart_where = array_merge($cart_where, array('c.store_id' => $_SESSION['store_id']));
@@ -75,7 +77,6 @@ class cart_cashdesk {
 			$cart_where = array_merge($cart_where, array('c.user_id' => $_SESSION['user_id']));
 			$arr        = $db->field($field)->where($cart_where)->select();
 		} else {
-			$cart_where = array_merge($cart_where, array('session_id' => SESS_ID));
 			$arr        = $db->field($field)->where($cart_where)->select();
 		}
 	
@@ -448,7 +449,7 @@ class cart_cashdesk {
 			} else {
 				$row = $db_cart->field('rec_id, goods_number')->find('session_id = "' .SESS_ID. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" ');
 			}
-			 
+			
 			/* 限购判断*/
 			if ($goods['is_xiangou'] > 0) {
 				$order_info_viewdb = RC_Loader::load_app_model('order_info_viewmodel', 'orders');
@@ -518,7 +519,7 @@ class cart_cashdesk {
 						$weight_final = self::get_total_bulkgoods_weight(array('goods_sn' => $goods['goods_sn'], 'store_id' => $goods['store_id'], 'price' => $price, 'goods_price' => $parent['goods_price'], 'weight_unit' => $goods['weight_unit']));
 						//根据总价获取散装商品总重量
 						$parent['goods_price'] = self::formated_price_bulk($price);
-						$parent['goods_buy_weight'] = self::formated_weight_bulk($weight_final);
+						//$parent['goods_buy_weight'] = self::formated_weight_bulk($weight_final);
 					}
 					$cart_id = $db_cart->insert($parent);
 				}
@@ -546,9 +547,10 @@ class cart_cashdesk {
 						$weight_final = self::get_total_bulkgoods_price(array('goods_sn' => $goods['goods_sn'], 'store_id' => $goods['store_id'], 'price' => $price, 'goods_price' => $parent['goods_price'], 'weight_unit' => $goods['weight_unit']));
 						//根据总价获取散装商品总重量
 						$parent['goods_price'] = self::formated_price_bulk($price);
-						$parent['goods_buy_weight'] = $weight_final;
+						//$parent['goods_buy_weight'] = $weight_final;
 					}
-				} 
+				}
+				
 				$cart_id = $db_cart->insert($parent);
 			}
 		}
@@ -1229,8 +1231,7 @@ class cart_cashdesk {
 	 */
 	public static function formated_price_bulk($price) {
 		//格式化散装商品价格
-		$price = sprintf("%.1f", $price);
-		$price = sprintf("%01.2f",$price);
+		$price = sprintf("%.2f",$price);
 		return $price;
 	}
 	
