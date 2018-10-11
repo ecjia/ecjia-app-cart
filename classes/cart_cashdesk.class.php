@@ -259,7 +259,7 @@ class cart_cashdesk {
 	 * @param   integer $parent     基本件
 	 * @return  boolean
 	 */
-	public static function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $price = 0, $weight = 0, $flow_type = CART_GENERAL_GOODS) {
+	public static function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $price = 0, $weight = 0, $flow_type = CART_GENERAL_GOODS, $pendorder_id = 0) {
 		$dbview 		= RC_Loader::load_app_model('sys_goods_member_viewmodel', 'goods');
 		$db_cart 		= RC_Loader::load_app_model('cart_model', 'cart');
 		$db_products 	= RC_Loader::load_app_model('products_model', 'goods');
@@ -269,6 +269,10 @@ class cart_cashdesk {
 		RC_Loader::load_app_func('admin_goods', 'goods');
 		RC_Loader::load_app_func('global', 'goods');
 	
+		if (empty($pendorder_id)) {
+			$pendorder_id = 0;
+		}
+		
 		$field = "g.goods_id, g.market_price, g.goods_name, g.goods_sn, g.weight_unit, g.is_on_sale, g.is_real, g.store_id as store_id, g.model_inventory, g.model_attr, ".
 				"g.is_xiangou, g.xiangou_start_date, g.xiangou_end_date, g.xiangou_num, "."g.model_price, g.market_price, ".
 		"g.promote_price as promote_price, ".
@@ -445,58 +449,97 @@ class cart_cashdesk {
 		if ($num > 0) {
 			/* 检查该商品是否已经存在在购物车中 */
 			if ($_SESSION['user_id']) {
-				$row = $db_cart->field('rec_id, goods_number')->find('user_id = "' .$_SESSION['user_id']. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" AND pendorder_id = 0 ');
+				$row = $db_cart->field('rec_id, goods_number, pendorder_id')->find('user_id = "' .$_SESSION['user_id']. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" AND pendorder_id = "'.$pendorder_id.'" ');
 			} else {
-				$row = $db_cart->field('rec_id, goods_number')->find('session_id = "' .SESS_ID. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" AND pendorder_id = 0 ');
+				$row = $db_cart->field('rec_id, goods_number, pendorder_id')->find('session_id = "' .SESS_ID. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" AND pendorder_id = "'.$pendorder_id.'" ');
 			}
 			
 			/* 限购判断*/
-			if ($goods['is_xiangou'] > 0) {
-				$order_info_viewdb = RC_Loader::load_app_model('order_info_viewmodel', 'orders');
-				$order_info_viewdb->view = array(
-						'order_goods' => array(
-								'type'	=> Component_Model_View::TYPE_LEFT_JOIN,
-								'alias' => 'g',
-								'on'	=> 'oi.order_id = g.order_id '
-						)
-				);
-				$xiangou = array(
-						'oi.add_time >=' . $goods['xiangou_start_date'] . ' and oi.add_time <=' .$goods['xiangou_end_date'],
-						'g.goods_id'	=> $goods['goods_id'],
-						'oi.user_id'	=> $_SESSION['user_id'],
-				);
-				$xiangou_info = $order_info_viewdb->join(array('order_goods'))->field(array('sum(goods_number) as number'))->where($xiangou)->find();
+// 			if ($goods['is_xiangou'] > 0) {
+// 				$order_info_viewdb = RC_Loader::load_app_model('order_info_viewmodel', 'orders');
+// 				$order_info_viewdb->view = array(
+// 						'order_goods' => array(
+// 								'type'	=> Component_Model_View::TYPE_LEFT_JOIN,
+// 								'alias' => 'g',
+// 								'on'	=> 'oi.order_id = g.order_id '
+// 						)
+// 				);
+// 				$xiangou = array(
+// 						'oi.add_time >=' . $goods['xiangou_start_date'] . ' and oi.add_time <=' .$goods['xiangou_end_date'],
+// 						'g.goods_id'	=> $goods['goods_id'],
+// 						'oi.user_id'	=> $_SESSION['user_id'],
+// 				);
+// 				$xiangou_info = $order_info_viewdb->join(array('order_goods'))->field(array('sum(goods_number) as number'))->where($xiangou)->find();
 	
-				if ($xiangou_info['number'] + $row['goods_number'] >= $goods['xiangou_num']) {
-					return new ecjia_error('xiangou_error', __('该商品已限购'));
-				}
-			}
-			 
+// 				if ($xiangou_info['number'] + $row['goods_number'] >= $goods['xiangou_num']) {
+// 					return new ecjia_error('xiangou_error', __('该商品已限购'));
+// 				}
+// 			}
+			
 			if($row) {
-				//非散装商品
 				if (empty($price) && empty($weight)) {
-					//如果购物车已经有此物品，则更新
-					$num += $row['goods_number'];
+					//非散装商品
 					if(is_spec($spec) && !empty($prod) ) {
 						$goods_storage = $product_info['product_number'];
 					} else {
 						$goods_storage = $goods['goods_number'];
 					}
-					if (ecjia::config('use_storage') == 0 || $num <= $goods_storage) {
-						$goods_price = get_final_price($goods_id, $num, true, $spec);
-						$data =  array(
-								'goods_number' => $num,
-								'goods_price'  => $goods_price,
-						);
-						if ($_SESSION['user_id']) {
-							$db_cart->where('user_id = "' .$_SESSION['user_id']. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" ')->update($data);
-						} else {
-							$db_cart->where('session_id = "' .SESS_ID. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" ')->update($data);
+					//如果购物车已经有此物品，则更新
+					$cart_id = ['rec_id'];
+					if ($row['pendorder_id'] > 0) { //当前数据为挂单数据
+						if (!empty($pendorder_id)) { //当前操作为挂单继续添加
+							if ($row['pendorder_id'] == $pendorder_id) { //当前挂单id与此数据挂单id相同，直接更新
+								$num += $row['goods_number'];
+								if (ecjia::config('use_storage') == 0 || $num <= $goods_storage) {
+									$goods_price = get_final_price($goods_id, $num, true, $spec);
+									$data =  array(
+											'goods_number' => $num,
+											'goods_price'  => $goods_price,
+									);
+									if ($_SESSION['user_id']) {
+										$db_cart->where('user_id = "' .$_SESSION['user_id']. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" AND pendorder_id ="'.$pendorder_id.'" ')->update($data);
+									} else {
+										$db_cart->where('session_id = "' .SESS_ID. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" AND pendorder_id ="'.$pendorder_id.'" ')->update($data);
+									}
+								} else {
+									return new ecjia_error('low_stocks', __('库存不足'));
+								}
+							} 
+						} else { //当前操作为非挂单添加
+							$goods_price = get_final_price($goods_id, $num, true, $spec );
+							$parent['goods_price']  = max($goods_price, 0);
+							$parent['goods_number'] = $num;
+							$parent['parent_id']    = 0;
+							$cart_id = $db_cart->insert($parent);
 						}
-					} else {
-						return new ecjia_error('low_stocks', __('库存不足'));
+					} else { //当前数据为非挂单数据
+						if (!empty($pendorder_id)) { //当前操作为挂单继续添加
+							$goods_price = get_final_price($goods_id, $num, true, $spec );
+							$parent['goods_price']  = max($goods_price, 0);
+							$parent['goods_number'] = $num;
+							$parent['parent_id']    = 0;
+							$cart_id = $db_cart->insert($parent);
+						} else {  //当前操作为非挂单添加
+							$num += $row['goods_number'];
+							
+							if ($row['pendorder_id'] == $pendorder_id) { //当前挂单id与此数据挂单id相同，直接更新
+								if (ecjia::config('use_storage') == 0 || $num <= $goods_storage) {
+									$goods_price = get_final_price($goods_id, $num, true, $spec);
+									$data =  array(
+											'goods_number' => $num,
+											'goods_price'  => $goods_price,
+									);
+									if ($_SESSION['user_id']) {
+										$db_cart->where('user_id = "' .$_SESSION['user_id']. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" AND pendorder_id ="'.$pendorder_id.'" ')->update($data);
+									} else {
+										$db_cart->where('session_id = "' .SESS_ID. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" AND pendorder_id ="'.$pendorder_id.'" ')->update($data);
+									}
+								} else {
+									return new ecjia_error('low_stocks', __('库存不足'));
+								}
+							}
+						}
 					}
-					$cart_id = $row['rec_id'];
 				} else {
 					//是散装商品；散装商品不更新数量，新增记录
 					$num = 1;
