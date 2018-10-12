@@ -1497,6 +1497,34 @@ class cart_cashdesk {
 		}
 	}
 	
+	
+	/**
+	 * 取得购物车总金额
+	 * @params  boolean $include_gift   是否包括赠品
+	 * @param   int     $type           类型：默认普通商品
+	 * @return  float   购物车总金额
+	 */
+	public static function cart_amount($include_gift = true, $type = CART_GENERAL_GOODS, $cart_id = array()) {
+		$db = RC_Loader::load_app_model('cart_model', 'cart');
+	
+		if ($_SESSION['user_id']) {
+			$where['user_id'] = $_SESSION['user_id'];
+		} else {
+			$where['session_id'] = SESS_ID;
+		}
+		if (!empty($cart_id)) {
+			$where['rec_id'] = $cart_id;
+		}
+		$where['rec_type'] = $type;
+	
+		if (!$include_gift) {
+			$where['is_gift'] = 0;
+			$where['goods_id']= array('gt'=>0);
+		}
+	
+		$data = $db->where($where)->sum('goods_price * goods_number');
+		return $data;
+	}	
 }	
 
 
