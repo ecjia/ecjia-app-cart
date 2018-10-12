@@ -545,7 +545,7 @@ class cart_cashdesk {
 					$num = 1;
 					$goods_price = get_final_price($goods_id, $num, true, $spec);
 					$parent['goods_price']  = max($goods_price, 0);
-					$parent['goods_price']  = formated_price_bulk($parent['goods_price']);
+					//$parent['goods_price']  = formated_price_bulk($parent['goods_price']);
 					$parent['goods_number'] = $num;
 					$parent['parent_id']    = 0;
 					$parent['extension_code']  = !empty($goods['extension_code']) ? $goods['extension_code'] : '';
