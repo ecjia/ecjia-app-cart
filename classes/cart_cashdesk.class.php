@@ -549,17 +549,17 @@ class cart_cashdesk {
 					$parent['goods_number'] = $num;
 					$parent['parent_id']    = 0;
 					$parent['extension_code']  = !empty($goods['extension_code']) ? $goods['extension_code'] : '';
-					//客户端传的是总重量（克）；cart表goods_buy_weight字段存千克
+					//传的是总重量（克）；cart表goods_buy_weight字段存千克
 					if (!empty($weight) && empty($price)) {
 						//换算成千克
 						$weight = $weight/1000;
 						//根据重量获取散装商品总价
-						$total_bulkgoods_price = self::get_total_bulkgoods_price(array('weight' => $weight, 'goods_price' => $parent['goods_price'], 'weight_unit' => $goods['weight_unit']));
+						$total_bulkgoods_price = self::get_total_bulkgoods_price(array('weight' => $weight, 'goods_price' => $parent['goods_price'], 'weight_unit' => $goods['weight_unit'], 'goods_id' => $goods_id));
 						$parent['goods_price'] = self::formated_price_bulk($total_bulkgoods_price);
 						$parent['goods_buy_weight'] = self::formated_weight_bulk($weight);
 					} elseif (empty($weight) && !empty($price)) {
 						//根据商品货号找对应的电子秤设置信息
-						$weight_final = self::get_total_bulkgoods_weight(array('goods_sn' => $goods['goods_sn'], 'store_id' => $goods['store_id'], 'price' => $price, 'goods_price' => $parent['goods_price'], 'weight_unit' => $goods['weight_unit']));
+						//$weight_final = self::get_total_bulkgoods_weight(array('goods_sn' => $goods['goods_sn'], 'store_id' => $goods['store_id'], 'price' => $price, 'goods_price' => $parent['goods_price'], 'weight_unit' => $goods['weight_unit']));
 						//根据总价获取散装商品总重量
 						$parent['goods_price'] = self::formated_price_bulk($price);
 						//$parent['goods_buy_weight'] = self::formated_weight_bulk($weight_final);
@@ -582,12 +582,12 @@ class cart_cashdesk {
 					if (!empty($weight) && empty($price)) {
 						//换算成千克
 						$weight = $weight/1000;
-						$total_bulkgoods_price = self::get_total_bulkgoods_price(array('weight' => $weight, 'goods_price' => $parent['goods_price'], 'weight_unit' => $goods['weight_unit']));
+						$total_bulkgoods_price = self::get_total_bulkgoods_price(array('weight' => $weight, 'goods_price' => $parent['goods_price'], 'weight_unit' => $goods['weight_unit'], 'goods_id' => $goods_id));
 						$parent['goods_price'] = self::formated_price_bulk($total_bulkgoods_price);
 						$parent['goods_buy_weight'] = $weight;
 					} elseif (empty($weight) && !empty($price)) {
 						//根据商品货号找对应的电子秤设置信息
-						$weight_final = self::get_total_bulkgoods_price(array('goods_sn' => $goods['goods_sn'], 'store_id' => $goods['store_id'], 'price' => $price, 'goods_price' => $parent['goods_price'], 'weight_unit' => $goods['weight_unit']));
+						//$weight_final = self::get_total_bulkgoods_price(array('goods_sn' => $goods['goods_sn'], 'store_id' => $goods['store_id'], 'price' => $price, 'goods_price' => $parent['goods_price'], 'weight_unit' => $goods['weight_unit']));
 						//根据总价获取散装商品总重量
 						$parent['goods_price'] = self::formated_price_bulk($price);
 						//$parent['goods_buy_weight'] = $weight_final;
@@ -1287,11 +1287,18 @@ class cart_cashdesk {
 		$weight_unit = $options['weight_unit'];
 		$goods_price = $options['goods_price'];
 		$weight		 = $options['weight'];
+		$goods_id 	 =  $options['goods_id'];
 		
-		if ($weight_unit == Ecjia\App\Cart\StoreStatus::GRAM) {
-			$goods_price = $goods_price/1000;
-			$final_price = $goods_price * $weight;
-		} else {
+		//根据商品id获取商品货号关联的电子秤信息
+		$goods_info = RC_DB::table('goods')->where('goods_id', $goods_id)->first();
+		$scale_sn = substr(trim($goods_info['goods_sn']), 0, 2);
+		$cashier_scales_info = self::get_scales_info(array('scale_sn' => $scale_sn, 'store_id' => $goods_info['store_id'])); 
+		
+		//电子秤单价设置的是克/元
+		if ($cashier_scales_info['price_unit'] == Ecjia\App\Cart\StoreStatus::GRAMPERYUAN) {
+			$final_price = $goods_price*($weight*1000);
+		}else{
+			//电子秤设置的单价是千克/元
 			$final_price = $goods_price * $weight;
 		}
 		return $final_price;
