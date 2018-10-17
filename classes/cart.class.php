@@ -478,27 +478,18 @@ class cart {
 // 		$data = $db_view->join('goods')->where($cart_where)->sum('g.integral * c.goods_number');
 
 		$data = RC_Model::model('cart/cart_goods_viewmodel')->join('goods')->where($cart_where)->sum('g.integral * c.goods_number');
-		//购物车商品可使用积分总数
-		$integral_money = self::value_of_integral($data);
 		
-		$total_goods_price = RC_Model::model('cart/cart_goods_viewmodel')->join('goods')->where($cart_where)->sum('c.goods_price');
+		//购物车商品总价
+		$total_goods_price = RC_Model::model('cart/cart_goods_viewmodel')->join('goods')->where($cart_where)->sum('c.goods_price*c.goods_number');
 		
-		//$val_min = min($integral_money, $total_goods_price);
-		//if ($val_min < 1 && $val_min > 0) {
-		//	$val = $val_min;
-		//} else {
-		//	$val = intval($val_min);
-		//}
-		//return self::integral_of_value($val);
+		$val_min = min($data, $total_goods_price);
 		
-		$val_min = $data;
-		
-		//购物车商品可使用积分大于0且购物车商品总价小于商品可用积分兑换的金额；使用商品总价兑换成的积分
-		if ($data > 0 && $integral_money > $total_goods_price) {
-			$val_min = integral_of_value($total_goods_price);
+		if ($val_min < 1 && $val_min > 0) {
+			$val = $val_min;
+		} else {
+			$val = intval($val_min);
 		}
-		
-		return $val_min;
+		return self::integral_of_value($val);
 	}
 
 	/**
