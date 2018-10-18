@@ -259,12 +259,13 @@ class cart_cashdesk {
 	 * @param   integer $parent     基本件
 	 * @return  boolean
 	 */
-	public static function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $price = 0, $weight = 0, $flow_type = CART_GENERAL_GOODS, $pendorder_id = 0) {
+	public static function addto_cart($goods_id, $num =1, $spec = array(), $parent = 0, $price = 0, $weight = 0, $flow_type = CART_GENERAL_GOODS, $pendorder_id = 0) {
 		$dbview 		= RC_Loader::load_app_model('sys_goods_member_viewmodel', 'goods');
 		$db_cart 		= RC_Loader::load_app_model('cart_model', 'cart');
 		$db_products 	= RC_Loader::load_app_model('products_model', 'goods');
 		$db_group 		= RC_Loader::load_app_model('group_goods_model', 'goods');
 		$_parent_id 	= $parent;
+		$num			= empty($num) ? 1 : $num;
 		RC_Loader::load_app_func('admin_order', 'orders');
 		RC_Loader::load_app_func('admin_goods', 'goods');
 		RC_Loader::load_app_func('global', 'goods');
@@ -978,7 +979,7 @@ class cart_cashdesk {
 	 * @param   bool    $is_gb_deposit  是否团购保证金（如果是，应付款金额只计算商品总额和支付费用，可以获得的积分取 $gift_integral）
 	 * @return  array
 	 */
-	public static function cashdesk_order_fee($order, $goods, $consignee = array(), $cart_id = array(), $rec_type = CART_GENERAL_GOODS) {
+	public static function cashdesk_order_fee($order, $goods, $consignee = array(), $cart_id = array(), $rec_type = CART_GENERAL_GOODS, $pendorder_id = 0) {
 	
 		RC_Loader::load_app_func('global','goods');
 // 		RC_Loader::load_app_func('cart','cart');
@@ -1041,6 +1042,7 @@ class cart_cashdesk {
 		$total['saving_formated']       = price_format($total['saving'], false);
 	
 		/* 折扣 */
+		
 		if ($order['extension_code'] != 'group_buy') {
 			$discount = self::compute_discount(0, array(), $cart_id, 0, $rec_type);
 			$total['discount'] = round($discount['discount'], 2);
