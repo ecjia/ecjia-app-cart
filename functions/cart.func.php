@@ -1126,6 +1126,27 @@ function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
 	return $arr;
 }
 
+//获取购物选择商品最终金额
+function get_cart_check_goods($cart_goods, $rec_id = '', $type = 0){
+    
+    $arr['subtotal_discount'] = 0;
+    $arr['subtotal_amount'] = 0;
+    $arr['subtotal_number'] = 0;
+    $arr['save_amount'] = 0;
+    
+    if(!empty($rec_id)){
+        if($cart_goods){
+            foreach($cart_goods as $row){
+                $arr['subtotal_amount'] += $row['subtotal'];
+                $arr['subtotal_number'] += $row['goods_number'];
+                $arr['save_amount'] += $row['dis_amount'];
+            }
+        }
+    }
+    
+    $arr['subtotal_amount'] = $arr['subtotal_amount'] - $arr['save_amount'];
+    return $arr;
+}
 /**
  * 取得购物车总金额
  * @params  boolean $include_gift   是否包括赠品
@@ -1192,6 +1213,7 @@ function get_cart_goods($cart_id = array(), $flow_type = CART_GENERAL_GOODS) {
 		'saving'       => 0, // 节省金额（有格式）
 		'save_rate'    => 0, // 节省百分比
 		'goods_amount' => 0, // 本店售价合计（无格式）
+	    'goods_number' => 0, // 商品总数
 	);
 
 	/* 循环、统计 */
@@ -1224,6 +1246,7 @@ function get_cart_goods($cart_id = array(), $flow_type = CART_GENERAL_GOODS) {
 			} else {
 				$virtual_goods_count++;
 			}
+			$total['goods_number'] += $row['goods_number'];
 
 			/* 查询规格 */
 			if (trim($row['goods_attr']) != '') {
