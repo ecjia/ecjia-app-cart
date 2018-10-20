@@ -911,7 +911,7 @@ function recalculate_price($device = array()) {
 	        $attr_id = empty($row['goods_attr_id']) ? array() : explode(',', $row['goods_attr_id']);
 	        $goods_price = get_final_price($row['goods_id'], $row['goods_number'], true, $attr_id);
 	        $data = array(
-	            'goods_price' => $goods_price,
+	            'goods_price' => $goods_price > 0 ? $goods_price : 0.00,
 	            'mark_changed' => 0
 	        );
 	        if ($_SESSION['user_id']) {
