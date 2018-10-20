@@ -83,11 +83,11 @@ class admin_bonus_validate_module extends api_admin implements api_interface
 		if ($now < $bonus['use_start_date'] ||  $now > $bonus['use_end_date']) {
 		    return new ecjia_error('bonus_error', '红包不在有效期！');
 		}
-		
+		$min_amount = $bonus['min_amount'] > 0 ? $bonus['min_amount'] : 0;
 		if ($bonus['user_id'] > 0) {
 		    return new ecjia_error('bonus_error', '红包信息有误！');
 		} else {
-		    return array('bonus' => $bonus['type_money'], 'bonus_formated' => price_format($bonus['type_money']));
+		    return array('bonus' => $bonus['type_money'], 'bonus_formated' => price_format($bonus['type_money']), 'min_amount' => $min_amount);
 		}
 	}
 }
