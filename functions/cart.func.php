@@ -2130,13 +2130,15 @@ function cart_goods_dsc($type = CART_GENERAL_GOODS, $cart_value = '', $ru_type =
     }
     
     $arr = cart_goods(CART_GENERAL_GOODS, $cart_value);
+    
+    $goods_amount = get_cart_check_goods($arr, $cart_value);
 //     _dump($arr);
     if($ru_type == 1){
         $arr = get_cart_goods_ru_list($arr, $ru_type);
         $arr = get_cart_ru_goods_list($arr, $cart_value, $consignee, $store_id);
     }
     
-    return $arr;
+    return array('goods_list' => $arr, 'subtotal' => $goods_amount);
 }
 
 //划分商家或平台运费 start
@@ -2769,6 +2771,20 @@ function sort_favourable($favourable_list)
         }
     }
     return $arr;
+}
+
+/**
+ * 重新组合购物流程商品数组
+ */
+function get_new_group_cart_goods($cart_goods_list_new){
+    $car_goods = array();
+    foreach($cart_goods_list_new as $key=>$goods){
+        foreach($goods['goods_list'] as $k => $list){
+            $car_goods[] = $list;
+        }
+    }
+    
+    return $car_goods;
 }
 
 // end
