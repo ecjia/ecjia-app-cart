@@ -2787,4 +2787,27 @@ function get_new_group_cart_goods($cart_goods_list_new){
     return $car_goods;
 }
 
+/**
+ * $type 0 获取数组差集数值
+ * $type 1 获取数组交集数值
+ */
+function get_sc_str_replace($str1, $str2, $type = 0){
+    
+    $str1 = !empty($str1) ? explode(',', $str1) : array();
+    $str2 = !empty($str2) ? explode(',', $str2) : array();
+    
+    $str = '';
+    if ($str1 && $str2) {
+        if ($type) {
+            $str = array_diff($str1, $str2);
+        } else {
+            $str = array_intersect($str1, $str2);
+        }
+        
+        $str = implode(",", $str);
+    }
+    
+    return $str;
+}
+
 // end
