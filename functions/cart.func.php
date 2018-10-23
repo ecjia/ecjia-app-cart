@@ -1032,7 +1032,7 @@ function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
 	if (!empty($_SESSION['store_id'])) {
 		$cart_where = array_merge($cart_where, array('c.store_id' => $_SESSION['store_id']));
 	}
-	$field = 'g.store_id, goods_img, original_img, goods_thumb, c.rec_id, c.user_id, c.goods_id, c.goods_name, c.goods_sn, c.goods_number, c.market_price, c.goods_price, c.goods_attr, c.is_real, c.extension_code, c.parent_id, c.is_gift, c.is_shipping, c.goods_price * c.goods_number|subtotal, goods_weight as goodsWeight, c.goods_attr_id';
+	$field = 'g.store_id, goods_img, g.goods_number|g_goods_number , original_img, goods_thumb, c.rec_id, c.user_id, c.goods_id, c.goods_name, c.goods_sn, c.product_id, c.goods_number, c.market_price, c.goods_price, c.goods_attr, c.is_real, c.extension_code, c.parent_id, c.is_gift, c.is_shipping, c.goods_price * c.goods_number|subtotal, goods_weight as goodsWeight, c.goods_attr_id';
 	if ($_SESSION['user_id']) {
 		$cart_where = array_merge($cart_where, array('c.user_id' => $_SESSION['user_id']));
 		$arr        = $db->field($field)->where($cart_where)->select();
@@ -1108,6 +1108,24 @@ function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
 		$arr[$key]['attr'] =  $value['goods_attr'];
 		$arr[$key]['goods_attr'] =  $goods_attr_gourp;
 		
+		//库存 181023 add
+		$arr[$key]['attr_number'] = 1;//有货
+		if (ecjia::config('use_storage') == 1) {
+		    if($value['product_id']) {
+		        $product_number = RC_DB::table('products')
+		            ->where('goods_id', $value['goods_id'])
+    		        ->where('product_id', $value['product_id'])
+    		        ->pluck('product_number');
+		        if ($value['goods_number'] > $product_number) {
+		            $arr[$key]['attr_number'] = 0;
+		        }
+		    } else {
+		        if($value['goods_number'] > $value['g_goods_number']) {
+		            $arr[$key]['attr_number'] = 0;
+		        }
+		    }
+		}
+		//库存 181023 end
 		
 		RC_Loader::load_app_func('global', 'goods');
 		$arr[$key]['img'] = array(
