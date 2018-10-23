@@ -1926,7 +1926,7 @@ function formated_favourable($favourable_result, $goods_list) {
  * @param   int     $type   类型：默认普通商品
  * @return  array   购物车商品数组
  */
-function cart_goods_dsc($type = CART_GENERAL_GOODS, $cart_value = '', $ru_type = 0, $warehouse_id = 0, $area_id = 0, $area_city = 0, $consignee = '',$store_id = 0)
+function cart_goods_dsc($type = CART_GENERAL_GOODS, $cart_value = '', $ru_type = 0, $warehouse_id = 0, $area_id = 0, $area_city = 0, $consignee = array(), $store_id = 0)
 {
     $rec_txt = array('普通', '团购','拍卖','夺宝奇兵','积分商城','预售','秒杀');
     
@@ -2198,7 +2198,7 @@ function get_cart_goods_ru_id($goods) {
 /**
  * 区分商家商品
  */
-function get_cart_ru_goods_list($goods_list, $cart_value = '', $consignee = '',$store_id = 0){
+function get_cart_ru_goods_list($goods_list, $cart_value = '', $consignee = [], $store_id = 0){
     
     if(!empty($_SESSION['user_id'])){
         $sess = $_SESSION['user_id'];
@@ -2224,11 +2224,16 @@ function get_cart_ru_goods_list($goods_list, $cart_value = '', $consignee = '',$
         }
         
         if($cart_value){
-//             TODO::店铺配送方式 hyytodo
+//             TODO::店铺配送方式 hyytodo，众包商家自营需计算距离
 //             $ru_shippng = get_ru_shippng_info($row, $cart_value, $key, $consignee);
+
+            $region = array($consignee['country'], $consignee['province'], $consignee['city'], $consignee['district'], $consignee['street']);
+            $ru_shippng = ecjia_shipping::availableUserShippings($region, $key);
+            //             _dump($ru_shippng);
             
-            $arr[$key]['shipping'] = $ru_shippng['shipping_list'];
-            $arr[$key]['is_freight'] = $ru_shippng['is_freight'];
+            //$arr[$key]['shipping'] = $ru_shippng['shipping_list'];
+            $arr[$key]['shipping'] = $ru_shippng;
+            $arr[$key]['is_freight'] = 1;//$ru_shippng['is_freight'];
             $arr[$key]['shipping_rec'] = $ru_shippng['shipping_rec'];
             
             $arr[$key]['shipping_count'] = !empty($arr[$key]['shipping']) ? count($arr[$key]['shipping']) : 0;
@@ -2247,7 +2252,7 @@ function get_cart_ru_goods_list($goods_list, $cart_value = '', $consignee = '',$
                 }
             }
         }
-        if(defined('THEME_EXTENSION')){
+//         if(defined('THEME_EXTENSION')){
             /*  @author-bylu 判断当前商家是否允许"在线客服" start  */
 //             $shop_information = get_shop_name($key); //通过ru_id获取到店铺信息;
 //             $arr[$key]['is_IM'] = isset($shop_information['is_IM']) ? $shop_information['is_IM'] : ''; //平台是否允许商家使用"在线客服";
@@ -2294,7 +2299,7 @@ function get_cart_ru_goods_list($goods_list, $cart_value = '', $consignee = '',$
             }else{
                 $arr[$key]['kf_qq'] = "";
             }
-        }
+//         }
         
         if($key == 0 && $consignee_district_id > 0){
 //             $self_point = get_self_point($consignee_district_id, $point_id, 1);
