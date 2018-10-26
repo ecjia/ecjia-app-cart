@@ -1677,7 +1677,6 @@ class cart {
 			foreach ($data as $row) {
 				if ($row['extension_code'] != "package_buy") {
 					if ($is_dec) {
-						RC_Logger::getLogger('error')->info('testbbb');
 						$result = self::change_goods_storage($row['goods_id'], $row['product_id'], - $row['num']);
 					} else {
 						$result = self::change_goods_storage($row['goods_id'], $row['product_id'], $row['num']);

@@ -455,7 +455,6 @@ class storepickup_flow_done_module extends api_front implements api_interface
         
         /* 如果使用库存，且下订单时减库存，则减少库存 */
         if (ecjia::config('use_storage') == '1' && ecjia::config('stock_dec_time') == SDT_PLACE) {
-        	RC_Logger::getLogger('error')->info('testaaa');
         	$result = cart::change_order_goods_storage($order['order_id'], true, SDT_PLACE);
         	if (is_ecjia_error($result)) {
         		/* 库存不足删除已生成的订单（并发处理） will.chen*/
