@@ -2833,4 +2833,23 @@ function get_sc_str_replace($str1, $str2, $type = 0){
     return $str;
 }
 
+/**
+ * 检测
+ * 购物流程商品配送方式
+ */
+function get_flowdone_goods_list($cart_goods_list, $tmp_shipping_id_arr){
+    
+    if ($cart_goods_list && $tmp_shipping_id_arr) {
+        foreach ($cart_goods_list as $key => $val) {
+            foreach ($tmp_shipping_id_arr as $k => $v) {
+                if ($v[1] > 0 && $val['ru_id'] == $v[0]) {
+                    $cart_goods_list[$key]['tmp_shipping_id'] = $v[1];
+                }
+            }
+        }
+    }
+    
+    return $cart_goods_list;
+}
+
 // end
