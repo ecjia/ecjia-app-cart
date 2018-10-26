@@ -1025,7 +1025,7 @@ function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
 // 	$db = RC_Loader::load_app_model('cart_model', 'cart');
 	$db = RC_Loader::load_app_model('cart_goods_viewmodel', 'cart');
 	
-	$cart_where = array('rec_type' => $type);
+	$cart_where = array('rec_type' => $type, 'is_delete' => 0);
 	if (!empty($cart_id)) {
 		$cart_where = array_merge($cart_where,  array('rec_id' => $cart_id));
 	}
@@ -2143,7 +2143,7 @@ function cart_goods_dsc($type = CART_GENERAL_GOODS, $cart_value = '', $ru_type =
 //     }
 
     
-    if(!is_array($cart_value)) {
+    if($cart_value && !is_array($cart_value)) {
         $cart_value = explode(',', $cart_value);
     }
     
@@ -2208,18 +2208,17 @@ function get_cart_ru_goods_list($goods_list, $cart_value = '', $consignee = [], 
     //配送方式选择
     $point_id = isset($_SESSION['flow_consignee']['point_id']) ? intval($_SESSION['flow_consignee']['point_id']) : 0;
     $consignee_district_id = isset($_SESSION['flow_consignee']['district']) ? intval($_SESSION['flow_consignee']['district']) : 0;
-    
     $arr = array();
     foreach($goods_list as $key => $row){
         $shipping_type = isset($_SESSION['merchants_shipping'][$key]['shipping_type']) ? intval($_SESSION['merchants_shipping'][$key]['shipping_type']) : 0;
 //         $ru_name = get_shop_name($key, 1);
         $arr[$key]['store_id'] = $key;
         $arr[$key]['shipping_type'] =  $shipping_type;
-        $arr[$key]['store_name'] = $row[0]['store_name'];
         $arr[$key]['url'] = build_uri('merchants_store', array('urid' => $key), $ru_name);
         $arr[$key]['goods_amount'] = 0;
         
         foreach($row as $gkey=>$grow){
+            $arr[$key]['store_name'] = $grow['store_name'];
             $arr[$key]['goods_amount'] += $grow['goods_price'] * $grow['goods_number'];
         }
         
