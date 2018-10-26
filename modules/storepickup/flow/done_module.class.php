@@ -452,6 +452,19 @@ class storepickup_flow_done_module extends api_front implements api_interface
         		$db_order_goods->insert($arr);
         	}
         }
+        
+        /* 如果使用库存，且下订单时减库存，则减少库存 */
+        if (ecjia::config('use_storage') == '1' && ecjia::config('stock_dec_time') == SDT_PLACE) {
+        	RC_Logger::getLogger('error')->info('testaaa');
+        	$result = cart::change_order_goods_storage($order['order_id'], true, SDT_PLACE);
+        	if (is_ecjia_error($result)) {
+        		/* 库存不足删除已生成的订单（并发处理） will.chen*/
+        		RC_DB::table('order_info')->where('order_id', $order['order_id'])->delete();
+        		$db_order_goods->where('order_id', $order['order_id'])->delete();
+        		return $result;
+        	}
+        }
+        
         /* 修改拍卖活动状态 */
         if ($order['extension_code'] == 'auction') {
 			$db_goods_activity->where(array('act_id' => $order['extension_id']))->update(array('is_finished' => 2));
@@ -473,14 +486,6 @@ class storepickup_flow_done_module extends api_front implements api_interface
         }
         if ($order['bonus_id'] > 0 && $temp_amout > 0) {
             use_bonus($order['bonus_id'], $new_order_id);
-        }
-        
-        /* 如果使用库存，且下订单时减库存，则减少库存 */
-        if (ecjia::config('use_storage') == '1' && ecjia::config('stock_dec_time') == SDT_PLACE) {
-            $res = change_order_goods_storage($order['order_id'], true, SDT_PLACE);
-            if (is_ecjia_error($res)) {
-            	return $res;
-            }
         }
         
         /* 如果订单金额为0 处理虚拟卡 */
