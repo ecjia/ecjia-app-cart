@@ -308,7 +308,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		$inv_title_type = $order['inv_title_type'];
 
 		/* 插入订单表 */
-		$order['order_sn'] = cart::get_order_sn(); // 获取新订单号
+		$order['order_sn'] = ecjia_order_buy_sn();
 
 		/*过滤没有的字段*/
 		unset($order['need_inv']);
