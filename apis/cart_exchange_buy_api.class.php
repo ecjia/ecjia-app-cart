@@ -140,7 +140,7 @@ class cart_exchange_buy_api extends Component_Event_Api {
 	    $number = 1;
 	    $cart = array(
 	        'user_id'        => $_SESSION['user_id'],
-// 	        'session_id'     => SESS_ID,
+	        // 	        'session_id'     => RC_Session::getId(),
 	        'goods_id'       => $goods['goods_id'],
 	        'product_id'     => $product_info['product_id'],
 	        'goods_sn'       => addslashes($goods['goods_sn']),

@@ -539,7 +539,7 @@ class cart_flow_done_api extends Component_Event_Api {
 			  		->where('user_id', $user_id)
 			 		->get();
 			} else {
-				$session_id = SESS_ID;
+			    $session_id = RC_Session::getId();
 				$res = RC_DB::table('cart')
 					->select(RC_DB::raw('goods_id, goods_name, goods_number AS num'))
        				->where('is_real', 0)

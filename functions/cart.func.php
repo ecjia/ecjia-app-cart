@@ -75,7 +75,7 @@ function EM_get_cart_goods() {
 	} else {
         $data = RC_DB::table('cart')
             ->select(RC_DB::raw('*, IF(parent_id, parent_id, goods_id) AS pid'))
-            ->where('session_id', SESS_ID)
+            ->where('session_id', RC_Session::getId())
             ->where('rec_type', CART_GENERAL_GOODS)
             ->orderBy('pid', 'asc')
             ->orderBy('parent_id', 'asc')
@@ -175,7 +175,7 @@ function flow_update_cart($arr) {
             $goods = RC_DB::table('cart')
                 ->select(RC_DB::raw('goods_id, goods_attr_id, product_id, extension_code'))
                 ->where('rec_id', $key)
-                ->where('session_id', SESS_ID)
+                ->where('session_id', RC_Session::getId())
                 ->first();
         }
         $row = RC_DB::table('goods as g')
@@ -222,8 +222,8 @@ function flow_update_cart($arr) {
             $offers_accessories_res = RC_DB::table('cart as a')
                 ->leftJoin('cart as b', RC_DB::raw('b.parent_id'), '=', RC_DB::raw('a.goods_id'))
                 ->where(RC_DB::raw('a.rec_id'), $key)
-                ->where(RC_DB::raw('a.session_id'), SESS_ID)
-                ->where(RC_DB::raw('b.session_id'), SESS_ID)
+                ->where(RC_DB::raw('a.session_id'), RC_Session::getId())
+                ->where(RC_DB::raw('b.session_id'), RC_Session::getId())
                 ->get();
 		}
         
@@ -241,7 +241,7 @@ function flow_update_cart($arr) {
                                 ->delete();
 						} else {
                             RC_DB::table('cart')
-                                ->where('session_id', SESS_ID)
+                                ->where('session_id', RC_Session::getId())
                                 ->where('rec_id', $offers_accessories_row['rec_id'])
                                 ->delete();
 						}
@@ -260,7 +260,7 @@ function flow_update_cart($arr) {
                         ->update(array('goods_number' => $val));
 				} else {
                     RC_DB::table('cart')
-                        ->where('session_id', SESS_ID)
+                        ->where('session_id', RC_Session::getId())
                         ->where('rec_id', $key)
                         ->update(array('goods_number' => $val));
     	}
@@ -277,7 +277,7 @@ function flow_update_cart($arr) {
                         ->update(array('goods_number' => $val , 'goods_price' => $goods_price));
 				} else {
                     RC_DB::table('cart')
-                        ->where('session_id', SESS_ID)
+                        ->where('session_id', RC_Session::getId())
                         ->where('rec_id', $key)
                         ->update(array('goods_number' => $val , 'goods_price' => $goods_price));
 				}
@@ -295,7 +295,7 @@ function flow_update_cart($arr) {
 
                 	} else {
                         RC_DB::table('cart')
-                            ->where('session_id', SESS_ID)
+                            ->where('session_id', RC_Session::getId())
                             ->where('rec_id', $offers_accessories_row['rec_id'])
                             ->delete();
                 	}
@@ -309,7 +309,7 @@ function flow_update_cart($arr) {
                     ->delete();
 			} else {
                 RC_DB::table('cart')
-                    ->where('session_id', SESS_ID)
+                    ->where('session_id', RC_Session::getId())
                     ->where('rec_id', $key)
                     ->delete();
 			}
@@ -324,7 +324,7 @@ function flow_update_cart($arr) {
             ->delete();
 	} else {
          RC_DB::table('cart')
-            ->where('session_id', SESS_ID)
+            ->where('session_id', RC_Session::getId())
             ->where('is_gift', '!=', 0)
             ->delete();
 	}
@@ -350,7 +350,7 @@ function flow_drop_cart_goods($id) {
                     ->delete();
 			} else {
                 RC_DB::table('cart')
-                    ->where('session_id', SESS_ID)
+                    ->where('session_id', RC_Session::getId())
                     ->where('rec_id', $id)
                     ->delete();
 			}
@@ -384,7 +384,7 @@ function flow_drop_cart_goods($id) {
                     ->delete();
 			} else {
                 RC_DB::table('cart')
-                    ->where('session_id', SESS_ID)
+                    ->where('session_id', RC_Session::getId())
                     ->where(function($query) use($_del_str, $goods_id) {
                         $query->whereIn('rec_id', $_del_str)->orWhere('parent_id', $goods_id)->orWhere('is_gift', '!=', 0);
                     })
@@ -395,7 +395,7 @@ function flow_drop_cart_goods($id) {
 			if ($_SESSION['user_id']) {
                 RC_DB::table('cart')->where('user_id', $_SESSION['user_id'])->where('rec_id', $id)->delete();
 			} else {
-                RC_DB::table('cart')->where('session_id', SESS_ID)->where('rec_id', $id)->delete();
+                RC_DB::table('cart')->where('session_id', RC_Session::getId())->where('rec_id', $id)->delete();
 			}
         }
     }
@@ -414,7 +414,7 @@ function flow_clear_cart_alone() {
     if ($_SESSION['user_id']) {
     	$data = $dbview->join(array('group_goods','goods'))->where(array('c.user_id' => $_SESSION['user_id'] , 'c.extension_code' => array('neq' => 'package_buy') , 'gg.parent_id' => array('gt' => 0) , 'g.is_alone_sale' => 0))->select();
     } else {
-    	$data = $dbview->join(array('group_goods','goods'))->where(array('c.session_id' => SESS_ID , 'c.extension_code' => array('neq' => 'package_buy') , 'gg.parent_id' => array('gt' => 0) , 'g.is_alone_sale' => 0))->select();
+    	$data = $dbview->join(array('group_goods','goods'))->where(array('c.session_id' => RC_Session::getId() , 'c.extension_code' => array('neq' => 'package_buy') , 'gg.parent_id' => array('gt' => 0) , 'g.is_alone_sale' => 0))->select();
     }
     
     $rec_id = array();
@@ -432,7 +432,7 @@ function flow_clear_cart_alone() {
 	if ($_SESSION['user_id']) {
         $res = RC_DB::table('cart')->select(RC_DB::raw('DISTINCT goods_id'))->where('user_id', $_SESSION['user_id'])->get();
 	} else {
-        $res = RC_DB::table('cart')->select(RC_DB::raw('DISTINCT goods_id'))->where('session_id', SESS_ID)->get();
+        $res = RC_DB::table('cart')->select(RC_DB::raw('DISTINCT goods_id'))->where('session_id', RC_Session::getId())->get();
 	}
     
     $cart_good = array();
@@ -466,7 +466,7 @@ function flow_clear_cart_alone() {
     if ($_SESSION['user_id']) {
         RC_DB::table('cart')->where('user_id', $_SESSION['user_id'])->whereIn('rec_id', $del_rec_id)->delete();
     } else {
-        RC_DB::table('cart')->where('session_id', SESS_ID)->whereIn('rec_id', $del_rec_id)->delete();
+        RC_DB::table('cart')->where('session_id', RC_Session::getId())->whereIn('rec_id', $del_rec_id)->delete();
     }
 }
 
@@ -537,7 +537,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
     	if ($_SESSION['user_id']) {
     		$count = $db_cart->where(array('goods_id' => $parent , 'user_id' => $_SESSION['user_id'] , 'extension_code' => array('neq' => 'package_buy')))->count();
     	} else {
-    		$count = $db_cart->where(array('goods_id' => $parent , 'session_id' => SESS_ID , 'extension_code' => array('neq' => 'package_buy')))->count();
+    		$count = $db_cart->where(array('goods_id' => $parent , 'session_id' => RC_Session::getId() , 'extension_code' => array('neq' => 'package_buy')))->count();
     	}
     	
         if ($count == 0) {
@@ -598,7 +598,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
     /* 初始化要插入购物车的基本件数据 */
     $parent = array(
         'user_id'       => $_SESSION['user_id'],
-        'session_id'    => SESS_ID,
+        'session_id'    => RC_Session::getId(),
         'goods_id'      => $goods_id,
         'goods_sn'      => $product_info['product_id'] > 0 ? addslashes($product_info['product_sn']) : addslashes($goods['goods_sn']),
         'product_id'    => $product_info['product_id'],
@@ -635,7 +635,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
     	if ($_SESSION['user_id']) {
     		$data = $db_cart->field('goods_id, SUM(goods_number)|count')->where(array('user_id'=>$_SESSION['user_id'],'parent_id' => '0' , extension_code =>array('neq'=>"package_buy")))->in(array('goods_id'=>array_keys($basic_list)))->order('goods_id asc')->select();
     	} else {
-    		$data = $db_cart->field('goods_id, SUM(goods_number)|count')->where(array('session_id'=>SESS_ID,'parent_id' => '0' , extension_code =>array('neq'=>"package_buy")))->in(array('goods_id'=>array_keys($basic_list)))->order('goods_id asc')->select();
+    		$data = $db_cart->field('goods_id, SUM(goods_number)|count')->where(array('session_id'=>RC_Session::getId(),'parent_id' => '0' , extension_code =>array('neq'=>"package_buy")))->in(array('goods_id'=>array_keys($basic_list)))->order('goods_id asc')->select();
     	}
     	if(!empty($data)) {
 	        foreach ($data as $row) {
@@ -649,7 +649,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
     	if ($_SESSION['user_id']) {
     		$data = $db_cart->field('parent_id, SUM(goods_number)|count')->where(array('user_id' => $_SESSION['user_id'],'goods_id'=>$goods_id,extension_code =>array('neq'=>"package_buy")))->in(array('parent_id'=>array_keys($basic_count_list)))->order('parent_id asc')->select();
     	} else {
-    		$data = $db_cart->field('parent_id, SUM(goods_number)|count')->where(array('session_id' => SESS_ID,'goods_id'=>$goods_id,extension_code =>array('neq'=>"package_buy")))->in(array('parent_id'=>array_keys($basic_count_list)))->order('parent_id asc')->select();
+    		$data = $db_cart->field('parent_id, SUM(goods_number)|count')->where(array('session_id' => RC_Session::getId(),'goods_id'=>$goods_id,extension_code =>array('neq'=>"package_buy")))->in(array('parent_id'=>array_keys($basic_count_list)))->order('parent_id asc')->select();
     	}
     	
         if(!empty($data)) {
@@ -694,7 +694,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
     	if ($_SESSION['user_id']) {
     		$row = $db_cart->field('rec_id, goods_number')->find('user_id = "' .$_SESSION['user_id']. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" ');
     	} else {
-    		$row = $db_cart->field('rec_id, goods_number')->find('session_id = "' .SESS_ID. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" ');
+    		$row = $db_cart->field('rec_id, goods_number')->find('session_id = "' .RC_Session::getId(). '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" ');
     	}
     	
     	/* 限购判断*/
@@ -737,7 +737,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
                 if ($_SESSION['user_id']) {
                 	$db_cart->where('user_id = "' .$_SESSION['user_id']. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" ')->update($data);
                 } else {
-                	$db_cart->where('session_id = "' .SESS_ID. '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" ')->update($data);
+                	$db_cart->where('session_id = "' .RC_Session::getId(). '" AND goods_id = '.$goods_id.' AND parent_id = 0 AND goods_attr = "' .get_goods_attr_info($spec).'" AND extension_code <> "package_buy" AND rec_type = "'.$rec_type.'" ')->update($data);
                 }
             } else {
 				return new ecjia_error('low_stocks', __('库存不足'));
@@ -757,7 +757,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
     if ($_SESSION['user_id']) {
     	$db_cart->where(array('user_id' => $_SESSION['user_id'] , 'is_gift' => array('neq' => 0)))->delete();
     } else {
-    	$db_cart->where(array('session_id' => SESS_ID , 'is_gift' => array('neq' => 0)))->delete();
+    	$db_cart->where(array('session_id' => RC_Session::getId() , 'is_gift' => array('neq' => 0)))->delete();
     }
     return $cart_id; 
 }
@@ -778,7 +778,7 @@ function flow_available_points($cart_id = array(), $rec_type = CART_GENERAL_GOOD
 		$cart_where = array_merge($cart_where, array('c.user_id' => $_SESSION['user_id']));
 		$data = $db_view->join('goods')->where($cart_where)->sum('g.integral * c.goods_number');
 	} else {
-		$cart_where = array_merge($cart_where, array('c.session_id' => SESS_ID));
+		$cart_where = array_merge($cart_where, array('c.session_id' => RC_Session::getId()));
 		$data = $db_view->join('goods')->where($cart_where)->sum('g.integral * c.goods_number');
 	}
 	$val = intval($data);
@@ -807,7 +807,7 @@ function flow_cart_stock($arr) {
 		if ($_SESSION['user_id']) {
 			$goods = $db_cart->field('goods_id,goods_attr_id,extension_code, product_id')->find(array('rec_id' => $key , 'user_id' => $_SESSION['user_id']));
 		} else {
-			$goods = $db_cart->field('goods_id,goods_attr_id,extension_code, product_id')->find(array('rec_id' => $key , 'session_id' => SESS_ID));
+			$goods = $db_cart->field('goods_id,goods_attr_id,extension_code, product_id')->find(array('rec_id' => $key , 'session_id' => RC_Session::getId()));
 		}
 
 		$row   = $dbview->field('c.product_id, g.is_on_sale, g.is_delete')->join('cart')->find(array('c.rec_id' => $key));
@@ -891,12 +891,12 @@ function recalculate_price($device = array()) {
 // 			'goods',
 // 			'member_price'
 // 		))
-// 		->where('c.mark_changed =1 AND c.session_id = "' . SESS_ID . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" ')
+// 		->where('c.mark_changed =1 AND c.session_id = "' . RC_Session::getId() . '" AND c.parent_id = 0 AND c.is_gift = 0 AND c.goods_id > 0 AND c.rec_type = "' . $rec_type . '" ')
 // 		->select();
 		
 		$res = $db
 			->where(RC_DB::raw('c.mark_changed'), 1)
-			->where(RC_DB::raw('c.session_id'), SESS_ID)
+			->where(RC_DB::raw('c.session_id'), RC_Session::getId())
 			->where(RC_DB::raw('c.parent_id'), 0)
 			->where(RC_DB::raw('c.is_gift'), 0)
 			->where(RC_DB::raw('c.goods_id'), '>', 0)
@@ -917,7 +917,7 @@ function recalculate_price($device = array()) {
 	        if ($_SESSION['user_id']) {
 	            $db_cart->where('goods_id = ' . $row['goods_id'] . ' AND user_id = "' . $_SESSION['user_id'] . '" AND rec_id = "' . $row['rec_id'] . '"')->update($data);
 	        } else {
-	            $db_cart->where('goods_id = ' . $row['goods_id'] . ' AND session_id = "' . SESS_ID . '" AND rec_id = "' . $row['rec_id'] . '"')->update($data);
+	            $db_cart->where('goods_id = ' . $row['goods_id'] . ' AND session_id = "' . RC_Session::getId() . '" AND rec_id = "' . $row['rec_id'] . '"')->update($data);
 	        }
 		}
 	}
@@ -926,7 +926,7 @@ function recalculate_price($device = array()) {
 	if ($_SESSION['user_id']) {
 		$db_cart->where('user_id = "' . $_SESSION['user_id'] . '" AND is_gift > 0')->delete();
 	} else {
-		$db_cart->where('session_id = "' . SESS_ID . '" AND is_gift > 0')->delete();
+		$db_cart->where('session_id = "' . RC_Session::getId() . '" AND is_gift > 0')->delete();
 	}
 }
 
@@ -953,7 +953,7 @@ function cart_weight_price($type = CART_GENERAL_GOODS, $cart_id = array()) {
 	if ($_SESSION['user_id']) {
 		$row = $db->field('goods_id, goods_number, goods_price')->where(array_merge($where, array('extension_code' => 'package_buy' , 'user_id' => $_SESSION['user_id'] )))->select();
 	} else {
-		$row = $db->field('goods_id, goods_number, goods_price')->where(array_merge($where, array('extension_code' => 'package_buy' , 'session_id' => SESS_ID )))->select();
+		$row = $db->field('goods_id, goods_number, goods_price')->where(array_merge($where, array('extension_code' => 'package_buy' , 'session_id' => RC_Session::getId() )))->select();
 	}
 
 	if ($row) {
@@ -1004,7 +1004,7 @@ function cart_weight_price($type = CART_GENERAL_GOODS, $cart_id = array()) {
 	if ($_SESSION['user_id']) {
 		$row = $db_cartview->find(array_merge($where, array('c.user_id' => $_SESSION['user_id'] , 'rec_type' => $type , 'g.is_shipping' => 0 , 'c.extension_code' => array('neq' => package_buy))));
 	} else {
-		$row = $db_cartview->find(array_merge($where, array('c.session_id' => SESS_ID , 'rec_type' => $type , 'g.is_shipping' => 0 , 'c.extension_code' => array('neq' => package_buy))));
+		$row = $db_cartview->find(array_merge($where, array('c.session_id' => RC_Session::getId() , 'rec_type' => $type , 'g.is_shipping' => 0 , 'c.extension_code' => array('neq' => package_buy))));
 	}
 
 	$packages_row['weight'] = floatval($row['weight']) + $package_row['weight'];
@@ -1037,8 +1037,8 @@ function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
 		$cart_where = array_merge($cart_where, array('c.user_id' => $_SESSION['user_id']));
 		$arr        = $db->field($field)->where($cart_where)->select();
 	} else {
-		$cart_where = array_merge($cart_where, array('session_id' => SESS_ID));
-		$arr        = $db->field($field)->where($cart_where)->select();
+		$cart_where = array_merge($cart_where, array('session_id' => RC_Session::getId()));
+RC_Session::getId()       = $db->field($field)->where($cart_where)->select();
 	}
 
 	$db_goods_attr = RC_Loader::load_app_model('goods_attr_model', 'goods');
@@ -1177,7 +1177,7 @@ function cart_amount($include_gift = true, $type = CART_GENERAL_GOODS, $cart_id 
 	if ($_SESSION['user_id']) {
 		$where['user_id'] = $_SESSION['user_id'];
 	} else {
-		$where['session_id'] = SESS_ID;
+		$where['session_id'] = RC_Session::getId();
 	}
 	if (!empty($cart_id)) {
 		$where['rec_id'] = $cart_id;
@@ -1207,7 +1207,7 @@ function clear_cart($type = CART_GENERAL_GOODS, $cart_id = array()) {
 		$cart_w = array_merge($cart_w, array('user_id' => $_SESSION['user_id']));
 		$db_cart->where($cart_w)->delete();
 	} else {
-		$cart_w = array_merge($cart_w, array('session_id' => SESS_ID));
+		$cart_w = array_merge($cart_w, array('session_id' => RC_Session::getId()));
 		$db_cart->where($cart_w)->delete();
 	}
 }
@@ -1242,7 +1242,7 @@ function get_cart_goods($cart_id = array(), $flow_type = CART_GENERAL_GOODS) {
 	if ($_SESSION['user_id']) {
 		$cart_where = array_merge($cart_where, array('user_id' => $_SESSION['user_id']));
 	} else {
-		$cart_where = array_merge($cart_where, array('session_id' => SESS_ID));
+		$cart_where = array_merge($cart_where, array('session_id' => RC_Session::getId()));
 	}
 	$data = $db_cart->field('*,IF(parent_id, parent_id, goods_id)|pid')->where($cart_where)->order(array('pid'=>'asc', 'parent_id'=>'asc'))->select();
 	
@@ -1388,7 +1388,7 @@ function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $us
 		if ($_SESSION['user_id']) {
 			$goods_list = $db_cartview->where(array_merge($where, array('c.user_id' => $_SESSION['user_id'] , 'c.parent_id' => 0 , 'c.is_gift' => 0 , 'rec_type' => CART_GENERAL_GOODS)))->select();
 		} else {
-			$goods_list = $db_cartview->where(array_merge($where, array('c.session_id' => SESS_ID , 'c.parent_id' => 0 , 'c.is_gift' => 0 , 'rec_type' => CART_GENERAL_GOODS)))->select();
+			$goods_list = $db_cartview->where(array_merge($where, array('c.session_id' => RC_Session::getId() , 'c.parent_id' => 0 , 'c.is_gift' => 0 , 'rec_type' => CART_GENERAL_GOODS)))->select();
 		}
 	} elseif ($type == 2) {
 		$db_goods = RC_Loader::load_app_model('goods_model', 'goods');
@@ -1548,7 +1548,7 @@ function compute_discount_amount($cart_id = array()) {
 		$cart_where = array_merge($cart_where, array('c.user_id' => $_SESSION['user_id']));
 		$goods_list = $db_cartview->where($cart_where)->select();
 	} else {
-		$cart_where = array_merge($cart_where, array('c.session_id' => SESS_ID));
+		$cart_where = array_merge($cart_where, array('c.session_id' => RC_Session::getId()));
 		$goods_list = $db_cartview->where($cart_where)->select();
 	}
 
@@ -1636,7 +1636,7 @@ function get_give_integral() {
 	if ($_SESSION['user_id']) {
 		return  intval($db_cartview->where(array('c.user_id' => $_SESSION['user_id'] , 'c.goods_id' => array('gt' => 0) ,'c.parent_id' => 0 ,'c.rec_type' => 0 , 'c.is_gift' => 0))->sum('c.goods_number * IF(g.give_integral > -1, g.give_integral, c.goods_price)'));
 	} else {
-		return  intval($db_cartview->where(array('c.session_id' => SESS_ID , 'c.goods_id' => array('gt' => 0) ,'c.parent_id' => 0 ,'c.rec_type' => 0 , 'c.is_gift' => 0))->sum('c.goods_number * IF(g.give_integral > -1, g.give_integral, c.goods_price)'));
+		return  intval($db_cartview->where(array('c.session_id' => RC_Session::getId() , 'c.goods_id' => array('gt' => 0) ,'c.parent_id' => 0 ,'c.rec_type' => 0 , 'c.is_gift' => 0))->sum('c.goods_number * IF(g.give_integral > -1, g.give_integral, c.goods_price)'));
 	}
 }
 
@@ -1689,7 +1689,7 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 	$goods_price = $group_buy['deposit'] > 0 ? $group_buy['deposit'] : $group_buy['cur_price'];
 	$cart = array(
 		'user_id'        => $_SESSION['user_id'],
-// 		'session_id'     => SESS_ID,
+// 		'session_id'     => RC_Session::getId(),
 		'goods_id'       => $group_buy['goods_id'],
 		'product_id'     => $product_info['product_id'],
 		'goods_sn'       => addslashes($goods['goods_sn']),
@@ -1944,7 +1944,7 @@ function cart_goods_dsc($type = CART_GENERAL_GOODS, $cart_value = '', $ru_type =
 //     if(!empty($_SESSION['user_id'])){
 //         $c_sess = " AND c.user_id = '" . $_SESSION['user_id'] . "' ";
 //     }else{
-//         $c_sess = " AND c.session_id = '" . SESS_ID . "' ";
+//         $c_sess = " AND c.session_id = '" . RC_Session::getId() . "' ";
 //     }
     
 //     $where_area = '';
@@ -2203,7 +2203,7 @@ function get_cart_ru_goods_list($goods_list, $cart_value = '', $consignee = [], 
     if(!empty($_SESSION['user_id'])){
         $sess = $_SESSION['user_id'];
     }else{
-        $sess = SESS_ID;
+        $sess = RC_Session::getId();
     }
     //配送方式选择
     $point_id = isset($_SESSION['flow_consignee']['point_id']) ? intval($_SESSION['flow_consignee']['point_id']) : 0;

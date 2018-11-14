@@ -284,7 +284,7 @@ function cashdesk_order_fee($order, $goods, $consignee = array(), $cart_id = arr
         if ($_SESSION['user_id']) {
             $exchange_integral = $dbview->join('exchange_goods')->where(array('c.user_id' => $_SESSION['user_id'] , 'c.rec_type' => CART_EXCHANGE_GOODS , 'c.is_gift' => 0 ,'c.goods_id' => array('gt' => 0)))->group('eg.goods_id')->sum('eg.exchange_integral');
         } else {
-            $exchange_integral = $dbview->join('exchange_goods')->where(array('c.session_id' => SESS_ID , 'c.rec_type' => CART_EXCHANGE_GOODS , 'c.is_gift' => 0 ,'c.goods_id' => array('gt' => 0)))->group('eg.goods_id')->sum('eg.exchange_integral');
+            $exchange_integral = $dbview->join('exchange_goods')->where(array('c.session_id' => RC_Session::getId() , 'c.rec_type' => CART_EXCHANGE_GOODS , 'c.is_gift' => 0 ,'c.goods_id' => array('gt' => 0)))->group('eg.goods_id')->sum('eg.exchange_integral');
         }
         $total['exchange_integral'] = $exchange_integral;
     }
