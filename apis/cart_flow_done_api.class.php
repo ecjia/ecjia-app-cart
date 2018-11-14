@@ -78,18 +78,38 @@ class cart_flow_done_api extends Component_Event_Api {
 			->first();
 		}
 		$mobile_location_range = ecjia::config('mobile_location_range');
-		if (isset($consignee['latitude']) && isset($consignee['longitude']) && $mobile_location_range > 0) {
-			$geohash = RC_Loader::load_app_class('geohash', 'store');
-			$geohash_code = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
-			$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code, 'city_id' => ''));
-			
-		} elseif (isset($consignee['city']) && $consignee['city'] > 0) {
-			$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('city_id' => $consignee['city']));
+		//if (isset($consignee['latitude']) && isset($consignee['longitude']) && $mobile_location_range > 0) {
+		//	$geohash = RC_Loader::load_app_class('geohash', 'store');
+		//	$geohash_code = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
+		//	$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code, 'city_id' => ''));
+		//} elseif (isset($consignee['city']) && $consignee['city'] > 0) {
+		//	$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('city_id' => $consignee['city']));
+		//} else {
+		//	return new ecjia_error('pls_fill_in_consinee_info', '请完善收货人信息！');
+		//}
+		
+		if ($mobile_location_range > 0) {
+			if (isset($consignee['latitude']) && isset($consignee['longitude'])) {
+				$geohash = RC_Loader::load_app_class('geohash', 'store');
+				$geohash_code = $geohash->encode($consignee['latitude'] , $consignee['longitude']);
+				$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code, 'city_id' => ''));
+			} elseif (empty($consignee['latitude']) && empty($consignee['longitude']) && !empty($consignee['city'])) {
+				$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('city_id' => $consignee['city']));
+			} else {
+				if (empty($consignee['city'])) {
+					return new ecjia_error('pls_fill_in_consinee_info', '请完善收货人信息！');
+				}
+			} 
 		} else {
-			return new ecjia_error('pls_fill_in_consinee_info', '请完善收货人信息！');
+			if (!empty($consignee['city'])) {
+				$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('city_id' => $consignee['city']));
+			} else {
+				return new ecjia_error('pls_fill_in_consinee_info', '请完善收货人信息！');
+			}
 		}
+		
 		if (empty($store_id_group)) {
-			$store_id_group = array(0);
+			$store_id_group = array();
 		}
 
 		/* 检查购物车中是否有商品 */
