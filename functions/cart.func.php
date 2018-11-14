@@ -1112,6 +1112,7 @@ function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
 		$arr[$key]['attr_number'] = 1;//有货
 		if (ecjia::config('use_storage') == 1) {
 		    if($value['product_id']) {
+		        $arr[$key]['product_id'] = $value['product_id'];
 		        $product_number = RC_DB::table('products')
 		            ->where('goods_id', $value['goods_id'])
     		        ->where('product_id', $value['product_id'])
