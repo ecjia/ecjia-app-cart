@@ -2196,6 +2196,43 @@ function get_cart_goods_ru_id($goods) {
     
     return $arr;
 }
+
+//获取店铺配送方式列表和运费   --修改过
+function get_ru_shippng_info($goods_list, $cart_value, $store_id, $consignee = []) {
+    if(empty($goods_list)) {
+        return [];
+    }
+    $is_free_ship = 0;
+    $shipping_count = 0;
+    $cart_weight_price['weight'] 		= 0;
+    $cart_weight_price['amount'] 		= 0;
+    $cart_weight_price['number'] 		= 0;
+
+    foreach ($goods_list as $key => $goods) {
+        if($goods['is_shipping'] == 1) {
+            $shipping_count ++;
+        }
+        
+        $cart_weight_price['weight'] += floatval($goods['goodsWeight']) * $goods['goods_number'];
+        $cart_weight_price['amount'] += floatval($goods['goods_price']) * $goods['goods_number'];
+        $cart_weight_price['number'] += $goods['goods_number'];
+    }
+    if($shipping_count == count($goods_list)) {
+        //全部包邮
+        $is_free_ship = 1;
+    }
+    
+    $shipping_list = ecjia_shipping::availableUserShippings($consignee, $store_id);
+    if($shipping_list) {
+        foreach ($shipping_list as $key => $row) {
+            $shipping_fee = ($is_free_ship == 1) ? 0 : ecjia_shipping::fee($row['shipping_area_id'], $cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
+            $shipping_list[$key]['shipping_fee']        = $shipping_fee;
+            $shipping_list[$key]['format_shipping_fee'] = price_format($shipping_fee, false);
+        }
+    }
+    
+    return $shipping_list;
+}
 /**
  * 区分商家商品
  */
@@ -2228,8 +2265,7 @@ function get_cart_ru_goods_list($goods_list, $cart_value = '', $consignee = [], 
 //             $ru_shippng = get_ru_shippng_info($row, $cart_value, $key, $consignee);
 
             $region = array($consignee['country'], $consignee['province'], $consignee['city'], $consignee['district'], $consignee['street']);
-            $ru_shippng = ecjia_shipping::availableUserShippings($region, $key);
-            //             _dump($ru_shippng);
+            $ru_shippng = get_ru_shippng_info($row, $cart_value, $key, $region);
             
             //$arr[$key]['shipping'] = $ru_shippng['shipping_list'];
             $arr[$key]['shipping'] = $ru_shippng;
