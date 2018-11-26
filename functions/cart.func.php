@@ -1027,6 +1027,9 @@ function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
 	
 	$cart_where = array('rec_type' => $type, 'is_delete' => 0);
 	if (!empty($cart_id)) {
+	    if(!is_array($cart_id)) {
+	        $cart_id = explode(',', $cart_id);
+	    }
 		$cart_where = array_merge($cart_where,  array('rec_id' => $cart_id));
 	}
 	if (!empty($_SESSION['store_id'])) {
@@ -1053,20 +1056,20 @@ function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
 	);
 	/* 格式化价格及礼包商品 */
 	foreach ($arr as $key => $value) {
-		$goods = $db_goods->field(array('is_xiangou', 'xiangou_start_date', 'xiangou_end_date', 'xiangou_num'))->find(array('goods_id' => $value['goods_id']));
-		/* 限购判断*/
-		if ($goods['is_xiangou'] > 0) {
-			$xiangou = array(
-				'oi.add_time >=' . $goods['xiangou_start_date'] . ' and oi.add_time <=' .$goods['xiangou_end_date'],
-				'g.goods_id'	=> $value['goods_id'],
-				'oi.user_id'	=> $_SESSION['user_id'],
-			);
-			$xiangou_info = $order_info_viewdb->join(array('order_goods'))->field(array('sum(goods_number) as number'))->where($xiangou)->find();
+// 		$goods = $db_goods->field(array('is_xiangou', 'xiangou_start_date', 'xiangou_end_date', 'xiangou_num'))->find(array('goods_id' => $value['goods_id']));
+// 		/* 限购判断*/
+// 		if ($goods['is_xiangou'] > 0) {
+// 			$xiangou = array(
+// 				'oi.add_time >=' . $goods['xiangou_start_date'] . ' and oi.add_time <=' .$goods['xiangou_end_date'],
+// 				'g.goods_id'	=> $value['goods_id'],
+// 				'oi.user_id'	=> $_SESSION['user_id'],
+// 			);
+// 			$xiangou_info = $order_info_viewdb->join(array('order_goods'))->field(array('sum(goods_number) as number'))->where($xiangou)->find();
 		
-			if ($xiangou_info['number'] + $value['goods_number'] > $goods['xiangou_num']) {
-				return new ecjia_error('xiangou_error', __('该商品已限购'));
-			}
-		}
+// 			if ($xiangou_info['number'] + $value['goods_number'] > $goods['xiangou_num']) {
+// 				return new ecjia_error('xiangou_error', __('该商品已限购'));
+// 			}
+// 		}
 		
 		$arr[$key]['formated_market_price'] = price_format($value['market_price'], false);
 		$arr[$key]['formated_goods_price']  = $value['goods_price'] > 0 ? price_format($value['goods_price'], false) : __('免费');
