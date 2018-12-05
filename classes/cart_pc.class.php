@@ -193,7 +193,7 @@ class cart_pc {
 //         return $GLOBALS['db']->getRow($sql);
         
         return RC_DB::table('user_bonus as ub')->leftJoin('bonus_type as bt', RC_DB::raw('ub.bonus_type_id'), '=', RC_DB::raw('bt.type_id'))
-        ->select(RC_DB::raw('ub.user_id, bt.type_money'))
+        ->select(RC_DB::raw('ub.user_id, bt.store_id, bt.type_money, bt.usebonus_type, bt.min_goods_amount'))
         ->where(RC_DB::raw('ub.bonus_id'), $bonus_id)
         ->where(RC_DB::raw('ub.user_id'), $user_id)
         ->first();
@@ -269,15 +269,6 @@ class cart_pc {
                 }
                 //折扣 end
                 $cou_type = 0;
-                /* 优惠券 */
-//                 $order_coupons = get_user_order_coupons($order_id, $key, 1);
-//                 if($order_coupons){
-//                     $cou_type = 1;
-//                     $row['coupons'] = $coupons;
-//                     $coupons = 0;
-//                 }else{
-//                     $row['coupons'] = 0;
-//                 }
                 
                 //获取默认运费模式运费 by wu start
                 $row['shipping_fee'] = 0;//TODO
@@ -306,33 +297,6 @@ class cart_pc {
                         }
                     }
                 }
-//                 _dump($sellerOrderInfo);
-//                 _dump($row['shipping_fee']);
-//                 _dump($shipping_area,1);
-                
-//                 $couponsInfo = array();
-//                 if (isset($row['uc_id']) && !empty($row['uc_id'])) {
-//                     $couponsInfo = get_coupons($row['uc_id'], array('c.cou_id', 'c.cou_man', 'c.cou_type', 'c.ru_id', 'c.cou_money', 'cu.uc_id'), $row['user_id'], $key);
-//                 }
-                
-                /* 优惠券 免邮 start */
-//                 if (!empty($couponsInfo) && $key == $couponsInfo['ru_id']) {
-//                     if ($couponsInfo['cou_type'] == 5) {
-//                         if ($newOrder[$key]['goods_amount'] >= $couponsInfo['cou_man'] || $couponsInfo['cou_man'] == 0) {
-                            
-//                             $cou_region = get_coupons_region($couponsInfo['cou_id']);
-//                             $cou_region = !empty($cou_region) ? explode(",", $cou_region) : array();
-//                             if ($cou_region) {
-//                                 if (!in_array($row['province'], $cou_region)) {
-//                                     $row['shipping_fee'] = 0;
-//                                 }
-//                             } else {
-//                                 $row['shipping_fee'] = 0;
-//                             }
-//                         }
-//                     }
-//                 }
-                /* 优惠券 免邮 end */
                 
                 //获取默认运费模式运费 by wu end
                 $row['order_amount'] = $newOrder[$key]['goods_amount'] + $row['shipping_fee']; //订单应付金额
