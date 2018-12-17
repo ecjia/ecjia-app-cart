@@ -1862,7 +1862,7 @@ function formated_favourable($favourable_result, $goods_list) {
         return $favourable_result;
     }
     foreach ($favourable_result as $val) {
-        if ($val['act_range'] == '0') {
+        if ($val['act_range'] == FAR_ALL) {
             $favourable_list[] = array(
                 'id'    => $val['act_id'],
                 'title' => $val['act_name'],
