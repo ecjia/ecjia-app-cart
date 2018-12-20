@@ -454,7 +454,8 @@ class cart_flow_done_api extends Component_Event_Api {
 
 		/* 给商家发邮件 */
 		/* 增加是否给客服发送邮件选项 */
-		if (ecjia::config('send_service_email') && ecjia::config('service_email') != '') {
+		$service_email = ecjia::config('service_email');
+		if (ecjia::config('send_service_email') && !empty($service_email)) {
 			try {
 				$tpl_name = 'remind_of_new_order';
 				$tpl   = RC_Api::api('mail', 'mail_template', $tpl_name);
