@@ -2151,10 +2151,10 @@ function cart_goods_dsc($type = CART_GENERAL_GOODS, $cart_value = '', $ru_type =
         $cart_value = explode(',', $cart_value);
     }
     
-    $arr = cart_goods(CART_GENERAL_GOODS, $cart_value);
+    $arr = cart_goods($type, $cart_value);
     
     $goods_amount = get_cart_check_goods($arr, $cart_value);
-//     _dump($arr);
+    
     if($ru_type == 1){
         $arr = get_cart_goods_ru_list($arr, $ru_type);
         $arr = get_cart_ru_goods_list($arr, $cart_value, $consignee, $store_id);
