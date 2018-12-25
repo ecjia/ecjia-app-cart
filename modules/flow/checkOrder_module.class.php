@@ -263,11 +263,14 @@ class flow_checkOrder_module extends api_front implements api_interface {
 		    // 计算店家距离收件人距离 $distance
 		    if (!empty($store_info['longitude']) && !empty($store_info['latitude'])) {
 		    	//腾讯地图api距离计算
-		    	$key = ecjia::config('map_qq_key');
-		    	$url = "https://apis.map.qq.com/ws/distance/v1/?mode=driving&from=".$store_info['latitude'].",".$store_info['longitude']."&to=".$consignee['latitude'].",".$consignee['longitude']."&key=".$key;
-		    	$distance_json = file_get_contents($url);
-		    	$distance_info = json_decode($distance_json, true);
-		    	$distance = isset($distance_info['result']['elements'][0]['distance']) ? $distance_info['result']['elements'][0]['distance'] : 0;
+// 		    	$key = ecjia::config('map_qq_key');
+// 		    	$url = "https://apis.map.qq.com/ws/distance/v1/?mode=driving&from=".$store_info['latitude'].",".$store_info['longitude']."&to=".$consignee['latitude'].",".$consignee['longitude']."&key=".$key;
+// 		    	$distance_json = file_get_contents($url);
+// 		    	$distance_info = json_decode($distance_json, true);
+// 		    	$distance = isset($distance_info['result']['elements'][0]['distance']) ? $distance_info['result']['elements'][0]['distance'] : 0;
+		        $from = ['latitude' => $store_info['latitude'], 'longitude' => $store_info['longitude']];
+		        $to = ['latitude' => $consignee['latitude'], 'longitude' => $consignee['longitude']];
+		        $distance = Ecjia\App\User\Location::getDistance($from, $to);
 		    }
 		    /* ===== 计算收件人距离 ===== */
 		    
