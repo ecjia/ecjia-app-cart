@@ -2201,7 +2201,7 @@ function get_cart_goods_ru_id($goods) {
 }
 
 //获取店铺配送方式列表和运费   --修改过
-function get_ru_shippng_info($goods_list, $cart_value, $store_id, $consignee = []) {
+function get_ru_shippng_info($goods_list, $cart_value, $store_id, $region = [], $consignee = []) {
     if(empty($goods_list)) {
         return [];
     }
@@ -2225,10 +2225,19 @@ function get_ru_shippng_info($goods_list, $cart_value, $store_id, $consignee = [
         $is_free_ship = 1;
     }
     
-    $shipping_list = ecjia_shipping::availableUserShippings($consignee, $store_id);
+    $shipping_list = ecjia_shipping::availableUserShippings($region, $store_id);
     if($shipping_list) {
         foreach ($shipping_list as $key => $row) {
-            $shipping_fee = ($is_free_ship == 1) ? 0 : ecjia_shipping::fee($row['shipping_area_id'], $cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
+            // O2O的配送费用计算传参调整 参考flow/checkOrder
+            if (in_array($row['shipping_code'], ['ship_o2o_express','ship_ecjia_express'])) {
+                $store_info = RC_DB::table('store_franchisee')->where('store_id', $store_id)->where('shop_close', '0')->first();
+                $from = ['latitude' => $store_info['latitude'], 'longitude' => $store_info['longitude']];
+                $to = ['latitude' => $consignee['location']['latitude'], 'longitude' => $consignee['location']['longitude']];
+                $distance = Ecjia\App\User\Location::getDistance($from, $to);
+                $shipping_fee = $is_free_ship ? 0 : ecjia_shipping::fee($row['shipping_area_id'], $distance, $cart_weight_price['amount'], $cart_weight_price['number']);
+            } else {
+                $shipping_fee = $is_free_ship ? 0 : ecjia_shipping::fee($row['shipping_area_id'], $cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
+            }
             $shipping_list[$key]['shipping_fee']        = $shipping_fee;
             $shipping_list[$key]['format_shipping_fee'] = price_format($shipping_fee, false);
         }
@@ -2268,7 +2277,7 @@ function get_cart_ru_goods_list($goods_list, $cart_value = '', $consignee = [], 
 //             $ru_shippng = get_ru_shippng_info($row, $cart_value, $key, $consignee);
 
             $region = array($consignee['country'], $consignee['province'], $consignee['city'], $consignee['district'], $consignee['street']);
-            $ru_shippng = get_ru_shippng_info($row, $cart_value, $key, $region);
+            $ru_shippng = get_ru_shippng_info($row, $cart_value, $key, $region, $consignee);
             
             //$arr[$key]['shipping'] = $ru_shippng['shipping_list'];
             $arr[$key]['shipping'] = $ru_shippng;
