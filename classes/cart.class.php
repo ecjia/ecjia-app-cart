@@ -616,23 +616,7 @@ class cart {
 
 		/* 税额 */
 		if (!empty($order['need_inv']) && $order['inv_type'] != '') {
-			/* 查税率 */
-			$rate = 0;
-			$invoice_type = ecjia::config('invoice_type');
-			if ($invoice_type) {
-			    $invoice_type = unserialize($invoice_type);
-			}
-			foreach ($invoice_type['type'] as $key => $type) {
-				if ($type == $order['inv_type']) {
-					$rate_str = $invoice_type['rate'];
-					$rate = floatval($rate_str[$key]) / 100;
-					break;
-				}
-			}
-			if ($rate > 0) {
-				$total['tax'] = $rate * $total['goods_price'];
-				$total['tax'] = round($total['tax'], 2);
-			}
+			$total['tax'] = self::get_tax_fee($order['inv_type'], $total['goods_price']);
 		}
 		$total['tax_formated'] = price_format($total['tax'], false);
 //	TODO：暂时注释
@@ -832,6 +816,35 @@ class cart {
 // 			$total['exchange_integral'] = $exchange_integral;
 // 		}
 		return $total;
+	}
+	/**
+	 * 税费计算
+	 * @param string $inv_type
+	 * @param float $goods_price
+	 * @return float
+	 */
+	public static function get_tax_fee($inv_type, $goods_price) {
+	    $rate = 0;
+	    $tax_fee = 0;
+	    
+	    $invoice_type = ecjia::config('invoice_type');
+	    if ($invoice_type) {
+	        $invoice_type = unserialize($invoice_type);
+	        foreach ($invoice_type['type'] as $key => $type) {
+	            if ($type == $inv_type) {
+	                $rate_str = $invoice_type['rate'];
+	                $rate = floatval($rate_str[$key]) / 100;
+	                break;
+	            }
+	        }
+	    }
+	    
+	    if ($rate > 0) {
+	        $tax_fee = $rate * $goods_price;
+	        $tax_fee = round($tax_fee, 2);
+	    }
+	    
+	    return $tax_fee;
 	}
 
 	/**
