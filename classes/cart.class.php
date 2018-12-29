@@ -477,13 +477,11 @@ class cart {
 
 // 		$data = $db_view->join('goods')->where($cart_where)->sum('g.integral * c.goods_number');
 
-		$data = RC_Model::model('cart/cart_goods_viewmodel')->join('goods')->where($cart_where)->sum('g.integral * c.goods_number');
-		
+		$total_goods_integral_money = RC_Model::model('cart/cart_goods_viewmodel')->join('goods')->where($cart_where)->sum('g.integral * c.goods_number');
 		//购物车商品总价
-		$total_goods_price = RC_Model::model('cart/cart_goods_viewmodel')->join('goods')->where($cart_where)->sum('c.goods_price*c.goods_number');
-		
-		$val_min = min($data, $total_goods_price);
-		
+		$total_goods_price = RC_Model::model('cart/cart_goods_viewmodel')->join('goods')->where($cart_where)->sum('c.goods_price * c.goods_number');
+		//取价格最小值，防止积分抵扣超过商品价格(并未计算优惠)
+		$val_min = min($total_goods_integral_money, $total_goods_price);
 		if ($val_min < 1 && $val_min > 0) {
 			$val = $val_min;
 		} else {
