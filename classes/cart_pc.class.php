@@ -584,11 +584,59 @@ class cart_pc {
      * @param   integer $value  金额
      * @return  void
      */
-    public static function integral_of_value($integral)
+    public static function integral_of_value($value)
     {
         $scale = floatval(ecjia::config('integral_scale'));
-        return $scale > 0 ? round($integral / 100 * $scale, 2) : 0;
+        return $scale > 0 ? round($value / $scale * 100) : 0;
     }
+    
+    
+    /* $cart_goods_store = Array(
+        [63] => Array
+        (
+            [0] => Array
+            (
+            [goods_id] => 829
+            [goods_name] => xxx
+            [goods_sn] => ECS000829
+            )
+        )
+    ) */
+        
+    /**
+     * 获取结算时店铺可用积分
+     * @param array $cart_goods_store
+     * @return number 
+     */
+    public static function get_integral_store($cart_goods_store) {
+        //单店可用积分
+        $store_integral = 0;
+        
+        foreach ($cart_goods_store as $row) {
+            $integral = 0;
+            $goods = RC_DB::table('goods')->where('goods_id', $row['goods_id'])->first();
+            if(empty($goods['integral']) || empty($row['goods_price'])) {
+                continue;
+            }
+            //取价格最小值，防止积分抵扣超过商品价格(并未计算优惠) -flow_available_points()
+            $val_min = min($goods['integral'], $row['goods_price']);
+            $val_min = $val_min * $row['goods_number'];
+            if ($val_min < 1 && $val_min > 0) {
+                $val = $val_min;
+            } else {
+                $val = intval($val_min);
+            }
+            if($val <= 0) {
+                continue;
+            }
+            $integral = self::integral_of_value($val);
+            $store_integral += $integral;
+        }
+        
+        return $store_integral;
+        
+    }
+    
     
     /*获取子订单积分比例 by kong*/
     public static function get_integral_ratio($order_id = 0, $info=array()){

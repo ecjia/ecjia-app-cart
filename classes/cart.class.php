@@ -489,7 +489,7 @@ class cart {
 		}
 		return self::integral_of_value($val);
 	}
-
+	
 	/**
 	 * 计算指定的金额需要多少积分
 	 *
@@ -509,7 +509,7 @@ class cart {
 	 */
 	public static function value_of_integral($integral) {
 		$scale = floatval(ecjia::config('integral_scale'));
-		return $scale > 0 ? round(($integral / 100) * $scale, 2) : 0;
+		return $scale > 0 ? round($integral / 100 * $scale, 2) : 0;
 	}
 
 	/**
