@@ -235,8 +235,13 @@ class flow_checkOrder_module extends api_front implements api_interface {
 // 		    $shipping_method   = RC_Loader::load_app_class('shipping_method', 'shipping');
 // 		    $shipping_list     = $shipping_method->available_shipping_list_front($region, $order['store_id']);
 		    $shipping_list     = ecjia_shipping::availableUserShippings($region, $order['store_id']);
-		    
-		    $cart_weight_price = cart::cart_weight_price($flow_type, $cart_id);
+
+		    if ($flow_type == CART_GROUP_BUY_GOODS) {
+                $cart_weight_price = cart::cart_weight_price(CART_GROUP_BUY_GOODS);
+            } else {
+                $cart_weight_price = cart::cart_weight_price(CART_GENERAL_GOODS, $cart_id);
+            }
+
 		    $insure_disabled   = true;
 		    $cod_disabled      = true;
 		    

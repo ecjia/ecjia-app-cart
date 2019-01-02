@@ -557,12 +557,13 @@ class cart {
 		}
 
 //     	TODO: 团购等促销活动注释后暂时给的固定参数
-		$order['extension_code'] = '';
-		$group_buy = '';
+//		$order['extension_code'] = '';
+//		$group_buy = '';
 //     	TODO: 团购功能暂时注释
-//     if ($order['extension_code'] == 'group_buy') {
-//         $group_buy = group_buy_info($order['extension_id']);
-//     }
+     if ($order['extension_code'] == 'group_buy') {
+         RC_Loader::load_app_func('admin_goods', 'goods');
+         $group_buy = group_buy_info($order['extension_id']);
+     }
 
 		$total  = array(
 			'real_goods_count' => 0,
