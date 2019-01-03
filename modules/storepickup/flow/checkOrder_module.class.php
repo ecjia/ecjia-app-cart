@@ -277,7 +277,7 @@ class storepickup_flow_checkOrder_module extends api_front implements api_interf
 		//根据店铺id，店铺有没设置运费模板，查找店铺设置的运费模板关联的快递
 		$expect_pickup_date = cart::get_ship_cac_date_by_store($store_id);
 		
-		$out['expect_pickup_date'] = array_merge($expect_pickup_date);
+		$out['expect_pickup_date'] = $expect_pickup_date;
 		
 		return $out;
 	}
