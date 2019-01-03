@@ -491,7 +491,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
 	RC_Loader::load_app_func('global', 'goods');
 	
 	$field = "g.goods_id, g.market_price, g.goods_name, g.goods_sn, g.is_on_sale, g.is_real, g.store_id as store_id, g.model_inventory, g.model_attr, ".
-			"g.is_xiangou, g.xiangou_start_date, g.xiangou_end_date, g.xiangou_num, ".
+// 			"g.is_xiangou, g.xiangou_start_date, g.xiangou_end_date, g.xiangou_num, ".
 // 			"wg.w_id, wg.warehouse_price, wg.warehouse_promote_price, wg.region_number as wg_number, wag.region_price, wag.region_promote_price, wag.region_number as wag_number, ".
 // 			"IF(g.model_price < 1, g.shop_price, IF(g.model_price < 2, wg.warehouse_price, wag.region_price)) AS org_price,  ".
 			"g.model_price, g.market_price, ".
@@ -589,7 +589,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
     $spec_price             = spec_price($spec, $goods_id);
     $goods_price            = get_final_price($goods_id, $num, true, $spec);
 //     $goods['market_price'] += $spec_price;
-    $goods_attr             = get_goods_attr_info($spec, 'pice');
+    $goods_attr             = get_goods_attr_info($spec, 'no');
     $goods_attr_id          = join(',', $spec);
     
     /*收银台商品购物车类型*/
