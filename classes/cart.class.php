@@ -1848,12 +1848,16 @@ class cart {
 	/**
 	 * 获取上门自提时间
 	 * @param Y integer $store_id 
+	 * @param N integer $shipping_cac_id 
 	 */
-	public static function get_ship_cac_date_by_store($store_id = 0) {
+	public static function get_ship_cac_date_by_store($store_id = 0, $shipping_cac_id = 0) {
 	    $expect_pickup_date = [];
 	    
 	    //根据店铺id，店铺有没设置运费模板，查找店铺设置的运费模板关联的快递
-	    $shipping_cac_id = RC_DB::table('shipping')->where('shipping_code', 'ship_cac')->pluck('shipping_id');
+	    if(empty($shipping_cac_id)) {
+	        $shipping_cac_id = RC_DB::table('shipping')->where('shipping_code', 'ship_cac')->pluck('shipping_id');
+	    }
+	    
 	    if (!empty($shipping_cac_id)) {
 	        $shipping_area_list = RC_DB::table('shipping_area')->where('shipping_id', $shipping_cac_id)->where('store_id', $store_id)->groupBy('shipping_id')->get();
 	        

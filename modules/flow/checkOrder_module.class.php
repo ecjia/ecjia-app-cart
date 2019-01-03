@@ -668,7 +668,7 @@ class flow_checkOrder_module extends api_front implements api_interface {
 			$out_new['discount_formated']	= $out['discount_formated'];
 			
 			$expect_pickup_date = array();
-			$expect_pickup_date = cart::get_ship_cac_date_by_store($store_id);
+			$expect_pickup_date = cart::get_ship_cac_date_by_store($store_id, $ship_id);
 			$out_new['expect_pickup_date'] = $expect_pickup_date;
 			
 			return $out_new;
