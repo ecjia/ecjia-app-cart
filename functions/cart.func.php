@@ -2014,8 +2014,14 @@ function get_ru_shippng_info($goods_list, $cart_value, $store_id, $region = [], 
     }
     
     $shipping_list = ecjia_shipping::availableUserShippings($region, $store_id);
+    
     if($shipping_list) {
+        RC_Loader::load_app_class('cart', 'cart', false);
+        $is_has_ship_cac = 0;
         foreach ($shipping_list as $key => $row) {
+            if($row['shipping_code'] == 'ship_cac' && $is_has_ship_cac > 0) {
+                unset($shipping_list[$key]);continue;
+            }
             // O2O的配送费用计算传参调整 参考flow/checkOrder
             if (in_array($row['shipping_code'], ['ship_o2o_express','ship_ecjia_express'])) {
                 $store_info = RC_DB::table('store_franchisee')->where('store_id', $store_id)->where('shop_close', '0')->first();
@@ -2026,6 +2032,17 @@ function get_ru_shippng_info($goods_list, $cart_value, $store_id, $region = [], 
             } else {
                 $shipping_fee = $is_free_ship ? 0 : ecjia_shipping::fee($row['shipping_area_id'], $cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
             }
+            //上门取货 自提插件 获得提货时间
+            if($row['shipping_code'] == 'ship_cac' && $is_has_ship_cac == 0) {
+                $is_has_ship_cac ++;
+                $shipping_list[$key]['expect_pickup_date'] = cart::get_ship_cac_date_by_store($store_id, $row['shipping_id']);
+                $shipping_list[$key]['expect_pickup_date_default'] = $shipping_list[$key]['expect_pickup_date'][0]['date'] . ' ' . $shipping_list[$key]['expect_pickup_date'][0]['time'][0]['start_time'] . '-' . $shipping_list[$key]['expect_pickup_date'][0]['time'][0]['end_time'];
+                RC_Loader::load_app_func('merchant', 'merchant');
+                $store_info = get_store_info($store_id, 1);
+                $shipping_list[$key]['shop_kf_mobile'] = $store_info['shop_kf_mobile'];
+                $shipping_list[$key]['address'] = $store_info['province_name'] . $store_info['city_name'] . $store_info['district_name'] . $store_info['street_name'] . $store_info['address'];
+            }
+            
             $shipping_list[$key]['shipping_fee']        = $shipping_fee;
             $shipping_list[$key]['format_shipping_fee'] = price_format($shipping_fee, false);
         }
@@ -2078,7 +2095,17 @@ function get_cart_ru_goods_list($goods_list, $cart_value = '', $consignee = [], 
             if(!empty($arr[$key]['shipping']))
             {
                 $arr[$key]['shipping'] = array_values($arr[$key]['shipping']);
-                $arr[$key]['tmp_shipping_id'] = isset($arr[$key]['shipping'][0]['shipping_id']) ? $arr[$key]['shipping'][0]['shipping_id'] : 0; //默认选中第一个配送方式
+                //默认shipping_id
+                if(count($arr[$key]['shipping']) > 1) {
+                    if($arr[$key]['shipping'][0]['shipping_code'] != 'ship_cac') {
+                        $arr[$key]['tmp_shipping_id'] = isset($arr[$key]['shipping'][0]['shipping_id']) ? $arr[$key]['shipping'][0]['shipping_id'] : 0; //默认选中第一个配送方式
+                    } else {
+                        $arr[$key]['tmp_shipping_id'] = isset($arr[$key]['shipping'][1]['shipping_id']) ? $arr[$key]['shipping'][1]['shipping_id'] : 0; //默认选中第一个配送方式
+                    }
+                } else {
+                    $arr[$key]['tmp_shipping_id'] = isset($arr[$key]['shipping'][0]['shipping_id']) ? $arr[$key]['shipping'][0]['shipping_id'] : 0; //默认选中第一个配送方式
+                }
+                
                 foreach($arr[$key]['shipping'] as $kk=>$vv)
                 {
                     $vv['default'] = isset($vv['default']) ? $vv['default'] : 0;

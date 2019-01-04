@@ -1850,7 +1850,7 @@ class cart {
 	 * @param Y integer $store_id 
 	 * @param N integer $shipping_cac_id 
 	 */
-	public static function get_ship_cac_date_by_store($store_id = 0, $shipping_cac_id = 0) {
+	public static function get_ship_cac_date_by_store($store_id = 0, $shipping_cac_id = 0, $show_all_time = 0) {
 	    $expect_pickup_date = [];
 	    
 	    //根据店铺id，店铺有没设置运费模板，查找店铺设置的运费模板关联的快递
@@ -1878,14 +1878,21 @@ class cart {
 	                    $pickup = [];
 	                    
 	                    foreach ($shipping_cfg['pickup_time'] as $k => $v) {
-	                        if ($v['end'] > $time || $pickup_date > 0) {
-	                            
+	                        if($show_all_time) {
 	                            $pickup['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$pickup_date.' day'));
 	                            $pickup['time'][] = array(
 	                                'start_time' 	=> $v['start'],
 	                                'end_time'		=> $v['end'],
+	                                'is_disabled'   => ($v['end'] < $time && $pickup_date == 0) ? 1 : 0,
 	                            );
-	                            
+	                        } else {
+	                            if ($v['end'] > $time || $pickup_date > 0) {
+	                                $pickup['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$pickup_date.' day'));
+	                                $pickup['time'][] = array(
+	                                    'start_time' 	=> $v['start'],
+	                                    'end_time'		=> $v['end'],
+	                                );
+	                            }
 	                        }
 	                    }
 	                    if (!empty($pickup['date']) && !empty($pickup['time'])) {
