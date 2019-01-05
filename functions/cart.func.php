@@ -2014,7 +2014,8 @@ function get_ru_shippng_info($goods_list, $cart_value, $store_id, $region = [], 
     }
     
     $shipping_list = ecjia_shipping::availableUserShippings($region, $store_id);
-    
+    RC_Logger::getlogger('info')->info('shipping-list cart.func.php');
+    RC_Logger::getlogger('info')->info(json_encode($shipping_list));
     if($shipping_list) {
         RC_Loader::load_app_class('cart', 'cart', false);
         $is_has_ship_cac = 0;
@@ -2047,7 +2048,7 @@ function get_ru_shippng_info($goods_list, $cart_value, $store_id, $region = [], 
             $shipping_list[$key]['format_shipping_fee'] = price_format($shipping_fee, false);
         }
     }
-
+    RC_Logger::getlogger('info')->info(json_encode($shipping_list));
     $shipping_list = array_unique($shipping_list);
     
     return $shipping_list;
