@@ -2048,7 +2048,7 @@ function get_ru_shippng_info($goods_list, $cart_value, $store_id, $region = [], 
     }
     //php 7.2兼容有问题，返回值只有第一个。
     //$shipping_list = array_unique($shipping_list);
-    $shipping_list = collect($shipping_list)->unique()->toArray();
+    $shipping_list = collect($shipping_list)->unique('shipping_code')->toArray();
     
     return $shipping_list;
 }
