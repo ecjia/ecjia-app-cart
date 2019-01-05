@@ -2016,11 +2016,13 @@ function get_ru_shippng_info($goods_list, $cart_value, $store_id, $region = [], 
     $shipping_list = ecjia_shipping::availableUserShippings($region, $store_id);
     if($shipping_list) {
         RC_Loader::load_app_class('cart', 'cart', false);
-        $is_has_ship_cac = 0;
+        $ck = array();
         foreach ($shipping_list as $key => $row) {
-            if($row['shipping_code'] == 'ship_cac' && $is_has_ship_cac > 0) {
-                unset($shipping_list[$key]);continue;
+            if (isset($ck[$row['shipping_id']])) {
+                unset($shipping_list[$key]);
+                continue;
             }
+            $ck[$row['shipping_id']] = $row['shipping_id'];
             // O2O的配送费用计算传参调整 参考flow/checkOrder
             if (in_array($row['shipping_code'], ['ship_o2o_express','ship_ecjia_express'])) {
                 $store_info = RC_DB::table('store_franchisee')->where('store_id', $store_id)->where('shop_close', '0')->first();
@@ -2048,7 +2050,7 @@ function get_ru_shippng_info($goods_list, $cart_value, $store_id, $region = [], 
     }
     //php 7.2兼容有问题，返回值只有第一个。
     //$shipping_list = array_unique($shipping_list);
-    $shipping_list = collect($shipping_list)->unique('shipping_code')->toArray();
+    //$shipping_list = collect($shipping_list)->unique('shipping_code')->toArray();
     
     return $shipping_list;
 }
