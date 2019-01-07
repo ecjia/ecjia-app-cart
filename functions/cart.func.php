@@ -530,7 +530,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
     }
     /* 是否正在销售 */
     if ($goods['is_on_sale'] == 0) {
-    	return new ecjia_error('addcart_error', __('购买失败'));
+    	return new ecjia_error('addcart_error', __('对不起，该商品已下架！'));
     }
     /* 如果是作为配件添加到购物车的，需要先检查购物车里面是否已经有基本件 */
     if ($parent > 0) {
@@ -547,7 +547,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
 
     /* 不是配件时检查是否允许单独销售 */
     if (empty($parent) && $goods['is_alone_sale'] == 0) {
-		return new ecjia_error('addcart_error', __('购买失败'));
+		return new ecjia_error('addcart_error', __('对不起，该商品不能单独购买！'));
     }
     /* 如果商品有规格则取规格商品信息 配件除外 */
     $prod = $db_products->find(array('goods_id' => $goods_id));
@@ -572,11 +572,14 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
 			return new ecjia_error('low_stocks', __('库存不足'));
 		}
 		//商品存在规格 是货品 检查该货品库存
-    	if (is_spec($spec) && !empty($prod)) {
+    	if (is_spec($spec)) {
+    	    if(empty($prod)) {
+    	        return new ecjia_error('low_stocks', __('货品库存不足'));
+    	    }
     		if (!empty($spec)) {
 				/* 取规格的货品库存 */
     			if ($num > $product_info['product_number']) {
-    				return new ecjia_error('low_stocks', __('库存不足'));
+    				return new ecjia_error('low_stocks', __('货品库存不足'));
     			}
     		}
     	}
