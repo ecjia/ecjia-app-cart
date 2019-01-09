@@ -273,11 +273,13 @@ class cart_flow_done_api extends Component_Event_Api {
 
 		$payment_method = RC_Loader::load_app_class('payment_method','payment');
 		/* 支付方式 */
+		$is_pay_cod = false;
 		if ($order['pay_id'] > 0) {
 			$payment = $payment_method->payment_info_by_id($order['pay_id']);
 			$order['pay_name'] = addslashes($payment['pay_name']);
 			//如果是货到付款，状态设置为已确认。
 			if($payment['pay_code'] == 'pay_cod') {
+				$is_pay_cod = true;
 				$order['order_status'] = 1;
 				$store_info = RC_DB::table('store_franchisee')->where('store_id', $store_group[0])->first();
 				/* 货到付款判断是否是自营*/
@@ -644,6 +646,22 @@ class cart_flow_done_api extends Component_Event_Api {
 			OrderStatusLog::orderpaid_autoconfirm(array('order_id' => $new_order_id));
 		}
 		
+		/* 货到付款，默认打印订单 */
+		RC_Logger::getLogger('error')->info('testaaa');
+		RC_Logger::getLogger('error')->info($is_pay_cod);
+		RC_Logger::getLogger('error')->info('testbbb');
+		if($is_pay_cod) {
+			try {
+				$res = with(new Ecjia\App\Orders\OrderPrint($order['order_id'], $order['store_id']))->doPrint(true);
+				RC_Logger::getLogger('error')->info('test111');
+				if (is_ecjia_error($res)) {
+					RC_Logger::getLogger('error')->error($res->get_error_message());
+				}
+			} catch (PDOException $e) {
+				RC_Logger::getLogger('info')->error($e);
+			}
+		}
+		
 		/* 客户下单通知（默认通知店长）*/
 		$staff_user = RC_DB::table('staff_user')->where('store_id', $order['store_id'])->where('parent_id', 0)->first();
 		if (!empty($staff_user)) {
@@ -710,18 +728,6 @@ class cart_flow_done_api extends Component_Event_Api {
 					),
 				);
 				RC_Api::api('push', 'push_event_send', $options);
-			} catch (PDOException $e) {
-				RC_Logger::getLogger('info')->error($e);
-			}
-		}
-		
-		/* 货到付款，默认打印订单 */
-		if($payment['pay_code'] == 'pay_cod') {
-			try {
-				$res = with(new Ecjia\App\Orders\OrderPrint($order['order_id'], $order['store_id']))->doPrint(true);
-				if (is_ecjia_error($res)) {
-					RC_Logger::getLogger('error')->error($res->get_error_message());
-				}
 			} catch (PDOException $e) {
 				RC_Logger::getLogger('info')->error($e);
 			}
