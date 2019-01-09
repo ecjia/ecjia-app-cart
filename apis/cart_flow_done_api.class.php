@@ -647,13 +647,9 @@ class cart_flow_done_api extends Component_Event_Api {
 		}
 		
 		/* 货到付款，默认打印订单 */
-		RC_Logger::getLogger('error')->info('testaaa');
-		RC_Logger::getLogger('error')->info($is_pay_cod);
-		RC_Logger::getLogger('error')->info('testbbb');
 		if($is_pay_cod) {
 			try {
 				$res = with(new Ecjia\App\Orders\OrderPrint($order['order_id'], $order['store_id']))->doPrint(true);
-				RC_Logger::getLogger('error')->info('test111');
 				if (is_ecjia_error($res)) {
 					RC_Logger::getLogger('error')->error($res->get_error_message());
 				}
