@@ -708,9 +708,9 @@ class cart {
 					$total['shipping_insure'] = 0;
 				}
 
-				if ($shipping_info['support_cod'] && $shipping_info['shipping_code'] == 'ship_cac') {
-					$shipping_cod_fee = $shipping_info['pay_fee'];
-				}
+// 				if ($shipping_info['support_cod']) {综合配送和支付计算
+// 					$shipping_cod_fee = $shipping_info['pay_fee'];
+// 				}
 			}
 		}
 
