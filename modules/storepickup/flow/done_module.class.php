@@ -558,15 +558,6 @@ class storepickup_flow_done_module extends api_front implements api_interface
             $order['shipping_name'] = trim(stripcslashes($order['shipping_name']));
         }
         
-        /* 订单信息 */
-//         unset($_SESSION['flow_consignee']); // 清除session中保存的收货人信息
-//         unset($_SESSION['flow_order']);
-//         unset($_SESSION['direct_shopping']);
-//         unset($_SESSION['user_id']);
-//         unset($_SESSION['cashdesk_temp_user_id']);
-//         unset($_SESSION['user_rank']);
-//         unset($_SESSION['discount']);
-        
         
         $subject = $cart_goods[0]['goods_name'] . '等' . count($cart_goods) . '种商品';
         $out = array(
@@ -581,23 +572,6 @@ class storepickup_flow_done_module extends api_front implements api_interface
                 'order_sn' => $order['order_sn']
             )
         );
-        
-// 		/*收银员订单操作记录*/
-//         $order_id = $order['order_id'];
-//         $device_info = RC_DB::table('mobile_device')->where('id', $_SESSION['device_id'])->first();
-//         $cashier_record = array(
-//         		'store_id' 			=> $store_id,
-//         		'staff_id'			=> $_SESSION['staff_id'],
-//         		'order_id'	 		=> $order_id,
-//         		'order_type' 		=> 'ecjia-cashdesk',
-//         		'mobile_device_id'	=> empty($_SESSION['device_id']) ? 0 : $_SESSION['device_id'],
-//         		'device_sn'			=> empty($device_info['device_udid']) ? '' : $device_info['device_udid'],
-//         		'device_type'		=> 'ecjia-cashdesk',
-//         		'action'   	 		=> 'billing', //开单
-//         		'create_at'	 		=> RC_Time::gmtime(),
-//         );
-//         RC_DB::table('cashier_record')->insert($cashier_record);
-        
         return $out;
 	}
 
