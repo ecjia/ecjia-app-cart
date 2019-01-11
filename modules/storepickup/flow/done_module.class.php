@@ -84,11 +84,6 @@ class storepickup_flow_done_module extends api_front implements api_interface
 		$cart_id = empty($rec_id) ? '' : explode(',', $rec_id);
 		
         /* 取得购物类型 */
-//         $flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
-//         $codes = array('8001', '8011');
-//         if (!empty($device) && in_array($device['code'], $codes)) {
-//         	$flow_type = CART_CASHDESK_GOODS;
-//         }
 		$flow_type = CART_GENERAL_GOODS;
         
         /* 检查购物车中是否有商品 */
