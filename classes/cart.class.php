@@ -1712,8 +1712,6 @@ class cart {
 	 * @return  bool			   true，成功；false，失败；
 	 */
 	public static function change_goods_storage($goods_id, $product_id, $number = 0) {
-		$db_goods		= RC_Model::model('goods/goods_model');
-		$db_products	= RC_Model::model('goods/products_model');
 		if ($number == 0) {
 			return true; // 值为0即不做、增减操作，返回true
 		}
@@ -1723,25 +1721,21 @@ class cart {
 		/* 处理货品库存 */
 		$products_query = true;
 		if (!empty($product_id)) {
-			/* by will.chen start*/
-			$product_number = $db_products->where(array('goods_id' => $goods_id, 'product_id' => $product_id))->get_field('product_number');
+			$product_number = RC_DB::table('products')->where('goods_id', $goods_id)->where('product_id', $product_id)->pluck('product_number');
 			if ($product_number < abs($number)) {
 				return new ecjia_error('low_stocks', __('库存不足'));
 			}
-			/* end*/
-			$products_query = $db_products->inc('product_number', 'goods_id='.$goods_id.' and product_id='.$product_id, $number);
+			$products_query = RC_DB::table('products')->where('goods_id', $goods_id)->where('product_id', $product_id)->increment('product_number', $number);
+		} else {
+			$goods_number = RC_DB::table('goods')->where('goods_id', $goods_id)->pluck('goods_number');
+			if ($goods_number < abs($number) ) {
+				return new ecjia_error('low_stocks', __('库存不足'));
+			}
+			/* 处理商品库存 */
+			$query = RC_DB::table('goods')->where('goods_id',$goods_id)->increment('goods_number', $number);
 		}
 
-		/* by will.chen start*/
-		$goods_number = $db_goods->where(array('goods_id' => $goods_id))->get_field('goods_number');
-		if ($goods_number < abs($number) ) {
-			return new ecjia_error('low_stocks', __('库存不足'));
-		}
-		/* end*/
-		/* 处理商品库存 */
-		$query = $db_goods->inc('goods_number', 'goods_id='.$goods_id, $number);
-		
-		if ($query && $products_query) {
+		if ($query || $products_query) {
 			$goods_info  = RC_DB::table('goods')->where('goods_id', $goods_id)->select('goods_name', 'goods_number', 'warn_number', 'store_id')->first();
 			$mobile      = RC_DB::table('staff_user')->where('store_id', $goods_info['store_id'])->where('parent_id', 0)->pluck('mobile');
 			$store_name  = RC_DB::table('store_franchisee')->where('store_id', $goods_info['store_id'])->pluck('merchants_name');
