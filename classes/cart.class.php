@@ -87,9 +87,6 @@ class cart {
 			
 			//查询：
 			$cart_w = array('rec_id' => $key, 'user_id' => $_SESSION['user_id']);
-// 			if (defined('SESS_ID')) {
-// 				$cart_w['session_id'] = SESS_ID;
-// 			}
 			$goods = $db_cart->field(array('goods_id', 'goods_attr_id', 'product_id', 'extension_code'))->find($cart_w);
 
 			$row   = $dbview->join('cart')->find(array('c.rec_id' => $key));
@@ -121,10 +118,6 @@ class cart {
 					'b.user_id' => $_SESSION['user_id'],
 			);
 
-// 			if (defined('SESS_ID')) {
-// 				$offer_w['session_id'] = SESS_ID;
-// 			}
-
 			$offers_accessories_res = $db_cart_view->join('cart')->where($offer_w)->select();
 
 
@@ -150,7 +143,6 @@ class cart {
 					/* 处理普通商品或非优惠的配件 */
 					$attr_id    = empty($goods['goods_attr_id']) ? array() : explode(',', $goods['goods_attr_id']);
 					
-					//$goods_price = self::get_final_price($goods['goods_id'], $val, true, $attr_id);
 					RC_Loader::load_app_class('goods_info', 'goods', false);
 					$goods_price = goods_info::get_final_price($goods['goods_id'], $val, true, $attr_id);
 
@@ -470,12 +462,6 @@ class cart {
 		if (!empty($cart_id)) {
 			$cart_where = array_merge($cart_where, array('rec_id' => $cart_id));
 		}
-
-// 		if (defined('SESS_ID')) {
-// 			$cart_where['c.session_id'] = SESS_ID;
-// 		}
-
-// 		$data = $db_view->join('goods')->where($cart_where)->sum('g.integral * c.goods_number');
 
 		$total_goods_integral_money = RC_Model::model('cart/cart_goods_viewmodel')->join('goods')->where($cart_where)->sum('g.integral * c.goods_number');
 		//购物车商品总价
