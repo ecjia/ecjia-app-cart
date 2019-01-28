@@ -72,10 +72,11 @@ class cart_cashdesk {
 		if (!empty($_SESSION['store_id'])) {
 			$db->where(RC_DB::raw('c.store_id'), $_SESSION['store_id']);
 		}
-		if ($_SESSION['user_id']) {
-			$db->where(RC_DB::raw('c.user_id'), $_SESSION['user_id']);
-		} else {
-			$db->where(RC_DB::raw('c.user_id'), 0);
+		
+		$db->where(RC_DB::raw('c.user_id'), $_SESSION['user_id']);
+		
+		if ($_SESSION['device_id']) {
+			$db->where(RC_DB::raw('c.session_id'), $_SESSION['device_id']);
 		}
 		
 		$field = 'g.store_id, goods_img, original_img, goods_thumb, c.rec_id, c.goods_buy_weight, c.user_id, c.goods_id, c.goods_name, c.goods_sn, c.goods_number, c.market_price, c.goods_price, c.goods_attr, c.is_real, c.extension_code, c.parent_id, c.is_gift, c.is_shipping, (c.goods_price * c.goods_number) as subtotal, goods_weight as goodsWeight, c.goods_attr_id';
@@ -326,6 +327,7 @@ class cart_cashdesk {
 		/* 初始化要插入购物车的基本件数据 */
 		$parent = array(
 				'user_id'       => $_SESSION['user_id'],
+				'session_id'	=> $_SESSION['device_id'],  //收银台购物车，此字段存储的值为设备收银设备id
 				'goods_id'      => $goods_id,
 				'goods_sn'      => $product_info['product_id'] > 0 ? addslashes($product_info['product_sn']) : addslashes($goods['goods_sn']),
 				'product_id'    => $product_info['product_id'],
