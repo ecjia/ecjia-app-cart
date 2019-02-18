@@ -135,12 +135,216 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 		/* 取得订单信息*/
 		$order = cart::flow_order_info();
 		
-		//$cart_goods_list = cart_goods_dsc($flow_type, $cart_value, 1, $warehouse_id, $area_id, $area_city, $consignee, $store_id);
 		//多店铺商品列表划分,含配送方式
 		$cart_goods_list = cart_bbc::store_cart_goods($format_cart_list, $consignee); // 取得商品列表，计算合计
+		$order['store_id'] = 0;
+		if(count($cart_goods_list) == 1) {
+			$order['store_id'] = $cart_goods_list[0]['store_id'];
+		}
 		
+		//支付方式列表
+		if ($order['shipping_id'] == 0) {
+			$cod        = true;
+			$cod_fee    = 0;
+		} else {
+			$shipping = ecjia_shipping::pluginData($order['shipping_id']);
+			$cod = $shipping['support_cod'];
+			if ($cod) {
+				/* 如果是团购，且保证金大于0，不能使用货到付款 */
+				if ($flow_type == CART_GROUP_BUY_GOODS) {
+					$group_buy_id = $_SESSION['extension_id'];
+					if ($group_buy_id <= 0) {
+						return new ecjia_error('groupbuy_not_support_cod', '如果是团购，且保证金大于0，不能使用货到付款');
+					}
+					$group_buy = group_buy_info($group_buy_id);
+					if (empty($group_buy)) {
+						return new ecjia_error( 'groupbuy_not_exist', '团购活动不存在');
+					}
+					if ($group_buy['deposit'] > 0) {
+						$cod = false;
+						$cod_fee = 0;
+						/* 赋值保证金 */
+						$gb_deposit = $group_buy['deposit'];
+					}
+				}
+				if ($cod) {
+					$shipping_area_info = ecjia_shipping::pluginData($order['shipping_id']);
+					$cod_fee            = isset($shipping_area_info['pay_fee']) ? $shipping_area_info['pay_fee'] : 0;
+				}
+			} else {
+				$cod_fee = 0;
+			}
+		}
+		$payment_list = RC_Api::api('payment', 'available_payments', array('store_id' => $order['store_id'], 'cod_fee' => $cod_fee));
 		
+		$user_info = RC_Api::api('user', 'user_info', array('user_id' => $_SESSION['user_id']));
 		
+		if (is_ecjia_error($user_info)) {
+			return $user_info;
+		}
+		
+		/* 保存 session */
+		$_SESSION['flow_order'] = $order;
+		$out = array();
+		$out['store_goods_list']= $cart_goods_list;//商品
+		$out['consignee']		= $consignee;//收货地址
+		$out['payment_list']	= $payment_list;//支付信息
+		
+
+		/* 如果使用积分，取得用户可用积分及本订单最多可以使用的积分 */
+		if ((ecjia_config::has('use_integral') || ecjia::config('use_integral') == '1')
+		&& $_SESSION['user_id'] > 0
+		&& $user_info['pay_points'] > 0
+		&& ($flow_type != CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS))
+		{
+			// 能使用积分
+			$allow_use_integral = 1;
+			$order_max_integral = cart::flow_available_points($cart_id);
+			$user_pay_points 	= $user_info['pay_points'] > 0 ? $user_info['pay_points'] : 0;
+			$order_max_integral = min($order_max_integral, $user_pay_points);
+		} else {
+			$allow_use_integral = 0;
+			$order_max_integral = 0;
+		}
+		$out['allow_use_integral'] = $allow_use_integral;//积分 是否使用积分
+		$out['order_max_integral'] = $order_max_integral;//订单最大可使用积分
+		
+		/* 如果使用红包，取得用户可以使用的红包及用户选择的红包 */
+		if ((ecjia_config::has('use_bonus') || ecjia::config('use_bonus') == '1')
+		&& ($flow_type != CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS))
+		{
+			// 取得用户可用红包
+			$pra = array(
+					'user_id' 			=> $_SESSION['user_id'],
+					'store_id' 			=> array_merge($format_cart_list['cart_store_ids'], [0]),
+					'min_goods_amount'	=> $format_cart_list['total']['unformatted_goods_price']
+			);
+			$user_bonus = Ecjia\App\Bonus\UserAvaliableBonus::GetUserBonus($pra);
+			$bonus_list = $this->get_format_bonus($user_bonus);
+			// 能使用红包
+			$allow_use_bonus = 1;
+		} else {
+			$allow_use_bonus = 0;
+		}
+		$out['allow_use_bonus']		= $allow_use_bonus;//是否使用红包
+		$out['bonus']				= !empty($bonus_list) ? $bonus_list : array();//红包
+		
+		//能否开发票
+		$out['allow_can_invoice']	= ecjia::config('can_invoice');
+		/* 如果能开发票，取得发票内容列表 */
+		if ((ecjia_config::has('can_invoice') && ecjia::config('can_invoice') == '1') && ecjia_config::has('invoice_content') && $flow_type != CART_EXCHANGE_GOODS)
+		{
+			$inv_content_list = explode("\n", str_replace("\r", '', ecjia::config('invoice_content')));
+			$inv_type_list = $this->get_inv_type_list();
+		}
+		$out['inv_content_list']	= empty($inv_content_list) ? [] : $inv_content_list;//发票内容项
+		$out['inv_type_list']		= $inv_type_list;//发票类型及税率
+		if (!empty($out['inv_content_list'])) {
+			$temp = array();
+			foreach ($out['inv_content_list'] as $key => $value) {
+				$temp[] = array('id'=>$key, 'value'=>$value);
+			}
+			$out['inv_content_list'] = $temp;
+		}
+		if (!empty($out['inv_type_list'])) {
+			$temp = array();
+			$i = 1;
+			foreach ($out['inv_type_list'] as $key => $value) {
+				$temp[] = array(
+						'id'	       => $i,
+						'value'	       => $value['label'],
+						'label_value'  => $value['label_type'],
+						'rate'	       => $value['rate']);
+				$i++;
+			}
+			$out['inv_type_list'] = $temp;
+		}
+		$out['your_integral']		= $user_info['pay_points'] > 0 ? $user_info['pay_points'] : 0;//用户可用积分
+		$out['discount']			= number_format($format_cart_list['total']['discount'], 2, '.', '');//用户享受折扣数
+		$out['discount_formated']	= $format_cart_list['total']['formated_discount'];
+		$out['goods_amount']		= $format_cart_list['total']['unformatted_goods_price'];
+		$out['format_goods_amount']	= ecjia_price_format($format_cart_list['total']['unformatted_goods_price'], false);
+		
+		//收货人信息处理
+		$out_consignee = $this->get_format_consignee($out['consignee']);
+		$out['consignee'] = $out_consignee;
+		
+		return $out;
+	}
+	
+	/**
+	 * 订单可用红包数据处理
+	 */
+	private function get_format_bonus($user_bonus){
+		$bonus_list = array();
+		if (!empty($user_bonus)) {
+			foreach ($user_bonus AS $key => $val) {
+				$bonus_list[] = array(
+						'type_id' 				=> intval($val['type_id']),
+						'type_name'				=> trim($val['type_name']),
+						'bonus_money'			=> $val['type_money'],
+						'bonus_id'				=> intval($val['bonus_id']),
+						'bonus_money_formated'	=> ecjia_price_format($val['type_money'], false)
+				);
+			}
+		}
+		
+		return $bonus_list;
+	}
+	
+	/**
+	 * 发票类型及税率
+	 */
+	private function get_inv_type_list()
+	{
+		$inv_type_list = array();
+		$invoice_type  = ecjia::config('invoice_type');
+		$invoice_type = unserialize($invoice_type);
+		foreach ($invoice_type['type'] as $key => $type) {
+			if (!empty($type)) {
+				$inv_type_list[$type] = array(
+						'label'      => $type . ' [' . floatval($invoice_type['rate'][$key]) . '%]',
+						'label_type' => $type,
+						'rate'       => floatval($invoice_type['rate'][$key])
+				);
+			}
+		}
+		
+		return $inv_type_list;
+	}
+	
+	/**
+	 * 收货人信息处理
+	 */
+	private function get_format_consignee($consignee = array())
+	{
+		if (!empty($consignee)) {
+			$consignee['id'] = $consignee['address_id'];
+			unset($consignee['address_id']);
+			unset($consignee['user_id']);
+			unset($consignee['address_id']);
+			$ids = array($consignee['province'], $consignee['city'], $consignee['district'], $consignee['street']);
+			$ids = array_filter($ids);
+				
+			$data = array();
+			if (!empty($ids)) {
+				$data = ecjia_region::getRegions($ids);
+			}
+				
+			$a_out = array();
+			if (!empty($data)) {
+				foreach ($data as $key => $val) {
+					$a_out[$val['region_id']] = $val['region_name'];
+				}
+			}
+			$country = ecjia_region::getCountryName($consignee['country']);
+			$consignee['country_name']	= $country;
+			$consignee['province_name']	= isset($a_out[$consignee['province']])	? $a_out[$consignee['province']] : '';
+			$consignee['city_name']		= isset($a_out[$consignee['city']])  ? $a_out[$consignee['city']] 	: '';
+			$consignee['district_name']	= isset($a_out[$consignee['district']]) ? $a_out[$consignee['district']] : '';
+			$consignee['street_name']	= isset($a_out[$consignee['street']]) 	? $a_out[$consignee['street']] : '';
+		}
+		return $consignee;
 	}
 }
 

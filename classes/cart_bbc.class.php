@@ -58,7 +58,7 @@ class cart_bbc {
 	 */
     public static function formated_bbc_cart_list($cart_result = array(), $user_rank = 0, $user_id = 0) 
     {
-    	$cart_goods = array('cart_list' => array(), 'total' => $cart_result['total']);
+    	$cart_goods = array('cart_list' => array(), 'total' => $cart_result['total'], 'cart_store_ids' => array());
     	
         if (!empty($cart_result['goods_list'])) {
 	       	 foreach ($cart_result['goods_list'] as $row) {
@@ -125,15 +125,61 @@ class cart_bbc {
     		$store_discount_result = [];
     		if ($seller['store_checked_rec_id']) {
     			$store_discount_result = self::bbc_cart_store_discount(array('store_id' => $seller['store_id'], 'user_id' => $user_id,'user_rank' => $user_rank, 'rec_id' => $seller['store_checked_rec_id']));
-    			if (!empty($store_discount_result)) {
+    			/* 用于统计购物车中实体商品和虚拟商品的个数 */
+    			$virtual_goods_count = 0;
+    			$real_goods_count    = 0;
+    			//店铺小计
+    			$total = array(
+    					'goods_price'  => 0, // 本店售价合计（有格式）
+    					'market_price' => 0, // 市场售价合计（有格式）
+    					'saving'       => 0, // 节省金额（有格式）
+    					'save_rate'    => 0, // 节省百分比
+    					'goods_amount' => 0, // 本店售价合计（无格式）
+    					'goods_number' => 0, // 商品总件数
+    					'discount'     => 0
+    			);
+    			foreach ($seller['goods_list'] as $goods) {
+    				if ($goods['is_checked'] == 1) {
+    					$total['goods_price']  += $goods['goods_price'] * $goods['goods_number'];
+    					$total['market_price'] += $goods['market_price'] * $goods['goods_number'];
+    				}
+    				$total['goods_number'] += $goods['goods_number'];
+    			}
+    			//判断优惠超过商品总价时
+    			if ($store_discount_result['store_cart_discount'] > $total['goods_price']) {
+    				$store_discount_result['store_cart_discount'] = $total['goods_price'];
+    			}
+    			
+    			$total['goods_amount'] = $total['goods_price']; //此处商品金额小计为已减去优惠金额的
+    			$total['saving']       = price_format($total['market_price'] - $total['goods_price'], false);
+    			if ($total['market_price'] > 0) {
+    				$total['save_rate'] = $total['market_price'] ? round(($total['market_price'] - $total['goods_price']) *
+    						100 / $total['market_price']).'%' : 0;
+    			}
+    			
+    			$total['unformatted_goods_price']     = sprintf("%.2f", $total['goods_price']);
+    			$total['goods_price']  			      = price_format($total['goods_price'], false);
+    			$total['unformatted_market_price']    = sprintf("%.2f", $total['market_price']);
+    			$total['market_price'] 				  = price_format($total['market_price'], false);
+    			$total['real_goods_count']    		  = $real_goods_count;
+    			$total['virtual_goods_count'] 		  = $virtual_goods_count;
+    			
+    			$total['discount']			= $store_discount_result['store_cart_discount'];//用户享受折扣数
+    			$total['discount_formated']	= ecjia_price_format($total['discount'], false);
+    			
+    			$seller['total'] = $total;
+    			
+    			if (!empty($store_discount_result['store_cart_discount'])) {
     				$total_discount += $store_discount_result['store_cart_discount'];
     			}
     			$seller['favourable_activity'] = $store_discount_result['store_fav_activity'];
     			unset($seller['store_checked_rec_id']);
+    			$cart_store_ids[] = $seller['store_id'];
     		}
     	}
     	$cart_goods['total']['discount'] = sprintf("%.2f", $total_discount);
     	$cart_goods['total']['formated_discount'] = ecjia_price_format($total_discount, false);
+    	$cart_goods['cart_store_ids'] = $cart_store_ids;
     	
     	return $cart_goods;
     }
@@ -312,7 +358,123 @@ class cart_bbc {
      */
     public static function store_cart_goods($cart_goods = array(), $consignee = array())
     {
+    	if (!empty($cart_goods['cart_list'])) {
+    		foreach ($cart_goods['cart_list'] as $key => $val) {
+    			$store_shipping_list = self::store_shipping_list($val, $consignee, $val['store_id']);
+    			$val['shipping'] = $store_shipping_list;
+    			$val['goods_amount'] = sprintf("%.2f", $val['total']['goods_amount']);
+    			unset($val['total']);
+    			unset($val['favourable_activity']);
+    			$store_cart_goods [] = $val;
+    		}
+    	}
+    	return $store_cart_goods;
+    }
+    
+    /**
+     * 商家配送方式列表
+     */
+    public static function store_shipping_list($store_goods_list, $consignee, $store_id)
+    {
+    	$region = array($consignee['country'], $consignee['province'], $consignee['city'], $consignee['district'], $consignee['street']);
+    	if (empty($store_goods_list)) {
+    		return [];
+    	}
+    	$is_free_ship = 0;
+    	$shipping_count = 0;
+    	$cart_weight_price['weight'] 		= 0;
+    	$cart_weight_price['amount'] 		= 0;
+    	$cart_weight_price['number'] 		= 0;
     	
+    	foreach ($store_goods_list as $key => $goods) {
+    		if($goods['is_shipping'] == 1) {
+    			$shipping_count ++;
+    		}
+    	
+    		$cart_weight_price['weight'] += floatval($goods['goodsWeight']) * $goods['goods_number'];
+    		$cart_weight_price['amount'] += floatval($goods['goods_price']) * $goods['goods_number'];
+    		$cart_weight_price['number'] += $goods['goods_number'];
+    	}
+    	if($shipping_count == count($store_goods_list)) {
+    		//全部包邮
+    		$is_free_ship = 1;
+    	}
+    	
+    	$shipping_list = ecjia_shipping::availableUserShippings($region, $store_id);
+    	$shipping_list_new = [];
+    	
+    	if($shipping_list) {
+    		RC_Loader::load_app_class('cart', 'cart', false);
+    		foreach ($shipping_list as $key => $row) {
+    			// O2O的配送费用计算传参调整 参考flow/checkOrder
+    			if (in_array($row['shipping_code'], ['ship_o2o_express','ship_ecjia_express'])) {
+    				//配送费
+    				$shipping_fee = self::o2o_shipping_fee($cart_weight_price, $is_free_ship, $store_id, $consignee, $row);
+    				//配送时间
+    				$shipping_cfg = ecjia_shipping::unserializeConfig($row['configure']);
+    				/* 获取最后可送的时间（当前时间+需提前下单时间）*/
+    				$time = RC_Time::local_date('H:i', RC_Time::gmtime() + $shipping_cfg['last_order_time'] * 60);
+    				
+    				if (empty($shipping_cfg['ship_time'])) {
+    					unset($shipping_list[$key]);
+    					continue;
+    				}
+    				$shipping_list[$key]['shipping_date'] = array();
+    				$ship_date = 0;
+    				
+    				if (empty($shipping_cfg['ship_days'])) {
+    					$shipping_cfg['ship_days'] = 7;
+    				}
+    				
+    				while ($shipping_cfg['ship_days']) {
+    					foreach ($shipping_cfg['ship_time'] as $k => $v) {
+    				
+    						if ($v['end'] > $time || $ship_date > 0) {
+    							$shipping_list[$key]['shipping_date'][$ship_date]['date'] = RC_Time::local_date('Y-m-d', RC_Time::local_strtotime('+'.$ship_date.' day'));
+    							$shipping_list[$key]['shipping_date'][$ship_date]['time'][] = array(
+    									'start_time' 	=> $v['start'],
+    									'end_time'		=> $v['end'],
+    							);
+    						}
+    					}
+    					$ship_date ++;
+    				
+    					if (count($shipping_list[$key]['shipping_date']) >= $shipping_cfg['ship_days']) {
+    						break;
+    					}
+    				}
+    				$shipping_list[$key]['shipping_date'] = array_merge($shipping_list[$key]['shipping_date']);
+    				
+    			} else {
+    				$shipping_fee = $is_free_ship ? 0 : ecjia_shipping::fee($row['shipping_area_id'], $cart_weight_price['weight'], $cart_weight_price['amount'], $cart_weight_price['number']);
+    			}
+    			//上门取货 自提插件 获得提货时间
+    			if($row['shipping_code'] == 'ship_cac') {
+    				$shipping_list[$key]['expect_pickup_date'] = cart::get_ship_cac_date_by_store($store_id, $row['shipping_id']);
+    				$shipping_list[$key]['expect_pickup_date_default'] = $shipping_list[$key]['expect_pickup_date'][0]['date'] . ' ' . $shipping_list[$key]['expect_pickup_date'][0]['time'][0]['start_time'] . '-' . $shipping_list[$key]['expect_pickup_date'][0]['time'][0]['end_time'];
+    			}
+    	
+    			$shipping_list[$key]['shipping_fee']        = $shipping_fee;
+    			$shipping_list[$key]['format_shipping_fee'] = ecjia_price_format($shipping_fee, false);
+    			unset($shipping_list[$key]['shipping_desc']);
+    			unset($shipping_list[$key]['configure']);
+    		}
+    	}
+    	$shipping_list = array_values($shipping_list);
+    	return $shipping_list;
+    }
+    
+    /**
+     * 商家配送及o2o配送费获取
+     */
+    public static function o2o_shipping_fee($cart_weight_price, $is_free_ship, $store_id, $consignee, $shipping_val)
+    {
+    	$store_info = RC_DB::table('store_franchisee')->where('store_id', $store_id)->where('shop_close', '0')->first();
+    	$from = ['latitude' => $store_info['latitude'], 'longitude' => $store_info['longitude']];
+    	$to = ['latitude' => $consignee['location']['latitude'], 'longitude' => $consignee['location']['longitude']];
+    	$distance = Ecjia\App\User\Location::getDistance($from, $to);
+    	$shipping_fee = $is_free_ship ? 0 : ecjia_shipping::fee($shipping_val['shipping_area_id'], $distance, $cart_weight_price['amount'], $cart_weight_price['number']);
+    	 return $shipping_fee;
     }
 }
 
