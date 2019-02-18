@@ -73,7 +73,7 @@ class flow_done_module extends api_front implements api_interface {
     		$cart_id = explode(',', $rec_id);
     	}
     	if (empty($cart_id)) {
-    		return new ecjia_error( 'invalid_parameter', RC_Lang::get ('system::system.invalid_parameter'));
+            return new ecjia_error('invalid_parameter', __('参数错误', 'cart'));
     	}
     	$location		= $this->requestData('location',array());
     	//TODO:目前强制坐标
@@ -86,7 +86,7 @@ class flow_done_module extends api_front implements api_interface {
     	$rec_type = RC_DB::table('cart')->whereIn('rec_id', $cart_id)->lists('rec_type');
     	$rec_type = array_unique($rec_type);
     	if (count($rec_type) > 1) {
-    		return new ecjia_error( 'error_rec_type', '购物车类型不一致！');
+    		return new ecjia_error( 'error_rec_type', __('购物车类型不一致！', 'cart'));
     	} else {
     		$rec_type = $rec_type['0'];
     		if ($rec_type == 1) {
@@ -98,7 +98,7 @@ class flow_done_module extends api_front implements api_interface {
     	/* 获取收货信息*/
     	$address_id = $this->requestData('address_id', 0);
     	if (empty($address_id)) {
-    	    return new ecjia_error('empty_address', '请选择收货地址');
+    	    return new ecjia_error('empty_address', __('请选择收货地址', 'cart'));
     	}
     	
     	//发票抬头处理
@@ -106,13 +106,13 @@ class flow_done_module extends api_front implements api_interface {
     	$inv_title_type = trim($this->requestData('inv_title_type', ''));
     	if (!empty($inv_title_type)) {
     		if ($inv_title_type == 'personal') {
-    			$inv_payee_last = trim($this->requestData('inv_payee', '个人'));
+    			$inv_payee_last = trim($this->requestData('inv_payee', __('个人', 'cart')));
     		} elseif($inv_title_type == 'enterprise') {
     			//发票纳税人识别码
     			$inv_tax_no = trim($this->requestData('inv_tax_no', ''));
     			$inv_payee = trim($this->requestData('inv_payee', ''));
     			if (empty($inv_tax_no) || empty($inv_payee)) {
-    				return new ecjia_error('invoice_error', '发票抬头和识别码都不能为空！');
+    				return new ecjia_error('invoice_error', __('发票抬头和识别码都不能为空！', 'cart'));
     			}
     			//如果有传发票识别码，发票识别码存储在inv_payee（发票抬头）字段中；格式为发票抬头 + ,发票纳税人识别码；如：（企业,789654321456987124）。
 		    	$inv_payee_last = $inv_payee.','.$inv_tax_no;
@@ -154,10 +154,10 @@ class flow_done_module extends api_front implements api_interface {
     	$order['expect_shipping_time'] = empty($order['expect_shipping_time']) ? '' : $order['expect_shipping_time'];
     	
     	if (empty($order['pay_id'])) {
-    	    return new ecjia_error('empty_payment', '请选择支付方式');
+    	    return new ecjia_error('empty_payment', __('请选择支付方式', 'cart'));
     	}
     	if (empty($order['shipping_id'])) {
-    	    return new ecjia_error('empty_shipping', '当前收货地址暂无可用配送方式，请重新更换其他的收货地址！');
+    	    return new ecjia_error('empty_shipping', __('当前收货地址暂无可用配送方式，请重新更换其他的收货地址！', 'cart'));
     	}
     	//选择货到付款支付方式后，不可选择上门取货配送方式
         if ($order['pay_id'] > 0) {
@@ -166,7 +166,7 @@ class flow_done_module extends api_front implements api_interface {
         		if ($order['shipping_id'] > 0) {
         			$ship_code = RC_DB::table('shipping')->where('shipping_id', $order['shipping_id'])->pluck('shipping_code');
         			if ($ship_code == 'ship_cac') {
-        				return new ecjia_error('not_surport_shipping', '货到付款支付不支持上门取货配送！');
+        				return new ecjia_error('not_surport_shipping', __('货到付款支付不支持上门取货配送！', 'cart'));
         			}
         		}
         	}

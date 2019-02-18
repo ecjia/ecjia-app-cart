@@ -64,7 +64,7 @@ class cart_create_module extends api_front implements api_interface {
     	if (version_compare($api_version, '1.25', '>=')) {
     		$account_status = Ecjia\App\User\Users::UserAccountStatus($user_id);
     		if ($account_status == Ecjia\App\User\Users::WAITDELETE) {
-    			return new ecjia_error('account_status_error', '当前账号已申请注销，不可执行此操作！');
+    			return new ecjia_error('account_status_error', __('当前账号已申请注销，不可执行此操作！', 'cart'));
     		}
     	}
     	
@@ -74,7 +74,7 @@ class cart_create_module extends api_front implements api_interface {
 	    $seller_id		= $this->requestData('seller_id', 0);
 	    $city_id		= $this->requestData('city_id', '');
 	    if (!$goods_id) {
-	        return new ecjia_error(101, '参数错误');
+            return new ecjia_error('invalid_parameter', __('参数错误', 'cart'));
 	    }
 	    $goods_spec		= $this->requestData('spec', array());
 	    
@@ -88,14 +88,14 @@ class cart_create_module extends api_front implements api_interface {
 	    unset($_SESSION['extension_id']);
 	    
     	if (!$goods_id) {
-    		return new ecjia_error('not_found_goods', '请选择您所需要购买的商品！');
+    		return new ecjia_error('not_found_goods', __('请选择您所需要购买的商品！', 'cart'));
     	}
     	
     	//该商品对应店铺是否被锁定
 		$store_id 		= Ecjia\App\Cart\StoreStatus::GetStoreId($goods_id);
 		$store_status 	= Ecjia\App\Cart\StoreStatus::GetStoreStatus($store_id);
 		if ($store_status == Ecjia\App\Cart\StoreStatus::LOCKED) {
-			return new ecjia_error('store_locked', '对不起，该商品所属的店铺已锁定！');
+			return new ecjia_error('store_locked', __('对不起，该商品所属的店铺已锁定！', 'cart'));
 		}
     	
     	$store_id_group = array();
@@ -105,7 +105,7 @@ class cart_create_module extends api_front implements api_interface {
     		$geohash_code    = $geohash->encode($location['latitude'] , $location['longitude']);
     		$store_id_group  = RC_Api::api('store', 'neighbors_store_id', array('geohash' => $geohash_code, 'city_id' => $city_id));
     	} else {
-    		return new ecjia_error('location_error', '请定位您当前所在地址！');
+    		return new ecjia_error('location_error', __('请定位您当前所在地址！', 'cart'));
     	}
     	
     	if (empty($store_id_group)) {
@@ -134,7 +134,7 @@ class cart_create_module extends api_front implements api_interface {
 	            $store_id_group = array($seller_id);
 	        }
 	    } else {
-	        return new ecjia_error('location_error', '请定位您当前所在地址！');
+	        return new ecjia_error('location_error', __('请定位您当前所在地址！', 'cart'));
 	    }
 
 	    $cart_result = RC_Api::api('cart', 'cart_list', array('store_group' => '', 'flow_type' => $flow_type));

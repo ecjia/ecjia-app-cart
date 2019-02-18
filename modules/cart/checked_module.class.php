@@ -71,7 +71,7 @@ class cart_checked_module extends api_front implements api_interface {
 		$is_checked   = $this->requestData('is_checked', 1);
 		
 		if (!in_array($is_checked, array(0,1)) || empty($rec_id)) {
-			return new ecjia_error(101, '参数错误');
+            return new ecjia_error('invalid_parameter', __('参数错误', 'cart'));
 		}
 		
 		$result = cart::flow_check_cart_goods(array('id' => $rec_id, 'is_checked' => $is_checked));
@@ -94,7 +94,7 @@ class cart_checked_module extends api_front implements api_interface {
 				$store_id_group = array($seller_id);
 			}
 		} else {
-			return new ecjia_error('location_error', '请定位您当前所在地址！');
+			return new ecjia_error('location_error', __('请定位您当前所在地址！', 'cart'));
 		}
 
 		$cart_result = RC_Api::api('cart', 'cart_list', array('store_group' => '', 'flow_type' => CART_GENERAL_GOODS));

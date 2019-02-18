@@ -97,14 +97,14 @@ class cart_flow_done_api extends Component_Event_Api {
 				$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('city_id' => $consignee['city']));
 			} else {
 				if (empty($consignee['city'])) {
-					return new ecjia_error('pls_fill_in_consinee_info', '请完善收货人信息！');
+					return new ecjia_error('pls_fill_in_consinee_info', __('请完善收货人信息！', 'cart'));
 				}
 			} 
 		} else {
 			if (!empty($consignee['city'])) {
 				$store_id_group = RC_Api::api('store', 'neighbors_store_id', array('city_id' => $consignee['city']));
 			} else {
-				return new ecjia_error('pls_fill_in_consinee_info', '请完善收货人信息！');
+				return new ecjia_error('pls_fill_in_consinee_info', __('请完善收货人信息！', 'cart'));
 			}
 		}
 		
@@ -119,7 +119,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		    return $get_cart_goods;
 		}
 		if (count($get_cart_goods['goods_list']) == 0) {
-			return new ecjia_error('not_found_cart_goods', '购物车中没有您选择的商品');
+			return new ecjia_error('not_found_cart_goods', __('购物车中没有您选择的商品', 'cart'));
 		}
 
 		$cart_goods = $get_cart_goods['goods_list'];
@@ -135,14 +135,14 @@ class cart_flow_done_api extends Component_Event_Api {
 		}
 		$store_group = array_unique($store_group);
 		if (count($store_group) > 1) {
-			return new ecjia_error('pls_single_shop_for_settlement', '请单个店铺进行结算!');
+			return new ecjia_error('pls_single_shop_for_settlement', __('请单个店铺进行结算!', 'cart'));
 		}
 		$order['store_id'] = $store_group[0];
 
 		/* 检查收货人信息是否完整 */
 		if (!cart::check_consignee_info($consignee, $options['flow_type'])) {
 			/* 如果不完整则转向到收货人信息填写界面 */
-			return new ecjia_error('pls_fill_in_consinee_info', '请完善收货人信息！');
+			return new ecjia_error('pls_fill_in_consinee_info', __('请完善收货人信息！', 'cart'));
 		}
 
 		/* 检查商品库存 */
@@ -227,7 +227,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		$be_short_amount = price_format($be_short_amount);
 		
 		if ($options['flow_type'] == CART_GENERAL_GOODS && $cart_amount < $min_goods_amount) {
-			return new ecjia_error('bug_error', '您的商品金额未达到最低限购金额，还差【'.$be_short_amount.'】');
+			return new ecjia_error('bug_error', __('您的商品金额未达到最低限购金额，还差', 'cart').'【'.$be_short_amount.'】');
 		}
 
 		/* 收货人信息 */
@@ -241,7 +241,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		if (isset($is_real_good)) {
 			$order['shipping_id'] = intval($order['shipping_id']);
 			if (!ecjia_shipping::isEnabled($order['shipping_id'])) {
-				return new ecjia_error('shipping_error', '请选择一个配送方式！');
+				return new ecjia_error('shipping_error', __('请选择一个配送方式！', 'cart'));
 			}
 		}
 
@@ -284,7 +284,7 @@ class cart_flow_done_api extends Component_Event_Api {
 				$store_info = RC_DB::table('store_franchisee')->where('store_id', $store_group[0])->first();
 				/* 货到付款判断是否是自营*/
 				if ($store_info['manage_mode'] != 'self') {
-					return new ecjia_error('pay_not_support', '货到付款不支持非自营商家！');
+					return new ecjia_error('pay_not_support', __('货到付款不支持非自营商家！', 'cart'));
 				}
 			}
 
@@ -427,18 +427,18 @@ class cart_flow_done_api extends Component_Event_Api {
 		if ($order['user_id'] > 0 && $order['integral'] > 0) {
 			$integral_name = ecjia::config('integral_name');
 			if (empty($integral_name)) {
-				$integral_name = '积分';
+				$integral_name = __('积分', 'cart');
 			}
 			$params = array(
 				'user_id'		=> $order['user_id'],
 				'pay_points'	=> $order['integral'] * (- 1),
-				'change_desc'	=> sprintf(RC_Lang::get('cart::shopping_flow.pay_order'), $order['order_sn']),
+				'change_desc'	=> sprintf(__('支付订单 %s', 'cart'), $order['order_sn']),
 				'from_type'		=> 'order_use_integral',
 				'from_value'	=> $order['order_sn']
 			);
 			$result = RC_Api::api('user', 'account_change_log', $params);
 			if (is_ecjia_error($result)) {
-				return new ecjia_error('integral_error', $integral_name.'使用失败！');
+				return new ecjia_error('integral_error', $integral_name.__('使用失败！', 'cart'));
 			}
 		}
 
@@ -495,8 +495,8 @@ class cart_flow_done_api extends Component_Event_Api {
 					RC_Api::api('sms', 'send_event_sms', $options);
 					//消息通知
 					$order_pickup_data = array(
-							'title'	=> '订单收货验证码',
-							'body'	=> '尊敬的'.$userinfo['user_name'].'，您在我们网站已成功下单。订单号：'.$order['order_sn'].'，收货验证码为：'.$code.'。请保管好您的验证码，以便收货验证',
+							'title'	=> __('订单收货验证码', 'cart'),
+							'body'	=> sprintf(__('尊敬的%s，您在我们网站已成功下单。订单号：%s，收货验证码为：%s。请保管好您的验证码，以便收货验证', 'cart'), $userinfo['user_name'], $order['order_sn'], $code),
 							'data'	=> array(
 									'user_id'				=> $order['user_id'],
 									'user_name'				=> $userinfo['user_name'],
@@ -578,7 +578,7 @@ class cart_flow_done_api extends Component_Event_Api {
 								'user_id' =>$order['user_id'],
 								'rank_points' => intval($integral['rank_points']),
 								'pay_points' => intval($integral['custom_points']),
-								'change_desc' =>sprintf(RC_Lang::get('orders::order.order_gift_integral'), $order['order_sn'])
+								'change_desc' =>sprintf(__('订单 %s 赠送的积分', 'cart'), $order['order_sn'])
 						);
 						$result = RC_Api::api('user', 'account_change_log', $params);
 						if (is_ecjia_error($result)) {
@@ -626,17 +626,17 @@ class cart_flow_done_api extends Component_Event_Api {
 		);
 		
 		RC_DB::table('order_status_log')->insert(array(
-			'order_status'	=> RC_Lang::get('cart::shopping_flow.label_place_order'),
+			'order_status'	=> __('订单提交成功', 'cart'),
 			'order_id'		=> $order['order_id'],
-			'message'		=> '下单成功，订单号：'.$order['order_sn'],
+			'message'		=> __('下单成功，订单号：', 'cart').$order['order_sn'],
 			'add_time'		=> RC_Time::gmtime(),
 		));
 
 		if (!$payment_info['is_cod'] && $order['order_amount'] > 0) {
 			RC_DB::table('order_status_log')->insert(array(
-				'order_status'	=> RC_Lang::get('cart::shopping_flow.unpay'),
+				'order_status'	=> __('待付款', 'cart'),
 				'order_id'		=> $order['order_id'],
-				'message'		=> '请尽快支付该订单，超时将会自动取消订单',
+				'message'		=> __('请尽快支付该订单，超时将会自动取消订单', 'cart'),
 				'add_time'		=> RC_Time::gmtime(),
 			));
 		}
@@ -686,8 +686,8 @@ class cart_flow_done_api extends Component_Event_Api {
 			$staff_user_ob = $orm_staff_user_db->find($staff_user['user_id']);
 			try {
 				$order_data = array(
-						'title'	=> '客户下单',
-						'body'	=> '您有一笔新订单，订单号为：'.$order['order_sn'],
+						'title'	=> __('客户下单', 'cart'),
+						'body'	=> __('您有一笔新订单，订单号为：', 'cart').$order['order_sn'],
 						'data'	=> array(
 								'order_id'		         => $order['order_id'],
 								'order_sn'		         => $order['order_sn'],
