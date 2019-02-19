@@ -106,9 +106,6 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 		//购物车处理
 		$format_cart_list = cart_bbc::formated_bbc_cart_list($get_cart_goods, $_SESSION['user_rank'], $_SESSION['user_id']);
 		
-		if(is_ecjia_error($get_cart_goods)) {
-		    return $get_cart_goods;
-		}
 		if (count($get_cart_goods['goods_list']) == 0) {
 		    return new ecjia_error('not_found_cart_goods', '购物车中还没有商品');
 		}
@@ -176,7 +173,14 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 			}
 		}
 		$payment_list = RC_Api::api('payment', 'available_payments', array('store_id' => $order['store_id'], 'cod_fee' => $cod_fee));
-		
+		if ($flow_type == CART_GROUP_BUY_GOODS) {
+			//团购不支持货到付款支付，过滤
+			foreach ($payment_list as $k => $payment) {
+				if ($flow_type == CART_GROUP_BUY_GOODS && $payment['pay_code'] == 'pay_cod') {
+					unset($payment_list[$k]);continue;
+				}
+			}
+		}
 		$user_info = RC_Api::api('user', 'user_info', array('user_id' => $_SESSION['user_id']));
 		
 		if (is_ecjia_error($user_info)) {
