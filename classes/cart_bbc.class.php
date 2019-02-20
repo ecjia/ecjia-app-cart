@@ -103,6 +103,7 @@ class cart_bbc {
 	                'is_checked'	        => $row['is_checked'],
 	                'is_disabled'           => $row['is_disabled'],
 	                'disabled_label'        => $row['disabled_label'],
+	                'is_shipping'			=> $row['is_shipping'],
 					'img' 					=> array(
 													'thumb'	=> empty($row['goods_img']) ? '' : RC_Upload::upload_url($row['goods_img']),
 								                    'url'	=> empty($row['original_img']) ? '' : RC_Upload::upload_url($row['original_img']),
@@ -360,7 +361,7 @@ class cart_bbc {
     {
     	if (!empty($cart_goods['cart_list'])) {
     		foreach ($cart_goods['cart_list'] as $key => $val) {
-    			$store_shipping_list = self::store_shipping_list($val, $consignee, $val['store_id']);
+    			$store_shipping_list = self::store_shipping_list($val['goods_list'], $consignee, $val['store_id']);
     			$val['shipping'] = $store_shipping_list;
     			$val['goods_amount'] = sprintf("%.2f", $val['total']['goods_amount']);
     			unset($val['total']);
@@ -375,7 +376,7 @@ class cart_bbc {
      * 商家配送方式列表
      */
     public static function store_shipping_list($store_goods_list, $consignee, $store_id)
-    {
+    {	
     	$region = array($consignee['country'], $consignee['province'], $consignee['city'], $consignee['district'], $consignee['street']);
     	if (empty($store_goods_list)) {
     		return [];
@@ -485,10 +486,9 @@ class cart_bbc {
      * @param   array   $order
      * @param   array   $goods
      * @param   array   $consignee
-     * @param   bool    $is_gb_deposit  是否团购保证金（如果是，应付款金额只计算商品总额和支付费用，可以获得的积分取 $gift_integral）
      * @return  array
      */
-    public static function order_fee_multiple_store($order, $cart_goods, $consignee, $cart_id = array(), $cart_goods_list = [], $store_ids = []) {
+    public static function order_fee_multiple_store($order, $cart_goods, $consignee, $cart_id = array(), $cart_goods_list = [], $store_ids = [], $cart_goods_format) {
     	RC_Loader::load_app_func('global', 'goods');
     	RC_Loader::load_app_func('cart', 'cart');
     	RC_Loader::load_app_class('cart', 'cart', false);
@@ -515,12 +515,12 @@ class cart_bbc {
     	
     	/* 折扣 */
     	if ($order['extension_code'] != 'group_buy') {
-    		$total['discount'] = $cart_goods_list['total']['discount'];
+    		$total['discount'] = $cart_goods_format['total']['discount'];
     		if ($total['discount'] > $total['goods_price']) {
     			$total['discount'] = $total['goods_price'];
     		}
     	}
-    	$total['discount_formated'] = $cart_goods_list['total']['formated_discount'];
+    	$total['discount_formated'] = $cart_goods_format['total']['formated_discount'];
     	
     	/* 税额 */
     	if (!empty($order['need_inv']) && $order['inv_type'] != '') {
@@ -576,7 +576,7 @@ class cart_bbc {
     			// 还需要支付的订单金额
     		}
     		$total['bonus'] = $use_bonus;
-    		$total['bonus_formated'] = price_format($total['bonus'], false);
+    		$total['bonus_formated'] = ecjia_price_format($total['bonus'], false);
     		$total['amount'] -= $use_bonus;
     		// 还需要支付的订单金额
     		$max_amount -= $use_bonus;
@@ -596,7 +596,7 @@ class cart_bbc {
     		$total['amount'] = 0;
     	}
     	$total['surplus'] = $order['surplus'];
-    	$total['surplus_formated'] = price_format($order['surplus'], false);
+    	$total['surplus_formated'] = ecjia_price_format($order['surplus'], false);
     	/* 积分 */
     	$order['integral'] = $order['integral'] > 0 ? $order['integral'] : 0;
     	if ($total['amount'] > 0 && $max_amount > 0 && $order['integral'] > 0) {
@@ -606,13 +606,13 @@ class cart_bbc {
     		// 实际使用积分支付的金额
     		$total['amount'] -= $use_integral;
     		$total['integral_money'] = $use_integral;
-    		$order['integral'] = integral_of_value($use_integral);
+    		$order['integral'] = cart::integral_of_value($use_integral);
     	} else {
     		$total['integral_money'] = 0;
     		$order['integral'] = 0;
     	}
     	$total['integral'] = $order['integral'];
-    	$total['integral_formated'] = price_format($total['integral_money'], false);
+    	$total['integral_formated'] = ecjia_price_format($total['integral_money'], false);
     	/* 保存订单信息 */
     	$_SESSION['flow_order'] = $order;
     	$se_flow_type = isset($_SESSION['flow_type']) ? $_SESSION['flow_type'] : '';
@@ -620,22 +620,22 @@ class cart_bbc {
     	if (!empty($order['pay_id']) && ($total['real_goods_count'] > 0 || $se_flow_type != CART_EXCHANGE_GOODS)) {
     		$total['pay_fee'] = cart::pay_fee($order['pay_id'], $total['amount'], $shipping_cod_fee);
     	}
-    	$total['pay_fee_formated'] = price_format($total['pay_fee'], false);
+    	$total['pay_fee_formated'] = ecjia_price_format($total['pay_fee'], false);
     	$total['amount'] += $total['pay_fee'];
     	// 订单总额累加上支付费用
-    	$total['amount_formated'] = price_format($total['amount'], false);
+    	$total['amount_formated'] = ecjia_price_format($total['amount'], false);
     	/* 取得可以得到的积分和红包 */
     	if ($order['extension_code'] == 'group_buy') {
     		$total['will_get_integral'] = $group_buy['gift_integral'];
     	} elseif ($order['extension_code'] == 'exchange_goods') {
     		$total['will_get_integral'] = 0;
     	} else {
-    		$total['will_get_integral'] = get_give_integral($goods);
+    		$total['will_get_integral'] = cart::get_give_integral($cart_id);
     	}
-    	$total['will_get_bonus'] = $order['extension_code'] == 'exchange_goods' ? 0 : price_format(get_total_bonus(), false);
-    	$total['formated_goods_price'] = price_format($total['goods_price'], false);
-    	$total['formated_market_price'] = price_format($total['market_price'], false);
-    	$total['formated_saving'] = price_format($total['saving'], false);
+    	$total['will_get_bonus'] 		= $order['extension_code'] == 'exchange_goods' ? 0 : ecjia_price_format(get_total_bonus(), false);
+    	$total['formated_goods_price'] 	= ecjia_price_format($total['goods_price'], false);
+    	$total['formated_market_price'] = ecjia_price_format($total['market_price'], false);
+    	$total['formated_saving'] 		= ecjia_price_format($total['saving'], false);
     
     	return $total;
     }
@@ -643,8 +643,31 @@ class cart_bbc {
     /**
      * 多点铺配送总费用  
      */
-    public static function get_total_shipping_fee() {
+    public static function get_total_shipping_fee($cart_goods_list, $shipping_ids) {
+    	$shipping_fee = 0;
+    	if (!empty($cart_goods_list) && !empty($shipping_ids) && is_array($shipping_ids)) {
+    		foreach ($shipping_ids as $ship_val) {
+    			if ($ship_val) {
+    				$ship = explode('-', $ship_val);
+    				$shipping_ids_new [] = $ship['1'];
+    			}
+    		}
+    		foreach ($cart_goods_list as $val) {
+    			if ($val['shipping']) {
+    				foreach ($val['shipping'] as $k => $v) {
+    					if (in_array($v['shipping_id'], $shipping_ids_new)) {
+    						if ($v['shipping_code'] == 'ship_cac') {
+    							$v['shipping_fee'] = 0;
+    						}
+    						$shipping_fee += $v['shipping_fee'];
+    					}
+    				}
+    			}
+    		}
+    		
+    	}
     	
+    	return $shipping_fee;
     }
 }
 
