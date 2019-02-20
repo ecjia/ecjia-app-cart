@@ -62,6 +62,30 @@ class CartModel extends Model
 	protected $fillable = [
 	    'user_id',
 	    'store_id',
+	    'session_id',
+	    'goods_id',
+	    'goods_sn',
+	    'product_id',
+	    'group_id',
+	    'goods_name',
+	    'market_price',
+	    'goods_price',
+	    'goods_number',
+	    'goods_buy_weight',
+	    'goods_attr',
+	    'is_real',
+	    'extension_code',
+	    'parent_id',
+	    'rec_type',
+	    'is_gift',
+	    'is_shipping',
+	    'can_handsel',
+	    'mark_changed',
+	    'goods_attr_id',
+	    'shopping_fee',
+	    'is_checked',
+	    'pendorder_id',
+	    'add_time'
     ];
 	
 	/**
@@ -74,9 +98,16 @@ class CartModel extends Model
 
     public function goods()
     {
-        return $this->hasMany('Ecjia\App\Cart\Models\GoodsModel', 'goods_id');
+        return $this->belongsTo('Ecjia\App\Cart\Models\GoodsModel', 'goods_id', 'goods_id');
     }
-
+	
+    /**
+     * 获取购物车店铺信息
+     */
+    public function store_franchisee()
+    {
+    	return $this->belongsTo('Ecjia\App\Merchant\Models\StoreFranchiseeModel', 'store_id', 'store_id');
+    }
 }
 
 // end

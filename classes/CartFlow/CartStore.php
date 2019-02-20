@@ -26,7 +26,41 @@ class CartStore
         /**
          * $this->model->goods 这是购物车商品的数据模型
          */
+        
+        /**
+         * $this->model->store_franchisee 购物车店铺数据模型 
+         */
     }
-
-
+	
+    /**
+     * 店铺购物车列表
+     */
+    public function storeCartData()
+    {
+    	
+    }
+    
+    /**
+     * 店铺购物车小计
+     */
+    public function storeCartTotalPrice()
+    {
+    	 
+    }
+    
+    /**
+     * 店铺选中的购物车满足的最优惠店铺优惠活动
+     */
+    protected function checkedStoreCartFav()
+    {
+    	
+    }
+    
+    /**
+     * 店铺配送方式列表
+     */
+    protected function storeShippingList()
+    {
+    	
+    }
 }

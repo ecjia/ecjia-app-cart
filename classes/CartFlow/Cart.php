@@ -53,7 +53,7 @@ class Cart
         $data = $this->model
             ->where('rec_type', $this->cart_type)
             ->where('user_id', $this->user_id)
-            ->where('store_id', $this->store_id)
+//             ->where('store_id', $this->store_id)
             ->orderBy('add_time', 'desc')->orderBy('rec_id', 'desc')
             ->get();
 
