@@ -38,6 +38,6 @@ class ProductsModel extends Model
 
     public function cart()
     {
-        return $this->belongsTo('Ecjia\App\Cart\Models\CartModel', 'product_id', 'product_id');
+        return $this->hasMany('Ecjia\App\Cart\Models\CartModel', 'product_id', 'product_id');
     }
 }

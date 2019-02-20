@@ -98,7 +98,7 @@ class CartModel extends Model
 
     public function goods()
     {
-        return $this->hasMany('Ecjia\App\Cart\Models\GoodsModel', 'goods_id', 'goods_id');
+        return $this->belongsTo('Ecjia\App\Cart\Models\GoodsModel', 'goods_id', 'goods_id');
     }
 	
     /**
@@ -114,7 +114,7 @@ class CartModel extends Model
      */
     public function products()
     {
-    	return $this->hasMany('Ecjia\App\Cart\Models\ProductsModel', 'product_id', 'product_id');
+    	return $this->belongsTo('Ecjia\App\Cart\Models\ProductsModel', 'product_id', 'product_id');
     }
 
 }
