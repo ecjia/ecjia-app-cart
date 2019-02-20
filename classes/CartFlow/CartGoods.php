@@ -100,6 +100,7 @@ class CartGoods
      */
     protected function checkGoodsStockNumber()
     {
+        dd($this->model->goods);
     	if ($this->model->goods->goods_number < $this->model->goods_number || $this->model->goods->goods_number < 1) {
     		return new ecjia_error('inventory_shortage', __('库存不足', 'cart'));
     	}

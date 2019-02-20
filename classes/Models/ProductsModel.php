@@ -35,4 +35,9 @@ class ProductsModel extends Model
      * @var bool
      */
     public $timestamps = false;
+
+    public function cart()
+    {
+        return $this->belongsTo('Ecjia\App\Cart\Models\CartModel', 'product_id', 'product_id');
+    }
 }
