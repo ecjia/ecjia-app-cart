@@ -63,4 +63,12 @@ class CartStore
     {
     	
     }
+    
+    /**
+     * 商家配送或众包配送配送费
+     */
+    protected function o2oShippingFee()
+    {
+    	
+    }
 }
