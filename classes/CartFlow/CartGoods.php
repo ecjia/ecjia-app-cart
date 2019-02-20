@@ -59,8 +59,6 @@ class CartGoods
         $this->checkSeletedStatus();
 
         //增加购物车选中状态判断,选中购物车商品总价
-		
-
 
         /* 返回未格式化价格*/
         $this->output['rec_id']					= intval($this->model->rec_id);
@@ -100,7 +98,6 @@ class CartGoods
      */
     protected function checkGoodsStockNumber()
     {
-        dd($this->model->goods);
     	if ($this->model->goods->goods_number < $this->model->goods_number || $this->model->goods->goods_number < 1) {
     		return new ecjia_error('inventory_shortage', __('库存不足', 'cart'));
     	}

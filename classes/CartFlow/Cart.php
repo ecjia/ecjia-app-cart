@@ -53,30 +53,35 @@ class Cart
         $data = $this->model
             ->where('rec_type', $this->cart_type)
             ->where('user_id', $this->user_id)
-//             ->where('store_id', $this->store_id)
+             ->where('store_id', $this->store_id)
             ->orderBy('add_time', 'desc')->orderBy('rec_id', 'desc')
             ->get();
 
         $data = $this->mapGoodsCollection($data);
 
-        dd($data);
-
+        return $data;
     }
 
 
     public function mapGoodsCollection(Collection $data)
     {
-        $result = $data->map(function($item) {
+        $store_price = new CartStorePrice($this->store_id);
+
+        $result = $data->map(function($item) use ($store_price) {
 
             $inst_goods = new CartGoods($item);
             $inst_price = new CartPrice($item);
             $inst_store = new CartStore($item);
 
+            $store_price->addPrice($inst_price);
+
             return $inst_goods->formattedHandleData();
 
         });
 
-        return $result;
+        $total = $store_price->computeTotalPrice();
+
+        return array('goods_list' => $result, 'total' => $total);
     }
 
 

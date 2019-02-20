@@ -38,7 +38,7 @@ class CartPrice
     /**
      * 购物车总计
      */
-    public function totalCartPrice()
+    public function computeTotalPrice()
     {
     	/* 用于统计购物车中实体商品和虚拟商品的个数 */
     	$virtual_goods_count = 0;
@@ -56,7 +56,7 @@ class CartPrice
     		$this->total['goods_price']  += $this->model->goods_price * $this->model->goods_number;
     		$this->total['market_price'] += $this->model->market_price * $this->model->goods_number;
     	}
-    	$this->total['goods_number'] += $this->model->goods_number;
+    	$this->total['goods_number'] = $this->model->goods_number;
     	
     	$this->total['goods_amount'] = $this->total['goods_price'];
     	$this->total['saving']       = ecjia_price_format($this->total['market_price'] - $this->total['goods_price'], false);
@@ -66,8 +66,8 @@ class CartPrice
     	
     	$this->total['goods_price'] 			= sprintf("%.2f", $this->total['goods_price']);
     	$this->total['formatted_goods_price']  	= ecjia_price_format($this->total['goods_price'], false);
-    	$this->total['market_price']			= sprintf("%.2f", $this->total->market_price);
-    	$this->total['formatted_market_price'] 	= ecjia_price_format($this->total->market_price, false);
+    	$this->total['market_price']			= sprintf("%.2f", $this->total['market_price']);
+    	$this->total['formatted_market_price'] 	= ecjia_price_format($this->total['market_price'], false);
     	
     	return $this->total;
     }
