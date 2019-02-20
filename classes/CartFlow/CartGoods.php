@@ -72,6 +72,7 @@ class CartGoods
         $this->output['market_price'] 			= $this->model->market_price;
         $this->output['formatted_goods_price'] 	= ecjia_price_format($this->model->market_price, false);
         $this->output['formatted_market_price'] = ecjia_price_format($this->model->market_price, false);
+        $this->output['goods_number']			= $this->model->goods_number;
         $this->output['subtotal'] 				= ($this->model->goods_price) * ($this->model->goods_number);
         $this->output['formatted_subtotal'] 	= ecjia_price_format($this->output['subtotal'], false);
         $this->output['is_checked'] 			= $this->model->is_checked;
