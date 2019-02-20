@@ -12,7 +12,6 @@ namespace Ecjia\App\Cart\CartFlow;
 use Ecjia\App\Cart\Models\CartModel;
 use ecjia_error;
 use ecjia;
-use RC_DB;
 use RC_Upload;
 
 class CartGoods
@@ -123,7 +122,8 @@ class CartGoods
     {
         if ($this->model->is_disabled === 1) {
             $this->output['is_checked'] = 0;
-			RC_DB::table('cart')->where('rec_id', $this->model->rec_id)->update(array('is_checked' => 0));
+            //TODO，更新购物车已选中状态
+			//RC_DB::table('cart')->where('rec_id', $this->model->rec_id)->update(array('is_checked' => 0));
         }
     }
     
@@ -153,11 +153,7 @@ class CartGoods
     	$attr_number = 1;
     	if (ecjia::config('use_storage') == 1) {
     		if($this->model->product_id) {
-    			//product_id变动TODO
-    			$product_info = RC_DB::table('products')
-    			->where('goods_id', $this->model->goods_id)
-    			->where('product_id', $this->model->product_id)
-    			->first();
+    			$product_info = $this->model->products->toArray();
     			if ($product_info &&  $this->model->goods_number > $product_info['product_number']) {
     				$attr_number = 0;
     			}

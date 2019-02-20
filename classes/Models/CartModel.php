@@ -108,6 +108,14 @@ class CartModel extends Model
     {
     	return $this->belongsTo('Ecjia\App\Merchant\Models\StoreFranchiseeModel', 'store_id', 'store_id');
     }
+    
+    /**
+     * 获取购物车对应货品信息
+     */
+    public function products()
+    {
+    	return $this->belongsTo('Ecjia\App\Cart\Models\ProductsModel', 'product_id', 'product_id');
+    }
 }
 
 // end
