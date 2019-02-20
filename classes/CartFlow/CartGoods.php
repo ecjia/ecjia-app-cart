@@ -79,7 +79,7 @@ class CartGoods
         $this->output['img']					= array(
         											 'thumb' => empty($this->model->goods->goods_img) ? '' : RC_Upload::upload_url($this->model->goods->goods_img),
         											 'url'	 => empty($this->model->goods->original_img) ? '' : RC_Upload::upload_url($this->model->goods->original_img),
-        											 'small' => empty($this->model->goods->original_img->goods_thumb) ? '' : RC_Upload::upload_url($this->model->goods->original_img->goods_thumb),
+        											 'small' => empty($this->model->goods->goods_thumb) ? '' : RC_Upload::upload_url($this->model->goods->goods_thumb),
         										  );
         $this->output['attr'] 					= !empty($this->model->goods_attr) ? addslashes(str_replace('\n', '', $this->model->goods_attr)) : '';
         /* 统计实体商品和虚拟商品的个数 */
