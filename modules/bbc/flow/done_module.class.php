@@ -155,8 +155,8 @@ class bbc_flow_done_module extends api_front implements api_interface {
     		'expect_shipping_time' =>  $this->requestData('expect_shipping_time', array()),
     	);
     	
-    	$order['shipping_id'] = ['63-19', '62-16'];
-    	
+    	//$order['shipping_id'] = ['63-19', '62-16'];
+//     	$order['shipping_id'] = ['63-19'];
 		//期望送达时间过滤
     	$order['expect_shipping_time'] = empty($order['expect_shipping_time']) ? '' : $order['expect_shipping_time'];
     	

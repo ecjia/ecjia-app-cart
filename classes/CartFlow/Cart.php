@@ -66,22 +66,34 @@ class Cart
     public function mapGoodsCollection(Collection $data)
     {
         $store_price = new CartStorePrice($this->store_id);
-
+        $store		 = new CartStore($this->store_id); 
+        
         $result = $data->map(function($item) use ($store_price) {
 
             $inst_goods = new CartGoods($item);
             $inst_price = new CartPrice($item);
-            $inst_store = new CartStore($item);
-
             $store_price->addPrice($inst_price);
 
             return $inst_goods->formattedHandleData();
 
         });
-
+        
         $total = $store_price->computeTotalPrice();
-
-        return array('goods_list' => $result, 'total' => $total);
+        
+        $store_info = $store->storeInFo();
+        
+        $store_fav 	 = new CartStoreFav($result, $this->store_id, $this->user_id);
+        $fav_list = $store_fav->StoreCartFav();
+        
+        $res = [];
+        $res['store_id'] 	= $store_info['store_id'];
+        $res['store_name'] 	= $store_info['merchants_name'];
+        $res['manage_mode'] = $store_info['manage_mode'];
+        
+        $res['goods_list'] = $result;
+        $res['total']	   = $total;
+       
+        return $res;
     }
 
 

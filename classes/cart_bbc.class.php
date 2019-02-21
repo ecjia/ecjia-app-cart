@@ -664,11 +664,153 @@ class cart_bbc {
     				}
     			}
     		}
-    		
     	}
     	
     	return $shipping_fee;
     }
+    
+    
+
+    public static function generate_order($cart_goods, $order) {
+    	RC_Loader::load_app_class('cart_bbc', 'cart', false);
+    	
+    	$inv_tax_no 	= $order['inv_tax_no'];
+    	$inv_title_type = $order['inv_title_type'];
+    	$temp_amout 	= $order['temp_amout'];
+    	//配送方式id处理
+    	$ship_id = explode('-', $order['shipping_id']['0']);
+    	$order['shipping_id'] = $ship_id['1'];
+    	if ($order['shipping_id'] > 0) {
+    		$shipping = ecjia_shipping::pluginData($order['shipping_id']);
+    		$order['shipping_name'] = addslashes($shipping['shipping_name']);
+    	}
+    	//期望送达时间处理
+//     	if (!empty($order[''])) {
+    		
+//     	}
+    	foreach ($cart_goods as $row) {
+    		$goods_arr = array(
+    				'goods_id' 			=> $row['goods_id'],
+    				'goods_name' 		=> $row['goods_name'],
+    				'goods_sn' 			=> $row['goods_sn'],
+    				'product_id' 		=> $row['product_id'],
+    				'goods_number' 		=> $row['goods_number'],
+    				'market_price' 		=> $row['market_price'],
+    				'goods_price' 		=> $row['goods_price'],
+    				'goods_attr' 		=> $row['attr'],
+    				'is_real' 			=> $row['is_real'],
+    				'extension_code' 	=> $row['extension_code'],
+    				'goods_attr_id' 	=> $row['goods_attr_id'],
+    		);
+    
+    		$order['store_id'] = intval($cart_goods[0]['store_id']);
+    		$order_goods_recids[] = RC_DB::table('order_goods')->insertGetId($goods_arr);
+    	}
+    	//过滤掉订单表没有的字段
+    	unset($order['need_inv']);
+    	unset($order['need_insure']);
+    	unset($order['address_id']);
+    	unset($order['address_name']);
+    	unset($order['audit']);
+    	unset($order['longitude']);
+    	unset($order['latitude']);
+    	unset($order['address_info']);
+    	unset($order['cod_fee']);
+    	unset($order['inv_tax_no']);
+    	unset($order['inv_title_type']);
+    	unset($order['temp_amout']);
+    	
+    	
+    	//判断订单类型
+    	if(empty($order['extension_code']) && $order['shipping_id']) {
+    		$shipping_info = ecjia_shipping::getPluginDataById($order['shipping_id']);
+    		if($shipping_info['shipping_code'] == 'ship_cac') {
+    			$order['extension_code'] = 'storepickup';
+    		}
+    	}
+    
+    	$new_order_id = 0;
+    	$error_no = 0;
+    	do {
+    		try {
+    			$order['order_sn'] = ecjia_order_buy_sn(); //获取新订单号
+    			$new_order_id = RC_DB::table('order_info')->insertGetId($order);
+    
+    		} catch(Exception $e) {
+    			$error = $e->getMessage();
+    			if($error) {
+    				if(stripos($error, "1062 Duplicate entry")) {
+    					$error_no = 1;
+    				} else {
+    					$error_no = 0;
+    					RC_Logger::getlogger('error')->error('dscmall order_error:');
+    					RC_Logger::getlogger('error')->error($error);
+    					RC_Logger::getlogger('error')->error(json_encode($order));
+    					return new ecjia_error('order_error', '订单生成失败');
+    				}
+    			}
+    		}
+    
+    	} while ($error_no == 1); //如果是订单号重复则重新提交数据
+    
+    	if ($new_order_id <= 0) {
+    		return new ecjia_error('order_error', '订单生成失败');
+    	}
+    	foreach ($order_goods_recids as $rec_id) {
+    		$data = array('order_id' => $new_order_id);
+    		RC_DB::table('order_goods')->where('rec_id', $rec_id)->update($data);
+    	}
+    	if(!RC_DB::table('order_goods')->where('order_id', $new_order_id)->count()) {
+    		RC_DB::table('order_info')->where('order_id', $new_order_id)->delete();
+    	}
+    
+    	$order['order_id'] = $new_order_id;
+    
+    	/* 如果使用库存，且下订单时减库存，则减少库存 */
+    	if (ecjia::config('use_storage') == '1' && ecjia::config('stock_dec_time') == SDT_PLACE) {
+    		$result = cart::change_order_goods_storage($new_order_id, true, SDT_PLACE);
+    		if (is_ecjia_error($result)) {
+    			/* 库存不足删除已生成的订单（并发处理） will.chen*/
+    			RC_DB::table('order_info')->where('order_id', $new_order_id)->delete();
+    			RC_DB::table('order_goods')->where('order_id', $new_order_id)->delete();
+    			return $result;
+    		}
+    	}
+    
+    	/* 处理余额、积分、红包 */
+    	if ($order['user_id'] > 0 && $order['integral'] > 0) {
+    		$use_integral = self::use_integral($order['user_id'], $order['integral'], $order['order_sn']);
+    		$integral_name = ecjia::config('integral_name');
+			if (empty($integral_name)) {
+				$integral_name = __('积分', 'cart');
+			}
+			$params = array(
+				'user_id'		=> $order['user_id'],
+				'pay_points'	=> $order['integral'] * (- 1),
+				'change_desc'	=> sprintf(__('支付订单 %s', 'cart'), $order['order_sn']),
+				'from_type'		=> 'order_use_integral',
+				'from_value'	=> $order['order_sn']
+			);
+			$result = RC_Api::api('user', 'account_change_log', $params);
+			if (is_ecjia_error($result)) {
+				
+			}
+    	}
+    	//$temp_amout
+    	if ($order['bonus_id'] > 0 && $temp_amout > 0) {
+    		RC_Api::api('bonus', 'use_bonus', array('bonus_id' => $order['bonus_id'], 'order_id' => $new_order_id));
+    	}
+    
+    	//其他
+    	$order['goods_list'] = $cart_goods;
+    	$order['inv_tax_no'] 		= $inv_tax_no;
+    	$order['inv_title_type'] 	= $inv_title_type;
+    	RC_Api::api('cart', 'flow_done_do_something', $order);
+    
+    	return $order;
+    }
+    
+    
 }
 
 // end
