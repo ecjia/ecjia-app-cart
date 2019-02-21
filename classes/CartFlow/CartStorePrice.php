@@ -31,12 +31,11 @@ class CartStorePrice
     }
 
     /**
-     * 计算价格
+     * 店铺购物车价格计算
      */
     public function computeTotalPrice()
     {
-//        dd($this->prices);
-        $price = collect($this->prices)->sum(function($item) {
+        $goods_price = collect($this->prices)->sum(function($item) {
             $total = $item->computeTotalPrice();
             return $total['goods_price'];
         });
@@ -45,21 +44,24 @@ class CartStorePrice
             $total = $item->computeTotalPrice();
             return $total['goods_number'];
         });
+        
+        $market_price = collect($this->prices)->sum(function($item) {
+        	$total = $item->computeTotalPrice();
+        	return $total['market_price'];
+        });
 
 
-        $total['goods_amount'] = $price;
-        $total['saving']       = ecjia_price_format($total['market_price'] - $total['goods_price'], false);
-        if ($total['market_price'] > 0) {
-            $total['save_rate'] = $total['market_price'] ? round(($total['market_price'] - $total['goods_price']) * 100 / $total['market_price']).'%' : 0;
+        $total['goods_amount'] = sprintf("%.2f", $goods_price);
+        $total['goods_number'] = $goods_quantity;
+        $total['saving']       = ecjia_price_format($market_price - $goods_price, false);
+        if ($market_price > 0) {
+            $total['save_rate'] = $market_price ? round(($market_price - $goods_price) * 100 / $market_price).'%' : 0;
         }
-        $total['unformatted_goods_price']  	= sprintf("%.2f", $total['goods_price']);
-        $total['goods_price']  				= ecjia_price_format($total['goods_price'], false);
-        $total['unformatted_market_price'] 	= sprintf("%.2f", $total['market_price']);
-        $total['market_price'] 				= ecjia_price_format($total['market_price'], false);
+        $total['unformatted_goods_price']  	= sprintf("%.2f", $goods_price);
+        $total['goods_price']  				= ecjia_price_format($goods_price, false);
+        $total['unformatted_market_price'] 	= sprintf("%.2f", $market_price);
+        $total['market_price'] 				= ecjia_price_format($market_price, false);
         $total['real_goods_count']    		= $goods_quantity;
-//        $total['virtual_goods_count'] 		= $virtual_goods_count;
-
-//        dd($total);
 
         return $total;
     }
