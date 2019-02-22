@@ -77,13 +77,16 @@ class Cart
             return $inst_goods->formattedHandleData();
 
         });
-        
-        $total = $store_price->computeTotalPrice();
-        
-        $store_info = $store->storeInFo();
-        
+        //店铺优惠活动及优惠金额小计
         $store_fav 	 = new CartStoreFav($result, $this->store_id, $this->user_id);
         $fav_list = $store_fav->StoreCartFav();
+        $store_price->addDiscount($fav_list);
+
+        //店铺购物车小计
+        $total = $store_price->computeTotalPrice();
+        
+        //店铺信息
+        $store_info = $store->storeInFo();
         
         $res = [];
         $res['store_id'] 	= $store_info['store_id'];
@@ -91,6 +94,7 @@ class Cart
         $res['manage_mode'] = $store_info['manage_mode'];
         
         $res['goods_list'] = $result;
+        $res['favourable_activity'] = empty($fav_list['store_fav_activity']) ? [] : $fav_list['store_fav_activity'];
         $res['total']	   = $total;
        
         return $res;

@@ -62,6 +62,7 @@ class CartStoreFav
      */
     public function StoreCartFav()
     {
+    	$store_favourable_list = [];
     	 //店铺选中的购物车
     	 $store_checked_cart = $this->storeCartData();
     	 //用户等级
@@ -73,7 +74,8 @@ class CartStoreFav
     	 	return [];
     	 }
     	 
-    	 $store_favourable_list = $this->storeFvaFormat();
+    	 $store_favourable_list = $this->storeFvaFormat($store_checked_cart, $favourable_list);
+    	 return $store_favourable_list;
     }
     
     /**
@@ -86,7 +88,7 @@ class CartStoreFav
     			/* 初始化折扣 */
     			$cart_discount = 0;  /* 店铺购物车选中优惠折扣信息,最优惠的*/
     			$total_amount = 0;
-    			 
+    			
     			$is_favourable	= false;
     			$favourable_group[$key] = array(
     					'activity_id'	=> $favourable['act_id'],
@@ -98,16 +100,17 @@ class CartStoreFav
     					'type'			=> $favourable['act_type'] == '1' ? 'price_reduction' : 'price_discount',
     					'type_label'	=> $favourable['act_type'] == '1' ? __('满减') : __('满折'),
     					'can_discount'	=> 0,
+                        'rec_id'        => [],
     			);
     			if ($favourable['act_range'] == FAR_ALL) {
     				foreach ($goods_list as $goods) {
     					//判断店铺和平台活动
-    					if($favourable['store_id'] == $goods['store_id'] || $favourable['store_id'] == 0){
-    						$favourable_group[$key]['rec_id'][] = $goods['rec_id'];
-    						$amount_sort[$key] = $favourable['min_amount'];
-    						/* 计算费用 */
-    						$total_amount += $goods['subtotal'];
-    					}
+                        if ($goods['rec_id']) {
+                            $favourable_group[$key]['rec_id'][] = $goods['rec_id'];
+                        }
+    					$amount_sort[$key] = $favourable['min_amount'];
+    					/* 计算费用 */
+    					$total_amount += $goods['subtotal'];
     				}
     				if (!isset($favourable_group[$key]['rec_id'])) {
     					unset($favourable_group[$key]);
@@ -115,19 +118,43 @@ class CartStoreFav
     				/* 判断活动，及金额满足条件（超过最大值剔除）*/
     				if (!empty($favourable_group[$key]) && ($total_amount <= $favourable['max_amount'] || $favourable['max_amount'] == 0)) {
     					/*如果未选择商品*/
-    					$this->favAllGoods();
-    					
+    				 	if ($total_amount == 0) {
+				    		if ($favourable['act_type'] == '1') { //满减活动
+				    			$favourable_group[$key]['label_discount'] = '购满'.$favourable['min_amount'].',可减'.$favourable['act_type_ext'];
+				    		} else {
+				    			$favourable_group[$key]['label_discount'] = '购满'.$favourable['min_amount'].',可打'. $favourable['act_type_ext']/10 .'折';
+				    		}
+					    	} elseif ($total_amount < $favourable['min_amount']) {
+					    		if ($favourable['act_type'] == '1') {
+					    			$favourable_group[$key]['label_discount'] = '购满'.$favourable['min_amount'].'可减'.$favourable['act_type_ext'].'，还差'.($favourable['min_amount']-$total_amount);
+					    		} else {
+					    			$favourable_group[$key]['label_discount'] = '购满'.$favourable['min_amount'].',可打'. $favourable['act_type_ext']/10 .'折';
+					    		}
+					    	} else {
+					    		if ($favourable['act_type'] == '1') {
+					    			$favourable_group[$key]['label_discount'] = '购满'.$favourable['min_amount'].',可减'.$favourable['act_type_ext'];
+					    			$cart_discount += $favourable['act_type_ext'];
+					    			$cart_discount_temp[$key] = $favourable['act_type_ext'];
+					    			$favourable_group[$key]['can_discount'] = sprintf("%.2f", $cart_discount);
+					    		} else {
+					    			$discount = $total_amount - ($total_amount*$favourable['act_type_ext']/100);
+					    			$favourable_group[$key]['label_discount'] = '已购满'.$total_amount.',已减'. $discount;
+					    			$cart_discount += $total_amount - ($total_amount*$favourable['act_type_ext']/100);
+					    			$favourable_group[$key]['can_discount'] = sprintf("%.2f", $cart_discount);
+					    			$cart_discount_temp[$key] = $cart_discount;
+					    		}
+					    	}
     				} else {
     					unset($favourable_group[$key]);
     				}
     			} elseif ($favourable['act_range'] == FAR_GOODS) {
     				foreach ($goods_list as $goods) {
-    					if ($favourable['store_id'] == $goods['store_id'] || $favourable['store_id'] == 0) {
-    						if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
-    							$favourable_group[$key]['rec_id'][] = $goods['rec_id'];
-    							$amount_sort[$key] = $favourable['min_amount'];
-    							$total_amount += $goods['subtotal'];
-    						}
+    					if (strpos(',' . $favourable['act_range_ext'] . ',', ',' . $goods['goods_id'] . ',') !== false) {
+    						if ($goods['goods_id']) {
+                                $favourable_group[$key]['rec_id'][] = $goods['rec_id'];
+                            }
+    						$amount_sort[$key] = $favourable['min_amount'];
+    						$total_amount += $goods['subtotal'];
     					}
     				}
     				if (!isset($favourable_group[$key]['rec_id'])) {
@@ -185,43 +212,6 @@ class CartStoreFav
     		return array('store_fav_activity' => $favourable_group[$best_fav_key], 'store_cart_discount' => $cart_discount);
     	}
     }
-    
-    /**
-     * 优惠活动设置是全部商品时，优惠活动信息
-     */
-    protected function favAllGoods($total_amount, $favourable)
-    {
-    	//未选择商品
-    	if ($total_amount == 0) {
-    		if ($favourable['act_type'] == '1') { //满减活动
-    			$favourable_group[$key]['label_discount'] = '购满'.$favourable['min_amount'].',可减'.$favourable['act_type_ext'];
-    		} else {
-    			$favourable_group[$key]['label_discount'] = '购满'.$favourable['min_amount'].',可打'. $favourable['act_type_ext']/10 .'折';
-    		}
-    	} elseif ($total_amount < $favourable['min_amount']) {
-    		if ($favourable['act_type'] == '1') {
-    			$favourable_group[$key]['label_discount'] = '购满'.$favourable['min_amount'].'可减'.$favourable['act_type_ext'].'，还差'.($favourable['min_amount']-$total_amount);
-    		} else {
-    			$favourable_group[$key]['label_discount'] = '购满'.$favourable['min_amount'].',可打'. $favourable['act_type_ext']/10 .'折';
-    		}
-    	} else {
-    		if ($favourable['act_type'] == '1') {
-    			$favourable_group[$key]['label_discount'] = '购满'.$favourable['min_amount'].',可减'.$favourable['act_type_ext'];
-    			$cart_discount += $favourable['act_type_ext'];
-    			$cart_discount_temp[$key] = $favourable['act_type_ext'];
-    			$favourable_group[$key]['can_discount'] = sprintf("%.2f", $cart_discount);
-    		} else {
-    			$discount = $total_amount - ($total_amount*$favourable['act_type_ext']/100);
-    			$favourable_group[$key]['label_discount'] = '已购满'.$total_amount.',已减'. $discount;
-    			$cart_discount += $total_amount - ($total_amount*$favourable['act_type_ext']/100);
-    			$favourable_group[$key]['can_discount'] = sprintf("%.2f", $cart_discount);
-    			$cart_discount_temp[$key] = $cart_discount;
-    		}
-    	}
-    }
-    
-    
-    
     
     /**
      * 获取用户等级
