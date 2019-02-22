@@ -18,7 +18,7 @@ use RC_Time;
 /**
  *店铺选中的购物车满足的最优惠店铺优惠活动
  */
-class CartStoreFav
+class CartStoreFavourable
 {
 
     /**
@@ -60,7 +60,7 @@ class CartStoreFav
     /**
      * 店铺选中的购物车满足的最优惠店铺优惠活动
      */
-    public function StoreCartFav()
+    public function StoreCartFavourableActivity()
     {
     	$store_favourable_list = [];
     	 //店铺选中的购物车
@@ -68,20 +68,20 @@ class CartStoreFav
     	 //用户等级
     	 $user_rank = $this->getNowUserRank($this->user_id);
     	 //满足用户等级的所有店铺活动
-    	 $favourable_list = $this->storeFvaActivity($user_rank);
+    	 $favourable_list = $this->storeFavourableActivity($user_rank);
     	 
     	 if (empty($favourable_list) || empty($store_checked_cart)) {
     	 	return [];
     	 }
     	 
-    	 $store_favourable_list = $this->storeFvaFormat($store_checked_cart, $favourable_list);
+    	 $store_favourable_list = $this->favourableActivity($store_checked_cart, $favourable_list);
     	 return $store_favourable_list;
     }
     
     /**
      * 优惠活动数据格式处理
      */
-    protected function storeFvaFormat($goods_list, $favourable_list)
+    protected function favourableActivity($goods_list, $favourable_list)
     {
     	if (!empty($favourable_list)) {
     		foreach ($favourable_list as $key => $favourable) {
@@ -237,7 +237,7 @@ class CartStoreFav
     /**
      * 满足用户等级的店铺优惠活动
      */
-    protected function storeFvaActivity($user_rank)
+    protected function storeFavourableActivity($user_rank)
     {
     	//店铺优惠活动
     	$favourable_list = [];

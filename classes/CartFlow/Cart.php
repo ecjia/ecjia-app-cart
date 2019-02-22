@@ -78,8 +78,8 @@ class Cart
 
         });
         //店铺优惠活动及优惠金额小计
-        $store_fav 	 = new CartStoreFav($result, $this->store_id, $this->user_id);
-        $fav_list = $store_fav->StoreCartFav();
+        $store_fav 	 = new CartStoreFavourable($result, $this->store_id, $this->user_id);
+        $fav_list = $store_fav->StoreCartFavourableActivity();
         $store_price->addDiscount($fav_list);
 
         //店铺购物车小计
