@@ -839,7 +839,6 @@ class cart_bbc {
 	 *param array $max_integral 订单最多可使用的积分
      */
     public static function generate_separate_order($cart_goods_list, $order, $max_integral = 0) {
-    	RC_Loader::load_app_class('bonus', 'bonus', false);
     	RC_Loader::load_app_class('cart', 'cart', false);
     	
     	$separate_order_goods = [];
@@ -884,20 +883,8 @@ class cart_bbc {
     		}
     	}
     	
-    	//红包（usebonus_type两种 1全场; 0店铺）
-    	$bonus_stores = [];
-    	$bonus = bonus::bonus_info($order['bonus_id'], $order['user_id']);
-    	if(!empty($bonus)) {
-    		if($bonus['usebonus_type'] == 1) {
-    			//TODO 全场红包
-    		} else {
-    			$bonus_stores[$bonus['store_id']] = [
-    			'bonus_id' => $order['bonus_id'],
-    			'type_money' => $bonus['type_money']
-    			];
-    		}
-    	}
-    
+    	//红包
+    	$bonus = bonus::bonus_info($order['bonus_id']);
     
     	//积分
     	$integral_stores = [];
@@ -978,9 +965,16 @@ class cart_bbc {
     		$row['discount'] 			= $shippings[$key]['discount'];
     		$row['goods_amount'] 		= $goods_amount[$key]; //商品总金额
     		$row['order_amount'] 		= $row['goods_amount'] + $row['shipping_fee'] + $row['tax'] + $row['pay_fee'] - $row['discount'];
-    		$row['bonus'] 				= !empty($bonus_stores[$key]['type_money']) ? $bonus_stores[$key]['type_money'] : 0;
-    		$row['bonus_id'] 			= !empty($bonus_stores[$key]['bonus_id']) ? $bonus_stores[$key]['bonus_id'] : 0;
-    
+    		
+    		//红包按所属店铺分配
+    		if ($bonus['store_id'] == $shippings[$key]['store_id']) {
+    			$row['bonus'] 				= $order['bonus'];
+    			$row['bonus_id'] 			= $order['bonus_id'];
+    		} else {
+    			$row['bonus'] 				= 0.00;
+    			$row['bonus_id'] 			= 0;
+    		}
+    		
     		//发票税费
     		if($tax) {
     			//按各店铺订单金额计算比例

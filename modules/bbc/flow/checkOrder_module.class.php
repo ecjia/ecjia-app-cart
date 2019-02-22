@@ -220,7 +220,7 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 			// 取得用户可用红包
 			$pra = array(
 					'user_id' 			=> $_SESSION['user_id'],
-					'store_id' 			=> array_merge($format_cart_list['cart_store_ids'], [0]),
+					'store_id' 			=> array_merge($format_cart_list['cart_store_ids']),
 					'min_goods_amount'	=> $format_cart_list['total']['unformatted_goods_price']
 			);
 			$user_bonus = Ecjia\App\Bonus\UserAvaliableBonus::GetUserBonus($pra);

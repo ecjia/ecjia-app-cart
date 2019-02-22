@@ -173,14 +173,6 @@ class cart_bbc_flow_done_api extends Component_Event_Api {
 			$order['integral'] = 0;
 		}
 
-		/* 检查红包是否存在 */
-		if ($order['bonus_id'] > 0) {
-			$bonus = RC_Api::api('bonus', 'bonus_info', array('bonus_id' => $order['bonus_id']));
-			if (empty($bonus) || $bonus['user_id'] != $user_id || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart::cart_amount(true, $options['flow_type'])) {
-				$order['bonus_id'] = 0;
-			}
-		}
-
 		/* 收货人信息 */
 		foreach ($consignee as $key => $value) {
 			$order[$key] = addslashes($value);
@@ -195,6 +187,27 @@ class cart_bbc_flow_done_api extends Component_Event_Api {
 		//多店铺商品列表划分,含配送方式
 		$cart_goods_list = cart_bbc::store_cart_goods_discount($format_cart_list, $consignee); // 取得商品列表，计算合计
 		
+		/* 检查红包是否存在 */
+		if ($order['bonus_id'] > 0) {
+			RC_Loader::load_app_class('bonus', 'bonus', false);
+			$bonus = bonus::bonus_info($order['bonus_id']);
+			if (empty($bonus) || $bonus['user_id'] != $user_id || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart::cart_amount(true, $options['flow_type'])) {
+				$order['bonus_id'] = 0;
+			}
+			//根据红包所属的店铺，判断店铺购物车金额是否满足使用红包
+			if ($order['bonus_id'] > 0) {
+				foreach ($cart_goods_list as $v) {
+					if ($bonus['store_id'] == $v['store_id']) {
+						$temp_amout = $v['goods_amount'] - $v['discount'];
+						if ($temp_amout <= 0) {
+							$order['bonus_id'] = 0;
+						}
+						$order['temp_amout'] = $temp_amout;
+					}
+				}
+			}
+		}
+		
 		/* 订单中的总额 */
 		$total = cart_bbc::order_fee_multiple_store($order, $cart_goods, $consignee, $options['cart_id'], $cart_goods_list, $options['store_ids'], $format_cart_list);
 		
@@ -203,15 +216,6 @@ class cart_bbc_flow_done_api extends Component_Event_Api {
 		$order['discount']		= empty($total['discount']) ? 0.00 : $total['discount'];
 		$order['surplus']		= $total['surplus'];
 		$order['tax']			= $total['tax'];
-
-		// 购物车中的商品能享受红包支付的总额
-		$discount_amout = cart::compute_discount_amount($options['cart_id']);
-		// 红包和积分最多能支付的金额为商品总额
-		$temp_amout = $order['goods_amount'] - $discount_amout;
-		if ($temp_amout <= 0) {
-			$order['bonus_id'] = 0;
-		}
-		$order['temp_amout'] = $temp_amout;
 
 		$order['shipping_fee'] = $total['shipping_fee'];
 		$order['insure_fee'] = $total['shipping_insure'];
