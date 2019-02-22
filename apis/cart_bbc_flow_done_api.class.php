@@ -64,7 +64,7 @@ class cart_bbc_flow_done_api extends Component_Event_Api {
 		RC_Loader::load_app_class('cart', 'cart', false);
 
 		$order = $options['order'];
-
+		
 		$cart_id_array = $options['cart_id'];
 		$flow_type = $options['flow_type'];
 		
@@ -176,7 +176,7 @@ class cart_bbc_flow_done_api extends Component_Event_Api {
 		/* 检查红包是否存在 */
 		if ($order['bonus_id'] > 0) {
 			$bonus = RC_Api::api('bonus', 'bonus_info', array('bonus_id' => $order['bonus_id']));
-			if (empty($bonus) || ($bonus['store_id'] != 0 && $bonus['store_id'] != $order['store_id']) || $bonus['user_id'] != $user_id || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart::cart_amount(true, $options['flow_type'])) {
+			if (empty($bonus) || $bonus['user_id'] != $user_id || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart::cart_amount(true, $options['flow_type'])) {
 				$order['bonus_id'] = 0;
 			}
 		}
@@ -189,13 +189,13 @@ class cart_bbc_flow_done_api extends Component_Event_Api {
 			}
 		}
 
-		/* 订单中的总额 */
-		//$total = cart_function::order_fee_multiple_store($order, $cart_goods, $consignee, $done_cart_value, $cart_goods_list['goods_list'], $_POST['shipping']);
 		//购物车处理，获取各店铺优惠活动
 		$format_cart_list = cart_bbc::formated_bbc_cart_list($get_cart_goods, $_SESSION['user_rank'], $_SESSION['user_id']);
-		//多店铺商品列表划分,含配送方式
-		$cart_goods_list = cart_bbc::store_cart_goods($format_cart_list, $consignee); // 取得商品列表，计算合计
 		
+		//多店铺商品列表划分,含配送方式
+		$cart_goods_list = cart_bbc::store_cart_goods_discount($format_cart_list, $consignee); // 取得商品列表，计算合计
+		
+		/* 订单中的总额 */
 		$total = cart_bbc::order_fee_multiple_store($order, $cart_goods, $consignee, $options['cart_id'], $cart_goods_list, $options['store_ids'], $format_cart_list);
 		
 		$order['bonus']			= $total['bonus']; 
@@ -213,13 +213,6 @@ class cart_bbc_flow_done_api extends Component_Event_Api {
 		}
 		$order['temp_amout'] = $temp_amout;
 
-		/* 配送方式 */
-// 		$shipping_code = '';
-// 		if ($order['shipping_id'] > 0) {
-// 			$shipping = ecjia_shipping::pluginData($order['shipping_id']);
-// 			$order['shipping_name'] = addslashes($shipping['shipping_name']);
-// 			$shipping_code = $shipping['shipping_code'];
-// 		}
 		$order['shipping_fee'] = $total['shipping_fee'];
 		$order['insure_fee'] = $total['shipping_insure'];
 
@@ -271,25 +264,8 @@ class cart_bbc_flow_done_api extends Component_Event_Api {
 
 		$parent_id = 0;
 		$order['parent_id'] = $parent_id;
-		/*发票识别码和抬头类型*/
-// 		$inv_tax_no = $order['inv_tax_no'];
-// 		$inv_title_type = $order['inv_title_type'];
-
-// 		$order['order_sn'] = ecjia_order_buy_sn();
-
-		/*过滤没有的字段*/
-// 		unset($order['need_inv']);
-// 		unset($order['need_insure']);
-// 		unset($order['address_id']);
-// 		unset($order['address_name']);
-// 		unset($order['audit']);
-// 		unset($order['longitude']);
-// 		unset($order['latitude']);
-// 		unset($order['address_info']);
-// 		unset($order['cod_fee']);
-// 		unset($order['inv_tax_no']);
-// 		unset($order['inv_title_type']);
 		
+		//生成订单
 		$is_separate_order = $options['is_separate_order'];
 		if(!$is_separate_order) {
 			$create_order = cart_bbc::generate_order($cart_goods_list, $order);
@@ -298,25 +274,30 @@ class cart_bbc_flow_done_api extends Component_Event_Api {
 			$create_order = cart_bbc::generate_separate_order($cart_goods_list, $order, $flow_points);
 		}
 		
+		if (is_ecjia_error($create_order)) {
+			return $create_order;
+		}
 
 		$payment_info = $payment_method->payment_info_by_id($order['pay_id']);
 
 		/* 订单信息 */
 		unset($_SESSION['flow_consignee']); // 清除session中保存的收货人信息
 		unset($_SESSION['flow_order']);
-		unset($_SESSION['direct_shopping']);
+		
+		/* 清空购物车 */
+		cart::clear_cart($flow_type, $cart_id_array);
 		
 		$order_info = array(
-			'order_sn'   	=> $order['order_sn'],
-			'order_id'   	=> $order['order_id'],
-			'extension_code'=> $order['extension_code'],
-			'extension_id'  => $order['extension_id'],
+			'order_sn'   	=> $create_order['order_sn'],
+			'order_id'   	=> $create_order['order_id'],
+			'extension_code'=> $create_order['extension_code'],
+			'extension_id'  => $create_order['extension_id'],
 			'order_info' => array(
 				'pay_code'               => $payment_info['pay_code'],
-				'order_amount'           => $order['order_amount'],
-		        'formatted_order_amount' => price_format($order['order_amount']),
-				'order_id'               => $order['order_id'],
-				'order_sn'               => $order['order_sn']
+				'order_amount'           => $create_order['order_amount'],
+		        'formatted_order_amount' => ecjia_price_format($create_order['order_amount'], false),
+				'order_id'               => $create_order['order_id'],
+				'order_sn'               => $create_order['order_sn']
 			)
 		);
 		

@@ -99,6 +99,9 @@ class cart_bbc {
 	                'subtotal'		        => $row['subtotal'],
 	                'attr'			        => $row['goods_attr'],
 	                'goods_attr_id'         => $row['goods_attr_id'],
+	            	'extension_code'		=> $row['extension_code'],
+	            	'is_real'				=> $row['is_real'],
+	            	'product_id'			=> $row['product_id'],
 	                'goods_attr'	        => $goods_attrs,
 	                'is_checked'	        => $row['is_checked'],
 	                'is_disabled'           => $row['is_disabled'],
@@ -366,6 +369,22 @@ class cart_bbc {
     			$val['goods_amount'] = sprintf("%.2f", $val['total']['goods_amount']);
     			unset($val['total']);
     			unset($val['favourable_activity']);
+    			$store_cart_goods [] = $val;
+    		}
+    	}
+    	return $store_cart_goods;
+    }
+    
+    /**
+     * 商家购物车划分，含配送方式，优惠活动
+     */
+    public static function store_cart_goods_discount($cart_goods = array(), $consignee = array())
+    {
+    	if (!empty($cart_goods['cart_list'])) {
+    		foreach ($cart_goods['cart_list'] as $key => $val) {
+    			$store_shipping_list = self::store_shipping_list($val['goods_list'], $consignee, $val['store_id']);
+    			$val['shipping'] = $store_shipping_list;
+    			$val['goods_amount'] = sprintf("%.2f", $val['total']['goods_amount']);
     			$store_cart_goods [] = $val;
     		}
     	}
@@ -669,41 +688,49 @@ class cart_bbc {
     	return $shipping_fee;
     }
     
-    
-
+    /**
+	 *单店订单生成
+	 *@param array $cart_goods 单店购物车商品
+	 *@param array 订单信息
+     */
     public static function generate_order($cart_goods, $order) {
-    	RC_Loader::load_app_class('cart_bbc', 'cart', false);
     	
     	$inv_tax_no 	= $order['inv_tax_no'];
     	$inv_title_type = $order['inv_title_type'];
     	$temp_amout 	= $order['temp_amout'];
     	//配送方式id处理
     	$ship_id = explode('-', $order['shipping_id']['0']);
-    	$order['shipping_id'] = $ship_id['1'];
-    	if ($order['shipping_id'] > 0) {
-    		$shipping = ecjia_shipping::pluginData($order['shipping_id']);
+    	$shipping_id = $ship_id['1'];
+    	
+    	if ($shipping_id > 0) {
+    		$shipping = ecjia_shipping::pluginData(intval($shipping_id));
     		$order['shipping_name'] = addslashes($shipping['shipping_name']);
+    		$order['shipping_id'] = $shipping['shipping_id'];
     	}
     	//期望送达时间处理
-//     	if (!empty($order[''])) {
-    		
-//     	}
+    	if (!empty($order['expect_shipping_time']) && is_array($order['expect_shipping_time'])) {
+    		$expect_shipping_time = explode('|', $order['expect_shipping_time']['0']);
+    		$order['expect_shipping_time'] = empty($expect_shipping_time['1']) ? '' : $expect_shipping_time['1'];
+    	}
+    	//店铺id
+    	$order['store_id'] = intval($cart_goods['0']['store_id']);
+    	$cart_goods = $cart_goods['0']['goods_list'];
+    
     	foreach ($cart_goods as $row) {
     		$goods_arr = array(
     				'goods_id' 			=> $row['goods_id'],
     				'goods_name' 		=> $row['goods_name'],
     				'goods_sn' 			=> $row['goods_sn'],
-    				'product_id' 		=> $row['product_id'],
+    				'product_id' 		=> empty($row['product_id']) ? 0 : $row['product_id'],
     				'goods_number' 		=> $row['goods_number'],
     				'market_price' 		=> $row['market_price'],
     				'goods_price' 		=> $row['goods_price'],
-    				'goods_attr' 		=> $row['attr'],
+    				'goods_attr' 		=> empty($row['attr']) ? '' : $row['attr'],
     				'is_real' 			=> $row['is_real'],
-    				'extension_code' 	=> $row['extension_code'],
-    				'goods_attr_id' 	=> $row['goods_attr_id'],
+    				'extension_code' 	=> empty($row['extension_code']) ? '' : $row['extension_code'],
+    				'goods_attr_id' 	=> empty($row['goods_attr_id']) ? '' : $row['goods_attr_id'],
     		);
     
-    		$order['store_id'] = intval($cart_goods[0]['store_id']);
     		$order_goods_recids[] = RC_DB::table('order_goods')->insertGetId($goods_arr);
     	}
     	//过滤掉订单表没有的字段
@@ -719,7 +746,6 @@ class cart_bbc {
     	unset($order['inv_tax_no']);
     	unset($order['inv_title_type']);
     	unset($order['temp_amout']);
-    	
     	
     	//判断订单类型
     	if(empty($order['extension_code']) && $order['shipping_id']) {
@@ -743,9 +769,6 @@ class cart_bbc {
     					$error_no = 1;
     				} else {
     					$error_no = 0;
-    					RC_Logger::getlogger('error')->error('dscmall order_error:');
-    					RC_Logger::getlogger('error')->error($error);
-    					RC_Logger::getlogger('error')->error(json_encode($order));
     					return new ecjia_error('order_error', '订单生成失败');
     				}
     			}
@@ -779,7 +802,6 @@ class cart_bbc {
     
     	/* 处理余额、积分、红包 */
     	if ($order['user_id'] > 0 && $order['integral'] > 0) {
-    		$use_integral = self::use_integral($order['user_id'], $order['integral'], $order['order_sn']);
     		$integral_name = ecjia::config('integral_name');
 			if (empty($integral_name)) {
 				$integral_name = __('积分', 'cart');
@@ -810,7 +832,365 @@ class cart_bbc {
     	return $order;
     }
     
+    /**
+	 *多店订单生成及分单
+	 *@param array $cart_goods_list 多店购物车商品
+	 *@param array $order 订单信息
+	 *param array $max_integral 订单最多可使用的积分
+     */
+    public static function generate_separate_order($cart_goods_list, $order, $max_integral = 0) {
+    	RC_Loader::load_app_class('bonus', 'bonus', false);
+    	RC_Loader::load_app_class('cart', 'cart', false);
+    	
+    	$separate_order_goods = [];
+    	$shippings = [];
+    	foreach ($cart_goods_list as $store) {
+    		foreach ($store['goods_list'] as $row) {
+    			$goods_arr = array(
+    					'goods_id' 			=> $row['goods_id'],
+    					'goods_name' 		=> $row['goods_name'],
+    					'goods_sn' 			=> $row['goods_sn'],
+    					'product_id' 		=> empty($row['product_id']) ? 0 : $row['product_id'],
+    					'goods_number' 		=> $row['goods_number'],
+    					'market_price' 		=> $row['market_price'],
+    					'goods_price' 		=> $row['goods_price'],
+    					'goods_attr' 		=> empty($row['attr']) ? '' : $row['attr'],
+    					'is_real' 			=> $row['is_real'],
+    					'extension_code' 	=> empty($row['extension_code']) ? '' : $row['extension_code'],
+    					'goods_attr_id' 	=> empty($row['goods_attr_id']) ? '' : $row['goods_attr_id'],
+    			);
+    			//分单商品数据
+    			$separate_order_goods[$store['store_id']][] = $goods_arr;
     
+    			$goods_amount[$store['store_id']] += $row['goods_price'] * $row['goods_number'];
+    		}
+    
+    		foreach ($store['shipping'] as $row) {
+    			foreach ($order['shipping_id'] as $ship_val) {
+    				$ship_str = explode('-', $ship_val);
+    				if ($store['store_id'] == $ship_str['0'] && $row['shipping_id'] == $ship_str['1']) {
+    					$shipping_arr = array(
+    							'shipping_id' 			=> $row['shipping_id'],
+    							'shipping_code' 		=> $row['shipping_code'],
+    							'shipping_name' 		=> $row['shipping_name'],
+    							'shipping_fee' 			=> $row['shipping_fee'],
+    							'insure_fee' 			=> 0,
+    							'store_id'				=> $store['store_id'],
+    							'discount'				=> sprintf("%.2f", $store['total']['discount']),
+    					);
+    					$shippings[$store['store_id']] = $shipping_arr;
+    				}
+    			}
+    		}
+    	}
+    	
+    	//红包（usebonus_type两种 1全场; 0店铺）
+    	$bonus_stores = [];
+    	$bonus = bonus::bonus_info($order['bonus_id'], $order['user_id']);
+    	if(!empty($bonus)) {
+    		if($bonus['usebonus_type'] == 1) {
+    			//TODO 全场红包
+    		} else {
+    			$bonus_stores[$bonus['store_id']] = [
+    			'bonus_id' => $order['bonus_id'],
+    			'type_money' => $bonus['type_money']
+    			];
+    		}
+    	}
+    
+    
+    	//积分
+    	$integral_stores = [];
+    	if($order['integral']) {
+    		//积分优先满足第一店铺使用
+    	}
+    
+    	//支付手续费 发票税费   余额  遍历时计算
+    
+    	$new_order_id = 0;
+    	$order_info_array_keys = ['order_sn', 'user_id', 'order_status', 'pay_status', 'pay_id',
+    	'pay_name', 'shippings', 'how_oos', 'how_surplus', 'inv_type', 'inv_payee', 'inv_no', 'inv_content',
+    	'goods_amount', 'shipping_fee', 'insure_fee', 'pay_fee', 'money_paid', 'surplus', 'integral', 'integral_money',
+    	'bonus', 'order_amount', 'bonus_id', 'tax', 'discount', 'add_time', 'confirm_time', 'pay_time',
+    	'postscript', 'consignee', 'country', 'province', 'city', 'district', 'street', 'address',
+    	'longitude', 'latitude', 'zipcode', 'tel', 'mobile', 'email', 'from_ad', 'referer',
+    	'extension_code', 'extension_id', 'separate_order_goods', 'is_separate'
+    			];
+    	foreach ($order as $key => $row) {
+    		if(!in_array($key, $order_info_array_keys)) {
+    			unset($order[$key]);
+    		}
+    	}
+    	$order['shippings'] = serialize($shippings);
+    	$order['separate_order_goods'] = serialize($separate_order_goods);
+    	
+    	$error_no = 0;
+    	do {
+    		try {
+    			$order['order_sn'] = ecjia_order_separate_sn(); //获取分单订单号
+    			$new_order_id = RC_DB::table('separate_order_info')->insertGetId($order);
+    		} catch(Exception $e) {
+    			$error = $e->getMessage();
+    			if($error) {
+    				if(stripos($error, "1062 Duplicate entry")) {
+    					$error_no = 1;
+    				} else {
+    					$error_no = 0;
+    					return new ecjia_error('order_error', '订单生成失败');
+    				}
+    			}
+    		}
+    
+    	} while ($error_no == 1); //如果是订单号重复则重新提交数据
+    
+    	$order['order_id'] = $new_order_id;
+    
+    	//分单
+    	$surplus 		= $order['surplus'];
+    	$integral 		= $order['integral'];
+    	$integral_money = $order['integral_money'];
+    	$discount 		= $order['discount'];
+    	$tax 			= $order['tax'];
+    	$pay_fee 		= $order['pay_fee'];
+    	$store_number 	= count($separate_order_goods);
+    	$i = 0;
+    
+    	//子订单
+    	foreach($shippings as $key => $row) {
+    		$i +=1;
+    		$row = $order;
+    		unset($row['order_id']);unset($row['order_sn']);unset($row['shippings']);
+    		unset($row['separate_order_goods']);unset($row['is_separate']);unset($row['log_id']);
+    
+    		//order_info
+    		//重置部分费用字段
+    		$row['tax'] = 0;
+    		$row['pay_fee'] = 0;
+    		$row['integral'] = 0;
+    		$row['integral_money'] = 0;
+    		$row['expect_shipping_time'] = '';
+    
+    		$row['separate_order_sn'] 	= $order['order_sn'];//获取主订单sn
+    		$row['store_id']			= $shippings[$key]['store_id'];
+    		$row['shipping_id']			= $shippings[$key]['shipping_id'];
+    		$row['shipping_name'] 		= isset($shippings[$key]['shipping_name']) ? $shippings[$key]['shipping_name'] : '';
+    		$row['shipping_fee'] 		= $shippings[$key]['shipping_fee'];
+    		$row['discount'] 			= $shippings[$key]['discount'];
+    		$row['goods_amount'] 		= $goods_amount[$key]; //商品总金额
+    		$row['order_amount'] 		= $row['goods_amount'] + $row['shipping_fee'] + $row['tax'] + $row['pay_fee'] - $row['discount'];
+    		$row['bonus'] 				= !empty($bonus_stores[$key]['type_money']) ? $bonus_stores[$key]['type_money'] : 0;
+    		$row['bonus_id'] 			= !empty($bonus_stores[$key]['bonus_id']) ? $bonus_stores[$key]['bonus_id'] : 0;
+    
+    		//发票税费
+    		if($tax) {
+    			//按各店铺订单金额计算比例
+    			if($i < $store_number) {
+    				$row['tax'] = cart::get_tax_fee($order['inv_type'], $row['goods_amount']);
+    				$tax -= $row['tax'];
+    			} else {
+    				$row['tax'] = $tax;
+    			}
+    			$row['order_amount'] += $row['tax'];//重新计算总价
+    		}
+    		//发票税费 end
+    
+    		//配送方式ids
+    		if ($order['expect_shipping_time'] && is_array($order['expect_shipping_time'])) {
+    			foreach ($order['expect_shipping_time'] as $ship_time) {
+    				$ship_time_str = explode('|', $ship_time);
+    				if ($row['store_id'] == $ship_time_str['0']) {
+    					$row['expect_shipping_time'] = $ship_time_str['1'];
+    				}
+    			}
+    		}
+    		
+    		//积分 start
+    		//共可用数量，本店可用数量
+    		if ($integral_money > 0) {
+    			//积分只能使用整数个
+    			if ($i < $store_number) {
+    				$integral_rate = self::get_integral_store($separate_order_goods[$key]) / $max_integral;
+    				if($integral_rate) {
+    					$row['integral'] = round($integral * $integral_rate);
+    					$row['integral_money'] = cart::value_of_integral($row['integral']);
+    					$row['order_amount'] = $row['order_amount'] - $row['integral_money'];
+    					$integral -= $row['integral'];
+    					$integral_money -= $row['integral_money'];
+    				}
+    
+    			} else {
+    				$row['integral'] = $integral;
+    				$row['integral_money'] = $integral_money;
+    				$row['order_amount'] = $row['order_amount'] - $row['integral_money'];
+    			}
+    		} else {
+    			$row['integral_money'] = 0;
+    			$row['integral'] = 0;
+    		}
+    		//积分 end
+    
+    		//支付手续费
+    		if($pay_fee) {
+    			//按各店铺订单金额计算比例
+    			if($i < $store_number) {
+    				$row['pay_fee'] = cart::pay_fee($order['pay_id'], $row['order_amount']);
+    				$pay_fee -= $row['pay_fee'];
+    			} else {
+    				$row['pay_fee'] = $pay_fee;
+    			}
+    			$row['order_amount'] += $row['pay_fee'];//重新计算总价
+    		}
+    		//支付手续费 end
+    
+    
+    		//余额 start 分店铺订单使用
+    		if ($surplus > 0) {
+    			if ($surplus >= $row['order_amount']) {
+    				$surplus = $surplus - $row['order_amount'];
+    				$row['surplus'] = $row['order_amount']; //订单金额等于当前使用余额
+    				$row['order_amount'] = 0;
+    			} else {
+    				$row['order_amount'] = $row['order_amount'] - $surplus;
+    				$row['surplus'] = $surplus;
+    				$surplus = 0;
+    			}
+    		} else {
+    			$row['surplus'] = 0;
+    		}
+    		//余额 end
+    
+    		$row['order_amount'] = number_format($row['order_amount'], 2, '.', ''); //格式化价格为一个数字
+    
+    		/* 如果订单金额为0（使用余额或积分或红包支付），修改订单状态为已确认、已付款 */
+    		if ($row['order_amount'] <= 0) {
+    			$row['order_amount'] = 0;
+    			$row['order_status'] = OS_CONFIRMED;
+    			$row['confirm_time'] = RC_Time::gmtime();
+    			$row['pay_status'] = PS_PAYED;
+    			$row['pay_time'] = RC_Time::gmtime();
+    		} else {
+    			$row['order_status'] = OS_UNCONFIRMED;
+    			$row['confirm_time'] = 0;
+    			$row['pay_status'] = PS_UNPAYED;
+    			$row['pay_time'] = 0;
+    		}
+    
+    		//判断订单类型
+    		if(empty($row['extension_code']) && $row['shipping_id']) {
+    			$shipping_info = ecjia_shipping::getPluginDataById(intval($row['shipping_id']));
+    			if($shipping_info['shipping_code'] == 'ship_cac') {
+    				$row['extension_code'] = 'storepickup';
+    			}
+    		}
+    
+    		$error_no = 0;
+    		$new_order_id_child = 0;
+    		do {
+    			try {
+    				$row['order_sn'] = ecjia_order_buy_sn();
+    				$new_order_id_child = RC_DB::table('order_info')->insertGetId($row);
+    			} catch(Exception $e) {
+    				$error = $e->getMessage();
+    				if($error) {
+    					if(stripos($error, "1062 Duplicate entry")) {
+    						$error_no = 1;
+    					} else {
+    						$error_no = 0;
+    						return new ecjia_error('child_order_error', '子订单生成失败');
+    					}
+    				}
+    			}
+    		} while ($error_no == 1); //如果是订单号重复则重新提交数据
+    
+    		//order_goods
+    		if ($new_order_id_child) {
+    			$row['order_id'] = $new_order_id_child;
+    			foreach ($separate_order_goods[$key] as $goods) {
+    				$goods['order_id'] = $new_order_id_child;
+    				RC_DB::table('order_goods')->insert($goods);
+    			}
+    
+    			/* 如果使用库存，且下订单时减库存，则减少库存 */
+    			if (ecjia::config('use_storage') == '1' && ecjia::config('stock_dec_time') == SDT_PLACE) {
+    				$result = cart::change_order_goods_storage($new_order_id, true, SDT_PLACE);
+    				if (is_ecjia_error($result)) {
+    					/* 库存不足删除已生成的订单（并发处理） will.chen*/
+    					RC_DB::table('order_info')->where('order_id', $new_order_id)->delete();
+    					RC_DB::table('order_goods')->where('order_id', $new_order_id)->delete();
+    					return $result;
+    				}
+    			}
+    
+    			/* 处理积分、红包 */
+    			if ($row['user_id'] > 0 && $row['integral'] > 0) {
+    				$integral_name = ecjia::config('integral_name');
+    				if (empty($integral_name)) {
+    					$integral_name = __('积分', 'cart');
+    				}
+    				$params = array(
+    						'user_id'		=> $row['user_id'],
+    						'pay_points'	=> $row['integral'] * (- 1),
+    						'change_desc'	=> sprintf(__('支付订单 %s', 'cart'), $row['order_sn']),
+    						'from_type'		=> 'order_use_integral',
+    						'from_value'	=> $row['order_sn']
+    				);
+    				$result = RC_Api::api('user', 'account_change_log', $params);
+    				if (is_ecjia_error($result)) {
+    				
+    				}
+    			}
+    			
+    			//$temp_amout TODO
+    			$temp_amout = $row['goods_amount'] - $row['discount'];
+    			if ($row['bonus_id'] > 0 && $temp_amout > 0 ) {
+    				RC_Api::api('bonus', 'use_bonus', array('bonus_id' => $row['bonus_id'], 'order_id' => $new_order_id_child));
+    			}
+    
+    			//其他
+    			$row['goods_list'] = $separate_order_goods[$key];
+    			RC_Api::api('cart', 'flow_done_do_something', $row);
+    		} else {
+    			return new ecjia_error('create_order_error', '生成订单失败');
+    		}
+    	}
+    	RC_DB::table('separate_order_info')->where('order_sn', $order['order_sn'])->update(['is_separate' => 1]);
+    
+    	return $order;
+    }
+    
+    /**
+     * 获取结算时店铺商品可用积分
+     * @param array $cart_goods_store
+     * @return number
+     */
+    public static function get_integral_store($cart_goods_store) {
+    	//单店可用积分
+    	$store_integral = 0;
+    
+    	foreach ($cart_goods_store as $row) {
+    		$integral = 0;
+    		$goods = RC_DB::table('goods')->where('goods_id', $row['goods_id'])->first();
+    		if(empty($goods['integral']) || empty($row['goods_price'])) {
+    			continue;
+    		}
+    		//取价格最小值，防止积分抵扣超过商品价格(并未计算优惠) -flow_available_points()
+    		$val_min = min($goods['integral'], $row['goods_price']);
+    		$val_min = $val_min * $row['goods_number'];
+    		if ($val_min < 1 && $val_min > 0) {
+    			$val = $val_min;
+    		} else {
+    			$val = intval($val_min);
+    		}
+    		if($val <= 0) {
+    			continue;
+    		}
+    		$integral = cart::integral_of_value($val);
+    		$store_integral += $integral;
+    	}
+    
+    	return $store_integral;
+    
+    }
 }
 
 // end
