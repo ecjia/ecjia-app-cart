@@ -75,7 +75,7 @@ class CartStorePrice
         $total['market_price'] 				= ecjia_price_format($market_price, false);
         $total['real_goods_count']    		= $goods_quantity;
         $total['discount'] 					= sprintf("%.2f", $discount);
-        $total['formated_discount'] 		= ecjia_price_format($discount);
+        $total['formated_discount'] 		= ecjia_price_format($discount, false);
         
         return $total;
     }
