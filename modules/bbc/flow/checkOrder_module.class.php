@@ -288,7 +288,9 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 						'type_name'				=> trim($val['type_name']),
 						'bonus_money'			=> $val['type_money'],
 						'bonus_id'				=> intval($val['bonus_id']),
-						'bonus_money_formated'	=> ecjia_price_format($val['type_money'], false)
+						'bonus_money_formated'	=> ecjia_price_format($val['type_money'], false),
+						'store_id'				=> intval($val['store_id']),
+						'store_name'			=> $val['merchants_name'],
 				);
 			}
 		}

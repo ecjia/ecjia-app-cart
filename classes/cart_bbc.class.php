@@ -665,26 +665,24 @@ class cart_bbc {
     public static function get_total_shipping_fee($cart_goods_list, $shipping_ids) {
     	$shipping_fee = 0;
     	if (!empty($cart_goods_list) && !empty($shipping_ids) && is_array($shipping_ids)) {
-    		foreach ($shipping_ids as $ship_val) {
-    			if ($ship_val) {
-    				$ship = explode('-', $ship_val);
-    				$shipping_ids_new [] = $ship['1'];
-    			}
-    		}
     		foreach ($cart_goods_list as $val) {
     			if ($val['shipping']) {
     				foreach ($val['shipping'] as $k => $v) {
-    					if (in_array($v['shipping_id'], $shipping_ids_new)) {
-    						if ($v['shipping_code'] == 'ship_cac') {
-    							$v['shipping_fee'] = 0;
+    					foreach ($shipping_ids as $ship_val) {
+    						if ($ship_val) {
+    							$ship = explode('-', $ship_val);
+    							if ($ship['0'] == $val['store_id'] && $ship['1'] == $v['shipping_id']) {
+    								if ($v['shipping_code'] == 'ship_cac') {
+    									$v['shipping_fee'] = 0;
+    								}
+    								$shipping_fee += $v['shipping_fee'];
+    							}
     						}
-    						$shipping_fee += $v['shipping_fee'];
     					}
     				}
     			}
     		}
     	}
-    	
     	return $shipping_fee;
     }
     
@@ -974,6 +972,9 @@ class cart_bbc {
     			$row['bonus'] 				= 0.00;
     			$row['bonus_id'] 			= 0;
     		}
+    		if ($row['order_amount'] > $row['bonus']) {
+    			$row['order_amount'] -= $row['bonus'];
+    		}
     		
     		//发票税费
     		if($tax) {
@@ -1007,7 +1008,6 @@ class cart_bbc {
     				if($integral_rate) {
     					$row['integral'] = round($integral * $integral_rate);
     					$row['integral_money'] = cart::value_of_integral($row['integral']);
-    					$row['order_amount'] = $row['order_amount'] - $row['integral_money'];
     					$integral -= $row['integral'];
     					$integral_money -= $row['integral_money'];
     				}
@@ -1015,6 +1015,8 @@ class cart_bbc {
     			} else {
     				$row['integral'] = $integral;
     				$row['integral_money'] = $integral_money;
+    			}
+    			if ($row['order_amount'] > $row['integral_money']) {
     				$row['order_amount'] = $row['order_amount'] - $row['integral_money'];
     			}
     		} else {
