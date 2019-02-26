@@ -840,6 +840,7 @@ class cart_bbc {
     	RC_Loader::load_app_class('cart', 'cart', false);
     	RC_Loader::load_app_class('bonus', 'bonus', false);
     	
+    	$expect_shipping_time = $order['expect_shipping_time'];
     	$separate_order_goods = [];
     	$shippings = [];
     	foreach ($cart_goods_list as $store) {
@@ -991,8 +992,8 @@ class cart_bbc {
     		//发票税费 end
     
     		//配送方式ids
-    		if ($order['expect_shipping_time'] && is_array($order['expect_shipping_time'])) {
-    			foreach ($order['expect_shipping_time'] as $ship_time) {
+    		if ($expect_shipping_time && is_array($expect_shipping_time)) {
+    			foreach ($expect_shipping_time as $ship_time) {
     				$ship_time_str = explode('|', $ship_time);
     				if ($row['store_id'] == $ship_time_str['0']) {
     					$row['expect_shipping_time'] = $ship_time_str['1'];
