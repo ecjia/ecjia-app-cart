@@ -838,6 +838,7 @@ class cart_bbc {
      */
     public static function generate_separate_order($cart_goods_list, $order, $max_integral = 0) {
     	RC_Loader::load_app_class('cart', 'cart', false);
+    	RC_Loader::load_app_class('bonus', 'bonus', false);
     	
     	$separate_order_goods = [];
     	$shippings = [];
