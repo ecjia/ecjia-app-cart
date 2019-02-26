@@ -243,7 +243,7 @@ class cart_bbc {
     					'fav_discount'	=> $favourable['act_type_ext'],
     					'act_type'		=> $favourable['act_type'],
     					'type'			=> $favourable['act_type'] == '1' ? 'price_reduction' : 'price_discount',
-    					'type_label'	=> $favourable['act_type'] == '1' ? __('满减') : __('满折'),
+    					'type_label'	=> $favourable['act_type'] == '1' ? __('满减', 'cart') : __('满折', 'cart'),
     					'can_discount'	=> 0,
     			);
     			if ($favourable['act_range'] == FAR_ALL) {
@@ -767,7 +767,7 @@ class cart_bbc {
     					$error_no = 1;
     				} else {
     					$error_no = 0;
-    					return new ecjia_error('order_error', '订单生成失败');
+    					return new ecjia_error('order_error', __('订单生成失败', 'cart'));
     				}
     			}
     		}
@@ -775,7 +775,7 @@ class cart_bbc {
     	} while ($error_no == 1); //如果是订单号重复则重新提交数据
     
     	if ($new_order_id <= 0) {
-    		return new ecjia_error('order_error', '订单生成失败');
+    		return new ecjia_error('order_error', __('订单生成失败', 'cart'));
     	}
     	foreach ($order_goods_recids as $rec_id) {
     		$data = array('order_id' => $new_order_id);
@@ -922,7 +922,7 @@ class cart_bbc {
     					$error_no = 1;
     				} else {
     					$error_no = 0;
-    					return new ecjia_error('order_error', '订单生成失败');
+    					return new ecjia_error('order_error', __('订单生成失败', 'cart'));
     				}
     			}
     		}
@@ -1093,7 +1093,7 @@ class cart_bbc {
     						$error_no = 1;
     					} else {
     						$error_no = 0;
-    						return new ecjia_error('child_order_error', '子订单生成失败');
+    						return new ecjia_error('child_order_error', __('子订单生成失败', 'cart'));
     					}
     				}
     			}
@@ -1147,7 +1147,7 @@ class cart_bbc {
     			$row['goods_list'] = $separate_order_goods[$key];
     			RC_Api::api('cart', 'flow_done_do_something', $row);
     		} else {
-    			return new ecjia_error('create_order_error', '生成订单失败');
+    			return new ecjia_error('create_order_error', __('生成订单失败', 'cart'));
     		}
     	}
     	RC_DB::table('separate_order_info')->where('order_sn', $order['order_sn'])->update(['is_separate' => 1]);
