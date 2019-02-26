@@ -198,9 +198,10 @@ class cart_bbc_flow_done_api extends Component_Event_Api {
 			if ($order['bonus_id'] > 0) {
 				foreach ($cart_goods_list as $v) {
 					if ($bonus['store_id'] == $v['store_id']) {
-						$temp_amout = $v['goods_amount'] - $v['discount'];
+						$temp_amout = $v['goods_amount'] - $v['total']['discount'];
 						if ($temp_amout <= 0) {
 							$order['bonus_id'] = 0;
+							$temp_amout = 0;
 						}
 						$order['temp_amout'] = $temp_amout;
 					}
