@@ -1106,6 +1106,11 @@ class cart_bbc {
     			try {
     				$row['order_sn'] = ecjia_order_buy_sn();
     				$new_order_id_child = RC_DB::table('order_info')->insertGetId($row);
+    				
+    				RC_Logger::getLogger('error')->info('testqqq');
+    				RC_Logger::getLogger('error')->info($new_order_id_child);
+    				RC_Logger::getLogger('error')->info('testwww');
+    				
     			} catch(Exception $e) {
     				$error = $e->getMessage();
     				if($error) {

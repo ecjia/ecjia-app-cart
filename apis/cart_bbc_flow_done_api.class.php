@@ -290,7 +290,9 @@ class cart_bbc_flow_done_api extends Component_Event_Api {
 		unset($_SESSION['flow_order']);
 		
 		/* 清空购物车 */
-		cart::clear_cart($flow_type, $cart_id_array);
+		if (!is_ecjia_error($create_order)) {
+			cart::clear_cart($flow_type, $cart_id_array);
+		}
 		
 		$order_info = array(
 			'order_sn'   	=> $create_order['order_sn'],
