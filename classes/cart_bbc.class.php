@@ -1103,7 +1103,7 @@ class cart_bbc {
     		$error_no = 0;
     		$new_order_id_child = 0;
     		do {
-    			try {
+//     			try {
     				$row['order_sn'] = ecjia_order_buy_sn();
     				$new_order_id_child = RC_DB::table('order_info')->insertGetId($row);
     				
@@ -1111,18 +1111,18 @@ class cart_bbc {
     				RC_Logger::getLogger('error')->info($new_order_id_child);
     				RC_Logger::getLogger('error')->info('testwww');
     				
-    			} catch(Exception $e) {
-    				$error = $e->getMessage();
-    				if($error) {
-    					if(stripos($error, "1062 Duplicate entry")) {
-    						$error_no = 1;
-    					} else {
-    						$error_no = 0;
-    						return new ecjia_error('child_order_error', __('子订单生成失败', 'cart'));
-    					}
-    				}
-    			}
-    		} while ($error_no == 1); //如果是订单号重复则重新提交数据
+//     			} catch(Exception $e) {
+//     				$error = $e->getMessage();
+//     				if($error) {
+//     					if(stripos($error, "1062 Duplicate entry")) {
+//     						$error_no = 1;
+//     					} else {
+//     						$error_no = 0;
+//     						return new ecjia_error('child_order_error', __('子订单生成失败', 'cart'));
+//     					}
+//     				}
+//     			}
+    		} while ($error_no == 1062); //如果是订单号重复则重新提交数据
     
     		//order_goods
     		if ($new_order_id_child) {
