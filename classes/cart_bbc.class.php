@@ -931,23 +931,23 @@ class cart_bbc {
     	$order['separate_order_goods'] = serialize($separate_order_goods);
     	
     	$error_no = 0;
-    	do {
-    		try {
+//     	do {
+//     		try {
     			$order['order_sn'] = ecjia_order_separate_sn(); //获取分单订单号
     			$new_order_id = RC_DB::table('separate_order_info')->insertGetId($order);
-    		} catch(Exception $e) {
-    			$error = $e->getMessage();
-    			if($error) {
-    				if(stripos($error, "1062 Duplicate entry")) {
-    					$error_no = 1;
-    				} else {
-    					$error_no = 0;
-    					return new ecjia_error('order_error', __('订单生成失败', 'cart'));
-    				}
-    			}
-    		}
+//     		} catch(Exception $e) {
+//     			$error = $e->getMessage();
+//     			if($error) {
+//     				if(stripos($error, "1062 Duplicate entry")) {
+//     					$error_no = 1;
+//     				} else {
+//     					$error_no = 0;
+//     					return new ecjia_error('order_error', __('订单生成失败', 'cart'));
+//     				}
+//     			}
+//     		}
     
-    	} while ($error_no == 1); //如果是订单号重复则重新提交数据
+//     	} while ($error_no == 1); //如果是订单号重复则重新提交数据
     
     	$order['order_id'] = $new_order_id;
     
@@ -963,10 +963,11 @@ class cart_bbc {
     
     	//子订单
     	RC_Logger::getLogger('error')->info('testaaa');
+    	RC_Logger::getLogger('error')->info($shippings);
+    	
+    	
     	foreach($shippings as $key => $row) {
     		RC_Logger::getLogger('error')->info('testbbb');
-    		RC_Logger::getLogger('error')->info($shippings);
-    		
     		$i +=1;
     		$row = $order;
     		unset($row['order_id']);unset($row['order_sn']);unset($row['shippings']);
