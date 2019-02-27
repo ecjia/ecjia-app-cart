@@ -351,10 +351,33 @@ class cart_bbc {
     		}
     		 
     		//获取最优惠的活动信息
-    		$best_fav_key = array_search(max($cart_discount_temp),$cart_discount_temp);
+    		$best_fav = self::get_best_fav($favourable_group);
     		
-    		return array('store_fav_activity' => $favourable_group[$best_fav_key], 'store_cart_discount' => $cart_discount);
+    		return array('store_fav_activity' => $best_fav, 'store_cart_discount' => $cart_discount);
     	}
+    }
+    
+    /**
+     * 获取最优活动
+     * @param array $favourable_group
+     */
+    public static function get_best_fav($favourable_group = array())
+    {
+    	$best_fav = [];
+    	
+    	if ($favourable_group) {
+    		$favourable_group_new = [];
+    		foreach ($favourable_group as $key => $val) {
+    			$favourable_group_new[$val['activity_id']] =  $val['can_discount'];
+    		}
+    		$max_activity_id = array_search(max($favourable_group_new),$favourable_group_new);
+    		foreach ($favourable_group as $k => $v) {
+    			if ($max_activity_id == $v['activity_id']) {
+    				$best_fav = $v;
+    			}
+    		}
+    	}
+    	return $best_fav;
     }
     
     /**
