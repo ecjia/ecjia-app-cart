@@ -966,7 +966,7 @@ class cart_bbc {
     	RC_Logger::getLogger('error')->info($shippings);
     	
     	
-    	foreach($shippings as $key => $row) {
+    	foreach ($shippings as $key => $row) {
     		RC_Logger::getLogger('error')->info('testbbb');
     		$i +=1;
     		$row = $order;
