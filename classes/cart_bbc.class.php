@@ -863,35 +863,35 @@ class cart_bbc {
     	$separate_order_goods = [];
     	$shippings = [];
     	foreach ($cart_goods_list as $store) {
-    		foreach ($store['goods_list'] as $row) {
+    		foreach ($store['goods_list'] as $rows) {
     			$goods_arr = array(
-    					'goods_id' 			=> $row['goods_id'],
-    					'goods_name' 		=> $row['goods_name'],
-    					'goods_sn' 			=> $row['goods_sn'],
-    					'product_id' 		=> empty($row['product_id']) ? 0 : $row['product_id'],
-    					'goods_number' 		=> $row['goods_number'],
-    					'market_price' 		=> $row['market_price'],
-    					'goods_price' 		=> $row['goods_price'],
-    					'goods_attr' 		=> empty($row['attr']) ? '' : $row['attr'],
-    					'is_real' 			=> $row['is_real'],
-    					'extension_code' 	=> empty($row['extension_code']) ? '' : $row['extension_code'],
-    					'goods_attr_id' 	=> empty($row['goods_attr_id']) ? '' : $row['goods_attr_id'],
+    					'goods_id' 			=> $rows['goods_id'],
+    					'goods_name' 		=> $rows['goods_name'],
+    					'goods_sn' 			=> $rows['goods_sn'],
+    					'product_id' 		=> empty($rows['product_id']) ? 0 : $rows['product_id'],
+    					'goods_number' 		=> $rows['goods_number'],
+    					'market_price' 		=> $rows['market_price'],
+    					'goods_price' 		=> $rows['goods_price'],
+    					'goods_attr' 		=> empty($rows['attr']) ? '' : $rows['attr'],
+    					'is_real' 			=> $rows['is_real'],
+    					'extension_code' 	=> empty($rows['extension_code']) ? '' : $rows['extension_code'],
+    					'goods_attr_id' 	=> empty($rows['goods_attr_id']) ? '' : $rows['goods_attr_id'],
     			);
     			//分单商品数据
     			$separate_order_goods[$store['store_id']][] = $goods_arr;
     
-    			$goods_amount[$store['store_id']] += $row['goods_price'] * $row['goods_number'];
+    			$goods_amount[$store['store_id']] += $rows['goods_price'] * $rows['goods_number'];
     		}
     
-    		foreach ($store['shipping'] as $row) {
+    		foreach ($store['shipping'] as $ship_row) {
     			foreach ($order['shipping_id'] as $ship_val) {
     				$ship_str = explode('-', $ship_val);
-    				if ($store['store_id'] == $ship_str['0'] && $row['shipping_id'] == $ship_str['1']) {
+    				if ($store['store_id'] == $ship_str['0'] && $ship_row['shipping_id'] == $ship_str['1']) {
     					$shipping_arr = array(
-    							'shipping_id' 			=> $row['shipping_id'],
-    							'shipping_code' 		=> $row['shipping_code'],
-    							'shipping_name' 		=> $row['shipping_name'],
-    							'shipping_fee' 			=> $row['shipping_fee'],
+    							'shipping_id' 			=> $ship_row['shipping_id'],
+    							'shipping_code' 		=> $ship_row['shipping_code'],
+    							'shipping_name' 		=> $ship_row['shipping_name'],
+    							'shipping_fee' 			=> $ship_row['shipping_fee'],
     							'insure_fee' 			=> 0,
     							'store_id'				=> $store['store_id'],
     							'discount'				=> sprintf("%.2f", $store['total']['discount']),
@@ -931,23 +931,23 @@ class cart_bbc {
     	$order['separate_order_goods'] = serialize($separate_order_goods);
     	
     	$error_no = 0;
-//     	do {
-//     		try {
+    	do {
+    		try {
     			$order['order_sn'] = ecjia_order_separate_sn(); //获取分单订单号
     			$new_order_id = RC_DB::table('separate_order_info')->insertGetId($order);
-//     		} catch(Exception $e) {
-//     			$error = $e->getMessage();
-//     			if($error) {
-//     				if(stripos($error, "1062 Duplicate entry")) {
-//     					$error_no = 1;
-//     				} else {
-//     					$error_no = 0;
-//     					return new ecjia_error('order_error', __('订单生成失败', 'cart'));
-//     				}
-//     			}
-//     		}
+    		} catch(Exception $e) {
+    			$error = $e->getMessage();
+    			if($error) {
+    				if(stripos($error, "1062 Duplicate entry")) {
+    					$error_no = 1;
+    				} else {
+    					$error_no = 0;
+    					return new ecjia_error('order_error', __('订单生成失败', 'cart'));
+    				}
+    			}
+    		}
     
-//     	} while ($error_no == 1); //如果是订单号重复则重新提交数据
+    	} while ($error_no == 1); //如果是订单号重复则重新提交数据
     
     	$order['order_id'] = $new_order_id;
     
@@ -1110,26 +1110,23 @@ class cart_bbc {
     		RC_Logger::getLogger('error')->info('testqqq');
     		RC_Logger::getLogger('error')->info($row);
     		do {
-//     			try {
-    			RC_Logger::getLogger('error')->info('testccc');
+    			try {
+    				RC_Logger::getLogger('error')->info('testccc');
     				$row['order_sn'] = ecjia_order_buy_sn();
     				$new_order_id_child = RC_DB::table('order_info')->insertGetId($row);
-    				
-    				
     				RC_Logger::getLogger('error')->info($new_order_id_child);
     				RC_Logger::getLogger('error')->info('testwww');
-    				
-//     			} catch(Exception $e) {
-//     				$error = $e->getMessage();
-//     				if($error) {
-//     					if(stripos($error, "1062 Duplicate entry")) {
-//     						$error_no = 1;
-//     					} else {
-//     						$error_no = 0;
-//     						return new ecjia_error('child_order_error', __('子订单生成失败', 'cart'));
-//     					}
-//     				}
-//     			}
+    			} catch(Exception $e) {
+    				$error = $e->getMessage();
+    				if($error) {
+    					if(stripos($error, "1062 Duplicate entry")) {
+    						$error_no = 1;
+    					} else {
+    						$error_no = 0;
+    						return new ecjia_error('child_order_error', __('子订单生成失败', 'cart'));
+    					}
+    				}
+    			}
     		} while ($error_no == 1062); //如果是订单号重复则重新提交数据
     
     		//order_goods
