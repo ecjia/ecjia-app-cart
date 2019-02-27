@@ -346,10 +346,6 @@ class cart_bbc {
     			$cart_discount = $total_amount;
     		}
     		 
-    		if (!empty($amount_sort) && !empty($favourable_group)) {
-    			array_multisort($amount_sort, SORT_ASC, $favourable_group);
-    		}
-    		 
     		//获取最优惠的活动信息
     		$best_fav = self::get_best_fav($favourable_group);
     		
