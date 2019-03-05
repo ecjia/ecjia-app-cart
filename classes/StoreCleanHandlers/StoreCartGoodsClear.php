@@ -21,7 +21,7 @@ class StoreCartGoodsClear extends StoreCleanAbstract
      * 代号标识
      * @var string
      */
-    protected $code = 'store_goods_clear';
+    protected $code = 'store_cart_goods_clear';
 
     /**
      * 名称
@@ -33,7 +33,7 @@ class StoreCartGoodsClear extends StoreCleanAbstract
      * 排序
      * @var int
      */
-    protected $sort = 101;
+    protected $sort = 21;
 
     /**
      * 数据描述及输出显示内容
