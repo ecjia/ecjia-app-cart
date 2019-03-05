@@ -42,9 +42,7 @@ class StoreCartGoodsClear extends StoreCleanAbstract
     {
         $text = __('将用户购物车内当前店铺的商品数据全部删除', 'cart');
         return <<<HTML
-
-<span class="controls-info w300">$text</span>
-
+<span class="controls-info w300">{$text}</span>
 HTML;
 
     }
