@@ -429,8 +429,8 @@ class cart_bbc {
     		if($goods['is_shipping'] == 1) {
     			$shipping_count ++;
     		}
-    	
-    		$cart_weight_price['weight'] += floatval($goods['goodsWeight']) * $goods['goods_number'];
+    		$goodsWeight = RC_DB::table('goods')->where('goods_id', $goods['goods_id'])->pluck('goods_weight');
+    		$cart_weight_price['weight'] += floatval($goodsWeight) * $goods['goods_number'];
     		$cart_weight_price['amount'] += floatval($goods['goods_price']) * $goods['goods_number'];
     		$cart_weight_price['number'] += $goods['goods_number'];
     	}

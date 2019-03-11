@@ -54,7 +54,8 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
     public function handleRequest(\Royalcms\Component\HttpKernel\Request $request) {
 
     	$this->authSession();
-    	if ($_SESSION['user_id'] <= 0) {
+    	$user_id = $_SESSION['user_id'];
+    	if ($user_id <= 0) {
     		return new ecjia_error(100, 'Invalid session');
     	}
 
@@ -98,17 +99,25 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 			$order_activity_type = 'default';
 		}
 		
-		/* 检查购物车中是否有商品 */
-		$get_cart_goods = RC_Api::api('cart', 'cart_list', array('cart_id' => $cart_id, 'flow_type' => $flow_type, 'store_group' => ''));
-		if (is_ecjia_error($get_cart_goods)) {
-			return $get_cart_goods;
+		$count = $this->cart_count($user_id, $flow_type, $cart_id);
+		if ($count == 0) {
+			return new ecjia_error('not_found_cart_goods', __('购物车中还没有商品', 'cart'));
 		}
-		//购物车处理
-		$format_cart_list = cart_bbc::formated_bbc_cart_list($get_cart_goods, $_SESSION['user_rank'], $_SESSION['user_id']);
 		
-		if (count($get_cart_goods['goods_list']) == 0) {
-		    return new ecjia_error('not_found_cart_goods', __('购物车中还没有商品', 'cart'));
+		//多店购物车获取
+		$store_ids = $this->get_store_ids($user_id, $flow_type, $cart_id);
+		 
+		$cart_multi = new Ecjia\App\Cart\CartFlow\MultiCart();
+		
+		foreach ($store_ids as $val) {
+			//单店购物车
+			$cart_single = (new \Ecjia\App\Cart\CartFlow\Cart($user_id, $val, $flow_type, $cart_id));
+			
+			//多店购物车
+			$cart_multi->addCart($cart_single);
 		}
+		
+		$format_cart_list = $cart_multi->getGoodsCollection();
 		
 		/* 对是否允许修改购物车赋值 */
 		if ($flow_type != CART_GENERAL_GOODS || ecjia::config('one_step_buy') == '1') {
@@ -134,53 +143,19 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 		
 		//多店铺商品列表划分,含配送方式
 		$cart_goods_list = cart_bbc::store_cart_goods($format_cart_list, $consignee); // 取得商品列表，计算合计
-		$order['store_id'] = 0;
-		if(count($cart_goods_list) == 1) {
-			$order['store_id'] = $cart_goods_list[0]['store_id'];
-		}
 		
 		//支付方式列表
-		if ($order['shipping_id'] == 0) {
-			$cod        = true;
-			$cod_fee    = 0;
-		} else {
-			$shipping = ecjia_shipping::pluginData($order['shipping_id']);
-			$cod = $shipping['support_cod'];
-			if ($cod) {
-				/* 如果是团购，且保证金大于0，不能使用货到付款 */
-				if ($flow_type == CART_GROUP_BUY_GOODS) {
-					$group_buy_id = $_SESSION['extension_id'];
-					if ($group_buy_id <= 0) {
-						return new ecjia_error('groupbuy_not_support_cod', __('如果是团购，且保证金大于0，不能使用货到付款', 'cart'));
-					}
-					$group_buy = group_buy_info($group_buy_id);
-					if (empty($group_buy)) {
-						return new ecjia_error( 'groupbuy_not_exist', __('团购活动不存在', 'cart'));
-					}
-					if ($group_buy['deposit'] > 0) {
-						$cod = false;
-						$cod_fee = 0;
-						/* 赋值保证金 */
-						$gb_deposit = $group_buy['deposit'];
-					}
-				}
-				if ($cod) {
-					$shipping_area_info = ecjia_shipping::pluginData($order['shipping_id']);
-					$cod_fee            = isset($shipping_area_info['pay_fee']) ? $shipping_area_info['pay_fee'] : 0;
-				}
-			} else {
-				$cod_fee = 0;
-			}
-		}
-		$payment_list = RC_Api::api('payment', 'available_payments', array('store_id' => $order['store_id'], 'cod_fee' => $cod_fee));
+		$cod_fee = 0;
+		$payment_list = RC_Api::api('payment', 'available_payments', array('cod_fee' => $cod_fee));
+		
 		if ($flow_type == CART_GROUP_BUY_GOODS) {
 			//团购不支持货到付款支付，过滤
-			foreach ($payment_list as $k => $payment) {
-				if ($flow_type == CART_GROUP_BUY_GOODS && $payment['pay_code'] == 'pay_cod') {
-					unset($payment_list[$k]);continue;
-				}
-			}
+			$collection = collect($payment_list);
+			$payment_list = $collection->filter(function ($value, $key) {
+				return $value['pay_code'] != 'pay_cod';
+			})->all();
 		}
+		
 		$user_info = RC_Api::api('user', 'user_info', array('user_id' => $_SESSION['user_id']));
 		
 		if (is_ecjia_error($user_info)) {
@@ -193,7 +168,6 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 		$out['store_goods_list']= $cart_goods_list;//商品
 		$out['consignee']		= $consignee;//收货地址
 		$out['payment_list']	= $payment_list;//支付信息
-		
 
 		/* 如果使用积分，取得用户可用积分及本订单最多可以使用的积分 */
 		if ((ecjia_config::has('use_integral') || ecjia::config('use_integral') == '1')
@@ -220,7 +194,7 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 			// 取得用户可用红包
 			$pra = array(
 					'user_id' 			=> $_SESSION['user_id'],
-					'store_id' 			=> array_merge($format_cart_list['cart_store_ids']),
+					'store_id' 			=> $store_ids,
 					'min_goods_amount'	=> $format_cart_list['total']['unformatted_goods_price']
 			);
 			$user_bonus = Ecjia\App\Bonus\UserAvaliableBonus::GetUserBonus($pra);
@@ -265,7 +239,7 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 		}
 		$out['your_integral']		= $user_info['pay_points'] > 0 ? $user_info['pay_points'] : 0;//用户可用积分
 		$out['discount']			= number_format($format_cart_list['total']['discount'], 2, '.', '');//用户享受折扣数
-		$out['discount_formated']	= $format_cart_list['total']['formated_discount'];
+		$out['discount_formated']	= $format_cart_list['total']['formatted_discount'];
 		$out['goods_amount']		= $format_cart_list['total']['unformatted_goods_price'];
 		$out['format_goods_amount']	= ecjia_price_format($format_cart_list['total']['unformatted_goods_price'], false);
 		
@@ -279,7 +253,8 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 	/**
 	 * 订单可用红包数据处理
 	 */
-	private function get_format_bonus($user_bonus){
+	private function get_format_bonus($user_bonus)
+	{
 		$bonus_list = array();
 		if (!empty($user_bonus)) {
 			foreach ($user_bonus AS $key => $val) {
@@ -351,6 +326,28 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 			$consignee['street_name']	= isset($a_out[$consignee['street']]) 	? $a_out[$consignee['street']] : '';
 		}
 		return $consignee;
+	}
+	
+	/**
+	 * 购物车商品
+	 */
+	private function cart_count($user_id, $flow_type, $cart_id)
+	{
+		$db = RC_DB::table('cart as c')
+		->leftJoin('store_franchisee as s', RC_DB::raw('s.store_id'), '=', RC_DB::raw('c.store_id'));
+		
+		$count = $db->where(RC_DB::raw('c.user_id'), $user_id)->where(RC_DB::raw('c.rec_type'), $flow_type)->whereIn(RC_DB::raw('c.rec_id'), $cart_id)->where(RC_DB::raw('s.shop_close'), '=', '0')->count(RC_DB::raw('c.rec_id'));
+		return $count;
+	}
+	
+	/**
+	 * 购物车店铺ids
+	 */
+	private function get_store_ids($user_id, $flow_type, $cart_id)
+	{
+		$store_ids = RC_DB::table('cart')->where('user_id', $user_id)->where('rec_type', $flow_type)->whereIn('rec_id', $cart_id)->lists('store_id');
+		$store_ids = array_unique($store_ids);
+		return $store_ids;
 	}
 }
 
