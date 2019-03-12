@@ -180,13 +180,13 @@ class CartStoreFavourable
     							$favourable_group[$key]['label_discount'] = '购满'.$favourable['min_amount'].',可减'.$favourable['act_type_ext'];
     							$cart_discount += $favourable['act_type_ext'];
     							$favourable_group[$key]['can_discount'] = sprintf("%.2f", $cart_discount);
-    							$cart_discount_temp[$key] = $favourable['act_type_ext'];
+    							$cart_discount_temp[] = $favourable['act_type_ext'];
     						} else {
     							$discount = $total_amount - ($total_amount*$favourable['act_type_ext']/100);
     							$favourable_group[$key]['label_discount'] = '已购满'.$total_amount.',已减'. $discount;
     							$cart_discount += $total_amount - ($total_amount*$favourable['act_type_ext']/100);
     							$favourable_group[$key]['can_discount'] = sprintf("%.2f", $cart_discount);
-    							$cart_discount_temp[$key] = $cart_discount;
+    							$cart_discount_temp[] = $cart_discount;
     						}
     					}
     				} else {

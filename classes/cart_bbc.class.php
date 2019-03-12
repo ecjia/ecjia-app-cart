@@ -376,23 +376,6 @@ class cart_bbc {
     	return $best_fav;
     }
     
-    /**
-     * 商家购物车划分，含配送方式
-     */
-    public static function store_cart_goods($cart_goods = array(), $consignee = array())
-    {
-    	if (!empty($cart_goods['cart_list'])) {
-    		foreach ($cart_goods['cart_list'] as $key => $val) {
-    			$store_shipping_list = self::store_shipping_list($val['goods_list'], $consignee, $val['store_id']);
-    			$val['shipping'] = $store_shipping_list;
-    			$val['goods_amount'] = sprintf("%.2f", $val['total']['goods_amount']);
-    			unset($val['total']);
-    			unset($val['favourable_activity']);
-    			$store_cart_goods [] = $val;
-    		}
-    	}
-    	return $store_cart_goods;
-    }
     
     /**
      * 商家购物车划分，含配送方式，优惠活动
@@ -711,7 +694,6 @@ class cart_bbc {
 	 *@param array 订单信息
      */
     public static function generate_order($cart_goods, $order) {
-    	
     	$inv_tax_no 	= $order['inv_tax_no'];
     	$inv_title_type = $order['inv_title_type'];
     	$temp_amout 	= $order['temp_amout'];
@@ -845,7 +827,7 @@ class cart_bbc {
     	$order['inv_tax_no'] 		= $inv_tax_no;
     	$order['inv_title_type'] 	= $inv_title_type;
     	RC_Api::api('cart', 'flow_done_do_something', $order);
-    
+    	
     	return $order;
     }
     
