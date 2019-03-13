@@ -208,8 +208,16 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 		$out['inv_type_list'] 		= $invoice_info['inv_type_list'];
 		
 		$out['your_integral']		= $user_info['pay_points'] > 0 ? $user_info['pay_points'] : 0;//用户可用积分
-		$out['discount']			= number_format($format_cart_list['total']['discount'], 2, '.', '');//用户享受折扣数
-		$out['discount_formated']	= $format_cart_list['total']['formatted_discount'];
+		
+		//团购结算不可使用优惠活动
+		if ($flow_type != CART_GROUP_BUY_GOODS) {
+			$out['discount']			= number_format($format_cart_list['total']['discount'], 2, '.', '');//用户享受折扣数
+			$out['discount_formated']	= $format_cart_list['total']['formatted_discount'];
+		} else {
+			$out['discount']			= 0;//用户享受折扣数
+			$out['discount_formated']	= '';
+		}
+		
 		$out['goods_amount']		= $format_cart_list['total']['unformatted_goods_price'];
 		$out['format_goods_amount']	= ecjia_price_format($format_cart_list['total']['unformatted_goods_price'], false);
 		

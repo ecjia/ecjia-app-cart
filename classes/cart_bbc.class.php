@@ -541,7 +541,7 @@ class cart_bbc {
     			$total['discount'] = $total['goods_price'];
     		}
     	}
-    	$total['discount_formated'] = $cart_goods_format['total']['formated_discount'];
+    	$total['discount_formated'] = ecjia_price_format($total['discount'], false);
     	
     	/* 税额 */
     	if (!empty($order['need_inv']) && $order['inv_type'] != '') {
