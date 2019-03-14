@@ -68,26 +68,20 @@ class admin_bonus_validate_module extends api_admin implements api_interface
 		$bonus = bonus_info(0, $bonus_sn);
 		$now = RC_Time::gmtime();
 		
-		/* 取得购物类型 */
-// 		$flow_type  = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
-		
         if (empty($bonus)) {
 			return new ecjia_error('bonus_error', __('红包信息有误！', 'cart'));
 		}
 		if ($bonus['order_id'] > 0) {
 		    return new ecjia_error('bonus_error', __('红包已使用！', 'cart'));
 		}
-// 		if ($bonus['min_goods_amount'] > cart_amount(true, $flow_type)) {
-// 		    return new ecjia_error('bonus_error', __('红包使用最小金额为', 'cart').$bonus['min_goods_amount'].'！');
-// 		}
 		if ($now < $bonus['use_start_date'] ||  $now > $bonus['use_end_date']) {
 		    return new ecjia_error('bonus_error', __('红包不在有效期！', 'cart'));
 		}
 		$min_amount = $bonus['min_goods_amount'] > 0 ? $bonus['min_goods_amount'] : 0;
-		if ($bonus['user_id'] > 0) {
-		    return new ecjia_error('bonus_error', __('红包信息有误！', 'cart'));
+		if ($bonus['order_id'] > 0) {
+		    return new ecjia_error('bonus_error', __('红包已使用！', 'cart'));
 		} else {
-		    return array('bonus' => $bonus['type_money'], 'bonus_formated' => price_format($bonus['type_money']), 'min_amount' => $min_amount);
+		    return array('bonus_id' => $bonus['bonus_id'], 'bonus' => $bonus['type_money'], 'bonus_formated' => price_format($bonus['type_money']), 'min_amount' => $min_amount);
 		}
 	}
 }
