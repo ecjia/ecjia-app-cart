@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ecjia App cart 1.28.0\n"
 "Report-Msgid-Bugs-To: https://make.ecjia.com/polyglots/\n"
-"POT-Creation-Date: 2019-03-13 05:24:22+00:00\n"
+"POT-Creation-Date: 2019-03-15 01:49:03+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -373,16 +373,16 @@ msgstr ""
 msgid "参数错误"
 msgstr ""
 
-#: modules/admin/bonus/validate_module.class.php:75
-#: modules/admin/bonus/validate_module.class.php:88
+#: modules/admin/bonus/validate_module.class.php:72
 msgid "红包信息有误！"
 msgstr ""
 
-#: modules/admin/bonus/validate_module.class.php:78
+#: modules/admin/bonus/validate_module.class.php:75
+#: modules/admin/bonus/validate_module.class.php:82
 msgid "红包已使用！"
 msgstr ""
 
-#: modules/admin/bonus/validate_module.class.php:84
+#: modules/admin/bonus/validate_module.class.php:78
 msgid "红包不在有效期！"
 msgstr ""
 
