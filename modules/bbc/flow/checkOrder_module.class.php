@@ -106,11 +106,11 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 		//多店购物车获取
 		$store_ids = $this->get_store_ids($user_id, $flow_type, $cart_id);
 		 
-		$cart_multi = (new \Ecjia\App\Cart\CartFlow\MultiCart());
+		$cart_multi = with(new \Ecjia\App\Cart\CartFlow\MultiCart());
 		
 		foreach ($store_ids as $val) {
 			//单店购物车
-			$cart_single = (new \Ecjia\App\Cart\CartFlow\Cart($user_id, $val, $flow_type, $cart_id));
+			$cart_single = with(new \Ecjia\App\Cart\CartFlow\Cart($user_id, $val, $flow_type, $cart_id));
 			
 			//多店购物车
 			$cart_multi->addCart($cart_single);
