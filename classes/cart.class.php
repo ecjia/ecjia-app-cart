@@ -423,28 +423,26 @@ class cart {
 			if ($val <= 0 || !is_numeric($key)) {
 				continue;
 			}
-			$cart_where = array('rec_id' => $key , 'user_id' => $_SESSION['user_id']);
-// 			if (defined($name)) {
-// 				$cart_where['session_id'] = SESS_ID;
-// 			}
-			$goods = RC_Model::model('cart/cart_model')->field('goods_id, goods_attr_id, extension_code, product_id')->find($cart_where);
-
-			$row   = RC_Model::model('goods/goods_cart_viewmodel')->field('c.product_id')->join('cart')->find(array('c.rec_id' => $key));
+			
+			$cart = RC_DB::table('cart')->where('rec_id', $key)->select('goods_id', 'goods_attr_id', 'extension_code', 'product_id')->first();
+			
+			$goods = RC_DB::table('goods')->select('goods_number')->where('goods_id', $cart['goods_id'])->first();
+			
 			//系统启用了库存，检查输入的商品数量是否有效
-			if (intval(ecjia::config('use_storage')) > 0 && $goods['extension_code'] != 'package_buy') {
-				if ($row['goods_number'] < $val) {
+			if (intval(ecjia::config('use_storage')) > 0 && $cart['extension_code'] != 'package_buy') {
+				if ($goods['goods_number'] < $val) {
 					return new ecjia_error('low_stocks', __('库存不足', 'cart'));
 				}
 				/* 是货品 */
-				$row['product_id'] = trim($row['product_id']);
-				if (!empty($row['product_id'])) {
-					$product_number = RC_Model::model('goods/products_model')->where(array('goods_id' => $goods['goods_id'] , 'product_id' => $goods['product_id']))->get_field('product_number');
+				$cart['product_id'] = trim($cart['product_id']);
+				if (!empty($cart['product_id'])) {
+					$product_number = RC_DB::table('products')->where('goods_id', $cart['goods_id'])->where('product_id', $cart['product_id'])->pluck('product_number');
 					if ($product_number < $val) {
 						return new ecjia_error('low_stocks', __('库存不足', 'cart'));
 					}
 				}
-			} elseif (intval(ecjia::config('use_storage')) > 0 && $goods['extension_code'] == 'package_buy') {
-				if (self::judge_package_stock($goods['goods_id'], $val)) {
+			} elseif (intval(ecjia::config('use_storage')) > 0 && $cart['extension_code'] == 'package_buy') {
+				if (self::judge_package_stock($cart['goods_id'], $val)) {
 					return new ecjia_error('low_stocks', __('库存不足', 'cart'));
 				}
 			}
