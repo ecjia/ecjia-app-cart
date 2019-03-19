@@ -54,13 +54,12 @@ use Ecjia\App\User\Location;
 use cart;
 
 /**
- * 购物车商品格式处理
- *
+ *获取商家配送方式及配送费用
  */
-class CartGoodsFormate
+class CartStoreShipping
 {
   	/**
-     * 商家购物车划分，含配送方式
+     * 商家配送方式及配送费用
      */
     public static function store_cart_goods($cart_goods = array(), $consignee = array())
     {

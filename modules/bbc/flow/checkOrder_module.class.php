@@ -141,7 +141,7 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 		$order = cart::flow_order_info();
 		
 		//多店铺商品列表划分,含配送方式
-		$cart_goods_list = Ecjia\App\Cart\CartFlow\CartGoodsFormate::store_cart_goods($format_cart_list, $consignee); // 取得商品列表，计算合计
+		$cart_goods_list = Ecjia\App\Cart\CartFlow\CartStoreShipping::store_cart_goods($format_cart_list, $consignee); // 取得商品列表，计算合计
 		
 		//支付方式列表
 		$cod_fee = 0;
