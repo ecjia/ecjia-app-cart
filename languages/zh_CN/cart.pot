@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ecjia App cart 1.28.0\n"
 "Report-Msgid-Bugs-To: https://make.ecjia.com/polyglots/\n"
-"POT-Creation-Date: 2019-03-15 01:49:03+00:00\n"
+"POT-Creation-Date: 2019-03-20 07:33:48+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -69,13 +69,13 @@ msgstr ""
 #: apis/cart_cart_manage_api.class.php:156
 #: apis/cart_cart_manage_api.class.php:351 classes/CartFlow/CartGoods.php:113
 #: classes/cart.class.php:96 classes/cart.class.php:103
-#: classes/cart.class.php:108 classes/cart.class.php:436
-#: classes/cart.class.php:443 classes/cart.class.php:448
-#: classes/cart.class.php:1711 classes/cart.class.php:1717
+#: classes/cart.class.php:108 classes/cart.class.php:434
+#: classes/cart.class.php:441 classes/cart.class.php:446
+#: classes/cart.class.php:1709 classes/cart.class.php:1715
 #: classes/cart_cashdesk.class.php:304 classes/cart_cashdesk.class.php:311
-#: classes/cart_cashdesk.class.php:484 classes/cart_cashdesk.class.php:525
-#: classes/cart_cashdesk.class.php:654 classes/cart_cashdesk.class.php:666
-#: classes/cart_cashdesk.class.php:672 classes/cart_goods_stock.class.php:83
+#: classes/cart_cashdesk.class.php:490 classes/cart_cashdesk.class.php:533
+#: classes/cart_cashdesk.class.php:662 classes/cart_cashdesk.class.php:674
+#: classes/cart_cashdesk.class.php:680 classes/cart_goods_stock.class.php:83
 #: classes/cart_goods_stock.class.php:90 classes/cart_goods_stock.class.php:96
 #: functions/cart.func.php:190 functions/cart.func.php:202
 #: functions/cart.func.php:208 functions/cart.func.php:572
@@ -241,30 +241,34 @@ msgstr ""
 msgid "满折"
 msgstr ""
 
-#: classes/StoreCleanHandlers/StoreCartGoodsClear.php:43
+#: classes/StoreCleanHandlers/StoreCartGoodsClear.php:34
+msgid "购物车商品"
+msgstr ""
+
+#: classes/StoreCleanHandlers/StoreCartGoodsClear.php:44
 msgid "将用户购物车内当前店铺的商品数据全部删除"
 msgstr ""
 
-#: classes/StoreCleanHandlers/StoreCartGoodsClear.php:95
+#: classes/StoreCleanHandlers/StoreCartGoodsClear.php:96
 msgid "店铺名是%s"
 msgstr ""
 
-#: classes/StoreCleanHandlers/StoreCartGoodsClear.php:95
+#: classes/StoreCleanHandlers/StoreCartGoodsClear.php:96
 msgid "店铺ID是%s"
 msgstr ""
 
-#: classes/cart.class.php:84 classes/cart_cashdesk.class.php:626
+#: classes/cart.class.php:84 classes/cart_cashdesk.class.php:634
 #: modules/bbc/cart/create_module.class.php:92
 #: modules/cart/create_module.class.php:98
 #: modules/storebuy/cart/create_module.class.php:113
 msgid "对不起，该商品所属的店铺已锁定！"
 msgstr ""
 
-#: classes/cart.class.php:994
+#: classes/cart.class.php:992
 msgid "克"
 msgstr ""
 
-#: classes/cart.class.php:997
+#: classes/cart.class.php:995
 msgid "千克"
 msgstr ""
 
@@ -377,12 +381,16 @@ msgstr ""
 msgid "红包信息有误！"
 msgstr ""
 
-#: modules/admin/bonus/validate_module.class.php:75
-#: modules/admin/bonus/validate_module.class.php:82
+#: modules/admin/bonus/validate_module.class.php:76
+msgid "此红包不属于当前用户！"
+msgstr ""
+
+#: modules/admin/bonus/validate_module.class.php:79
+#: modules/admin/bonus/validate_module.class.php:86
 msgid "红包已使用！"
 msgstr ""
 
-#: modules/admin/bonus/validate_module.class.php:78
+#: modules/admin/bonus/validate_module.class.php:82
 msgid "红包不在有效期！"
 msgstr ""
 
