@@ -69,7 +69,6 @@ class bbc_flow_done_module extends api_front implements api_interface {
     	}
     	
     	RC_Loader::load_app_class('cart', 'cart', false);
-    	RC_Loader::load_app_class('cart_bbc', 'cart', false);
     	
     	$rec_id = $this->requestData('rec_id');
     	if (isset($_SESSION['cart_id'])) {
@@ -160,7 +159,7 @@ class bbc_flow_done_module extends api_front implements api_interface {
     	
 		//期望送达时间过滤
     	$order['expect_shipping_time'] = empty($order['expect_shipping_time']) ? '' : $order['expect_shipping_time'];
-    	//$order['expect_shipping_time'] = array('63|2019-02-19 09:00-18:30');
+    	$order['expect_shipping_time'] = array('63|2019-02-19 09:00-18:30');
     	
     	if (empty($order['pay_id'])) {
     	    return new ecjia_error('empty_payment', __('请选择支付方式', 'cart'));
@@ -183,7 +182,7 @@ class bbc_flow_done_module extends api_front implements api_interface {
         	}
         }
         
-    	$result = RC_Api::api('cart', 'bbc_flow_done', array('cart_id' => $cart_id, 'order' => $order, 'address_id' => $address_id, 'flow_type' => $flow_type, 'store_ids' => $store_ids, 'is_separate_order' => $is_separate_order, 'device' => $this->device));
+    	$result = RC_Api::api('cart', 'bbc_flow_done', array('user_id' => $_SESSION['user_id'], 'cart_id' => $cart_id, 'order' => $order, 'address_id' => $address_id, 'flow_type' => $flow_type, 'store_ids' => $store_ids, 'is_separate_order' => $is_separate_order, 'device' => $this->device));
     	if (is_ecjia_error($result)) {
     		return $result;
     	}
