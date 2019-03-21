@@ -1644,17 +1644,20 @@ class cart {
 	 * @param   bool	$storage	 减库存的时机，1，下订单时；0，发货时；
 	 */
 	public static function change_order_goods_storage($order_id, $is_dec = true, $storage = 0) {
-		$db			= RC_Model::model('orders/order_goods_model');
-		$db_package	= RC_Model::model('goods/package_goods_model');
-		$db_goods	= RC_Model::model('goods/goods_model');
+		$db 		= RC_DB::table('order_goods');
+		$db_package = RC_DB::table('package_goods');
+		$db_goods	= RC_DB::table('goods');
+		
 		/* 查询订单商品信息  */
 		switch ($storage) {
 			case 0 :
-				$data = $db->field('goods_id, SUM(send_number) as num, MAX(extension_code) as extension_code, product_id')->where(array('order_id' => $order_id , 'is_real' => 1))->group(array('goods_id' , 'product_id'))->select();
+				$data = $db->select(RC_DB::raw('goods_id, SUM(send_number) as num, MAX(extension_code) as extension_code, product_id'))
+							->where('order_id', $order_id)->where('is_real', 1)->groupBy('goods_id')->groupBy('product_id')->get();
 				break;
 
 			case 1 :
-				$data = $db->field('goods_id, SUM(goods_number) as num, MAX(extension_code) as extension_code, product_id')->where(array('order_id' => $order_id , 'is_real' => 1))->group(array('goods_id', 'product_id'))->select();
+				$data = $db->select(RC_DB::raw('goods_id, SUM(goods_number) as num, MAX(extension_code) as extension_code, product_id'))
+							->where('order_id', $order_id)->where('is_real', 1)->groupBy('goods_id')->groupBy('product_id')->get();
 				break;
 		}
 
@@ -1667,11 +1670,10 @@ class cart {
 						$result = self::change_goods_storage($row['goods_id'], $row['product_id'], $row['num']);
 					}
 				} else {
-					$data = $db_package->field('goods_id, goods_number')->where('package_id = "' . $row['goods_id'] . '"')->select();
+					$data = $db_package->select('goods_id', 'goods_number')->where('package_id', $row['goods_id'])->get();
 					if (!empty($data)) {
 						foreach ($data as $row_goods) {
-							$is_goods = $db_goods->field('is_real')->find('goods_id = "'. $row_goods['goods_id'] .'"');
-
+							$is_goods	= $db_goods->select('is_real')->where('goods_id', $row_goods['goods_id'])->first();
 							if ($is_dec) {
 								$result = self::change_goods_storage($row_goods['goods_id'], $row['product_id'], - ($row['num'] * $row_goods['goods_number']));
 							} elseif ($is_goods['is_real']) {
