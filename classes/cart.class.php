@@ -1439,22 +1439,13 @@ class cart {
 	 * 清空购物车
 	 * @param   int	 $type   类型：默认普通商品
 	 */
-	public static function clear_cart($type = CART_GENERAL_GOODS, $cart_id = array()) {
-		$db_cart = RC_Model::model('cart/cart_model');
-
-		$cart_w = array(
-				'user_id'	=> $_SESSION['user_id'],
-				'rec_type'	=> $type,
-		);
-		if (!empty($cart_id)) {
-			$cart_w['rec_id'] = $cart_id;
+	public static function clear_cart($type = CART_GENERAL_GOODS, $cart_id = array(), $user_id = 0) {
+		$db_cart = RC_DB::table('cart');
+		$db_cart->where('user_id', $user_id)->where('rec_type', $type);
+		if (!empty($cart_id) && is_array($cart_id)) {
+			$db_cart->whereIn('rec_id', $cart_id);
 		}
-
-// 		if (defined('SESS_ID')) {
-// 			$cart_w['session_id'] = SESS_ID;
-// 		}
-
-		$db_cart->where($cart_w)->delete();
+		$db_cart->delete();
 	}
 
 	/**
