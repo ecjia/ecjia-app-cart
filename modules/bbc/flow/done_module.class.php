@@ -159,7 +159,7 @@ class bbc_flow_done_module extends api_front implements api_interface {
     	
 		//期望送达时间过滤
     	$order['expect_shipping_time'] = empty($order['expect_shipping_time']) ? '' : $order['expect_shipping_time'];
-    	$order['expect_shipping_time'] = array('63|2019-02-19 09:00-18:30');
+    	//$order['expect_shipping_time'] = array('63|2019-02-19 09:00-18:30');
     	
     	if (empty($order['pay_id'])) {
     	    return new ecjia_error('empty_payment', __('请选择支付方式', 'cart'));
