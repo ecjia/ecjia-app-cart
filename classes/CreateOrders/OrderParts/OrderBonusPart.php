@@ -19,6 +19,13 @@ class OrderBonusPart
         $this->bonus_id = $bonus_id;
     }
 
+	/**
+	 * 红包信息
+	 */
+    public function getBonusInfo()
+    {
+    	$bonus = \Ecjia\App\Bonus\UserAvaliableBonus::bonusInfo($this->bonus_id);
+    	return $bonus;
+    }
 	
-
 }

@@ -19,6 +19,15 @@ class OrderUserPart
         $this->user_id = $user_id;
     }
 
-	
+	public function userInfo()
+	{
+		$user_info = [];
+		$user_info = \RC_Api::api('user', 'user_info', ['user_id' => $this->user_id]);
+		if (is_ecjia_error($user_info)) {
+			$user_info = [];
+		}
+		
+		return $user_info;
+	}
 
 }

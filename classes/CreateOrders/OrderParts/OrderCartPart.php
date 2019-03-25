@@ -19,6 +19,13 @@ class OrderCartPart
         $this->card_id = $card_id;
     }
 
-	
+	/**
+	 * 贺卡信息
+	 */
+    public function cardInfo()
+    {
+    	$card_info = [];
+    	return $card_info;
+    }
 
 }

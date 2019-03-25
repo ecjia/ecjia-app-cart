@@ -19,6 +19,72 @@ class OrderShippingPart
         $this->shipping_id = $shipping_id;
     }
 
+	/**
+	 * 配送方式检验
+	 *  @param array $shipping_id
+     *  @return \ecjia_error
+	 */
+	public function check_shipping_id()
+	{
+		//TODO 待处理
+// 		if ($is_real_good) {
+// 			//配送方式不可为空判断
+// 			if (empty($order['shipping_id'])) {
+// 				return new ecjia_error('pls_choose_ship_way', __('请选择配送方式！', 'cart'));
+// 			} else {
+// 				if (is_array($order['shipping_id'])) {
+// 					foreach ($order['shipping_id'] as $ship_val) {
+// 						if (empty($ship_val)) {
+// 							return new ecjia_error('pls_choose_ship_way', __('请选择配送方式！', 'cart'));
+// 						}
+// 						$ship_val_str = explode('-', $ship_val);
+// 						if (empty($ship_val_str['0']) || empty($ship_val_str['1'])) {
+// 							return new ecjia_error('pls_choose_ship_way', __('请选择配送方式！', 'cart'));
+// 						}
+// 					}
+// 				}
+// 			}
+// 		}
+	}
 	
-
+	/**
+	 * 配送总费用
+	 */
+	public function total_shipping_fee()
+	{
+		//TODO 待处理
+		/*配送费用*/
+// 		if (!empty($order['shipping_id']) && is_array($order['shipping_id']) && $total['real_goods_count'] > 0) {
+// 			$total['shipping_fee'] 	= self::get_total_shipping_fee($cart_goods_list, $order['shipping_id']);
+// 		}
+	}
+	
+	/**
+	 * 多店铺配送总费用
+	 */
+	public  function get_total_shipping_fee($cart_goods_list, $shipping_ids) {
+		$shipping_fee = 0;
+		 
+		//TODO 待处理
+// 		if (!empty($cart_goods_list['cart_list']) && !empty($shipping_ids) && is_array($shipping_ids)) {
+// 			foreach ($cart_goods_list['cart_list'] as $val) {
+// 				if ($val['shipping']) {
+// 					foreach ($val['shipping'] as $k => $v) {
+// 						foreach ($shipping_ids as $ship_val) {
+// 							if ($ship_val) {
+// 								$ship = explode('-', $ship_val);
+// 								if ($ship['0'] == $val['store_id'] && $ship['1'] == $v['shipping_id']) {
+// 									if ($v['shipping_code'] == 'ship_cac') {
+// 										$v['shipping_fee'] = 0;
+// 									}
+// 									$shipping_fee += $v['shipping_fee'];
+// 								}
+// 							}
+// 						}
+// 					}
+// 				}
+// 			}
+// 		}
+		return $shipping_fee;
+	}
 }
