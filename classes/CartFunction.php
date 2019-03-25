@@ -345,6 +345,74 @@ class CartFunction
     }
     
     
+
+    /**
+     * 获取上门自提时间
+     * @param Y integer $store_id
+     * @param N integer $shipping_cac_id
+     */
+    public static function get_ship_cac_date_by_store($store_id = 0, $shipping_cac_id = 0, $show_all_time = 0) {
+    	$expect_pickup_date = [];
+    	 
+    	//根据店铺id，店铺有没设置运费模板，查找店铺设置的运费模板关联的快递
+    	if(empty($shipping_cac_id)) {
+    		$shipping_cac_id = RC_DB::table('shipping')->where('shipping_code', 'ship_cac')->pluck('shipping_id');
+    	}
+    	 
+    	if (!empty($shipping_cac_id)) {
+    		$shipping_area_list = RC_DB::table('shipping_area')->where('shipping_id', $shipping_cac_id)->where('store_id', $store_id)->groupBy('shipping_id')->get();
+    		 
+    		if (!empty($shipping_area_list)) {
+    			$shipping_cfg = \ecjia_shipping::unserializeConfig($shipping_area_list['0']['configure']);
+    			if (!empty($shipping_cfg['pickup_time'])) {
+    				/* 获取最后可取货的时间（当前时间）*/
+    				$time = \RC_Time::local_date('H:i', \RC_Time::gmtime());
+    				if (empty($shipping_cfg['pickup_time'])) {
+    					return $expect_pickup_date;
+    				}
+    				$pickup_date = 0;
+    				/*取货日期*/
+    				if (empty($shipping_cfg['pickup_days'])) {
+    					$shipping_cfg['pickup_days'] = 7;
+    				}
+    				while ($shipping_cfg['pickup_days']) {
+    					$pickup = [];
+    					 
+    					foreach ($shipping_cfg['pickup_time'] as $k => $v) {
+    						if($show_all_time) {
+    							$pickup['date'] = \RC_Time::local_date('Y-m-d', \RC_Time::local_strtotime('+'.$pickup_date.' day'));
+    							$pickup['time'][] = array(
+    									'start_time' 	=> $v['start'],
+    									'end_time'		=> $v['end'],
+    									'is_disabled'   => ($v['end'] < $time && $pickup_date == 0) ? 1 : 0,
+    							);
+    						} else {
+    							if ($v['end'] > $time || $pickup_date > 0) {
+    								$pickup['date'] = \RC_Time::local_date('Y-m-d', \RC_Time::local_strtotime('+'.$pickup_date.' day'));
+    								$pickup['time'][] = array(
+    										'start_time' 	=> $v['start'],
+    										'end_time'		=> $v['end'],
+    								);
+    							}
+    						}
+    					}
+    					if (!empty($pickup['date']) && !empty($pickup['time'])) {
+    						$expect_pickup_date[] = $pickup;
+    					}
+    					$pickup_date ++;
+    					 
+    					if (count($expect_pickup_date) >= $shipping_cfg['pickup_days']) {
+    						break;
+    					}
+    				}
+    			}
+    		}
+    	}
+    	 
+    	return $expect_pickup_date;
+    }
+    
+    
     
     
 }
