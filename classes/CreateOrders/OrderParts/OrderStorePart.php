@@ -9,14 +9,14 @@
 namespace Ecjia\App\Cart\CreateOrders\OrderParts;
 
 
-class OrderUserPart
+class OrderStorePart
 {
 
-    protected $user_id;
+    protected $store_id;
 
-    public function __construct($user_id)
+    public function __construct($store_id)
     {
-        $this->user_id = $user_id;
+        $this->store_id = $store_id;
     }
 
 	
