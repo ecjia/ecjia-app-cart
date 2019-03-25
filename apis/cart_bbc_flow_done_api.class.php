@@ -332,7 +332,7 @@ class cart_bbc_flow_done_api extends Component_Event_Api {
 	{
 		if (isset($flow_type) && intval($flow_type) != CART_GENERAL_GOODS) {
 			if ($flow_type == CART_GROUP_BUY_GOODS) {
-				$order['extension_code'] = 'group_buy';
+				$extension_code = 'group_buy';
 				if (!empty($cart_goods)) {
 					$goods_id = $cart_goods['0']['goods_id'];
 				}

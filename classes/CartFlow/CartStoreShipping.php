@@ -50,7 +50,6 @@ use RC_DB;
 use ecjia_shipping;
 use RC_Time;
 use Ecjia\App\User\Location;
-use cart;
 
 /**
  *获取商家配送方式及配送费用
@@ -170,7 +169,7 @@ class CartStoreShipping
     			}
     			//上门取货 自提插件 获得提货时间
     			if($row['shipping_code'] == 'ship_cac') {
-    				$shipping_list[$key]['expect_pickup_date'] = cart::get_ship_cac_date_by_store($store_id, $row['shipping_id']);
+    				$shipping_list[$key]['expect_pickup_date'] =\Ecjia\App\Cart\CartFunction::get_ship_cac_date_by_store($store_id, $row['shipping_id']);
     				$shipping_list[$key]['expect_pickup_date_default'] = $shipping_list[$key]['expect_pickup_date'][0]['date'] . ' ' . $shipping_list[$key]['expect_pickup_date'][0]['time'][0]['start_time'] . '-' . $shipping_list[$key]['expect_pickup_date'][0]['time'][0]['end_time'];
     			}
     			 

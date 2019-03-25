@@ -215,6 +215,7 @@ class CreateOrder
 		$expect_shipping_time = $order['expect_shipping_time'];
 		$separate_order_goods = [];
 		$shippings = [];
+		$goods_amount = [];
 		foreach ($cart_goods_list as $store) {
 			foreach ($store['goods_list'] as $rows) {
 				$goods_arr = array(
