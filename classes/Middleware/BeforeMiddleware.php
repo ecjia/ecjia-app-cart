@@ -16,7 +16,9 @@ class BeforeMiddleware
     public function handle($request, Closure $next)
     {
         // 运行动作
+//        dd($request);
 
+        $request->setCartData('cart', '123');
         return $next($request);
     }
 

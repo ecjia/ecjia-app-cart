@@ -28,6 +28,8 @@ class Cart
 
     ];
 
+    protected $item = [];
+
     protected $model;
 
     public function __construct($user_id, $store_id, $cart_type, $cart_id = [])
@@ -38,6 +40,18 @@ class Cart
         $this->cart_id	 = $cart_id;
 
         $this->model = new CartModel();
+    }
+
+    public function setCartData($key, $value)
+    {
+        $this->item[$key] = $value;
+
+        return $this;
+    }
+
+    public function getCartData($key)
+    {
+        return array($this->item, $key);
     }
 
     /**
