@@ -38,21 +38,17 @@ class CreateOrder
 
 
 
-
-
-
-
     public function pipeline()
     {
 //        dd($this);
-        $cart = (new Pipeline(royalcms()))
-            ->send($this->cart)
+        $order = (new Pipeline(royalcms()))
+            ->send($this->order)
             ->through($this->middlewares)
             ->then(function ($poster) {
             return $poster;
         });
 
-        dd($cart);
+        dd($order);
     }
 
 }

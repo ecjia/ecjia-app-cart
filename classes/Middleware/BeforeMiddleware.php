@@ -18,7 +18,7 @@ class BeforeMiddleware
         // 运行动作
 //        dd($request);
 
-        $request->setCartData('cart', '123');
+//        $request->setCartData('cart', '123');
         return $next($request);
     }
 
