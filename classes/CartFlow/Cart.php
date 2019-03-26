@@ -117,7 +117,8 @@ class Cart
         $res['store_id'] 	= $store_info['store_id'];
         $res['store_name'] 	= $store_info['merchants_name'];
         $res['manage_mode'] = $store_info['manage_mode'];
-        
+        $res['user_id'] 	= $this->user_id;
+
         $res['goods_list'] = $result;
         $res['favourable_activity'] = empty($fav_list['store_fav_activity']) ? [] : $fav_list['store_fav_activity'];
         $res['total']	   = $total;

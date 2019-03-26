@@ -14,6 +14,8 @@ class OrderBonusPart
 
     protected $bonus_id;
 
+    protected $data;
+
     public function __construct($bonus_id, $user_id)
     {
         $this->bonus_id = $bonus_id;
@@ -33,10 +35,14 @@ class OrderBonusPart
     /**
      * 检验红包是否可用
      */
-    public function check_bonus()
+    public function check_bonus($user_id)
     {
     	if ($this->bonus_id > 0) {
     		$bonus = $this->getBonusInfo($this->bonus_id);
+
+    		$this->data = $bonus;
+
+    		return $bonus;
     		
 //     		if (empty($bonus) || $bonus['user_id'] != $this->user_id || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart::cart_amount(true, $options['flow_type'])) {
 //     			$order['bonus_id'] = 0;

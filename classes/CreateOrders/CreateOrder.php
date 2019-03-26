@@ -12,8 +12,14 @@ namespace Ecjia\App\Cart\CreateOrders;
 use Ecjia\App\Cart\CartFlow\Cart;
 use Royalcms\Component\Pipeline\Pipeline;
 
+/**
+ * Class CreateOrder
+ * @package Ecjia\App\Cart\CreateOrders
+ */
 class CreateOrder
 {
+
+
 
     /**
      * @var Cart
@@ -26,8 +32,9 @@ class CreateOrder
     protected $order;
 
     protected $middlewares = [
-        'Ecjia\App\Cart\Middleware\BeforeMiddleware',
-        'Ecjia\App\Cart\Middleware\AfterMiddleware',
+        'Ecjia\App\Cart\Middleware\BeforeUserMiddleware',
+        'Ecjia\App\Cart\Middleware\BeforeBonusMiddleware',
+//        'Ecjia\App\Cart\Middleware\AfterMiddleware',
     ];
 
     public function __construct(Cart $cart, GeneralOrder $order)
@@ -41,14 +48,42 @@ class CreateOrder
     public function pipeline()
     {
 //        dd($this);
-        $order = (new Pipeline(royalcms()))
-            ->send($this->order)
+        $create_order = (new Pipeline(royalcms()))
+            ->send($this)
             ->through($this->middlewares)
             ->then(function ($poster) {
             return $poster;
         });
 
-        dd($order);
+        if (is_ecjia_error($create_order)) {
+
+            dd($create_order);
+
+        } else {
+
+            dd($create_order->getOrder());
+
+        }
+
     }
+
+    /**
+     * @return \Ecjia\App\Cart\CartFlow\Cart
+     */
+    public function getCart()
+    {
+        return $this->cart;
+    }
+
+    /**
+     * @return \Ecjia\App\Cart\CreateOrders\GeneralOrder
+     */
+    public function getOrder()
+    {
+        return $this->order;
+    }
+
+
+
 
 }

@@ -14,12 +14,17 @@ class OrderUserPart
 
     protected $user_id;
 
+    protected $data;
+
     public function __construct($user_id)
     {
         $this->user_id = $user_id;
+
+
+        $this->data = $this->getUserInfo();
     }
 
-	public function userInfo()
+	public function getUserInfo()
 	{
 		$user_info = [];
 		$user_info = \RC_Api::api('user', 'user_info', ['user_id' => $this->user_id]);
