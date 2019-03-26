@@ -10,7 +10,8 @@ namespace Ecjia\App\Cart\CreateOrders\OrderParts;
 
 
 use \Ecjia\App\Cart\Models\CartModel;
-use RC_DB;
+use \Ecjia\App\User\Models\UserAddressModel;
+
 
 class OrderAddressPart
 {
@@ -26,7 +27,10 @@ class OrderAddressPart
         $this->flow_type 		= $flow_type;
     }
 	
-    
+    /**
+     * 收货人信息
+     * @return \ecjia_error|array
+     */
 	public function consigneeInfo()
 	{
 		$consignee = [];
@@ -36,8 +40,7 @@ class OrderAddressPart
 				$consignee = \Ecjia\App\User\UserAddress::UserDefaultAddressInfo($this->user_id);
 			}
 		} else {
-			$consignee = RC_DB::table('user_address')
-			->where('address_id', $this->address_id)
+			$consignee = UserAddressModel::where('address_id', $this->address_id)
 			->where('user_id', $this->user_id)
 			->first();
 		}
@@ -49,6 +52,31 @@ class OrderAddressPart
 		}
 		
 		return $consignee;
+	}
+	
+	/**
+	 * 订单收货人信息
+	 */
+	public function order_consignee()
+	{
+		/* 订单收货人信息 */
+		$order_consignee_fields = ['consignee', 'country', 'province', 'city', 'district', 'street', 'address'];
+		$order_consignee = [];
+		$consignee = $this->consigneeInfo();
+		
+		if (!is_ecjia_error($consignee) && !empty($consignee)) {
+			$consignee = $consignee->toArray();
+			foreach ($consignee as $key => $value) {
+				if (in_array($key, $order_consignee_fields)) {
+					$order_consignee[$key] = addslashes($value);
+				}
+				if($key == 'address_info'){
+					$order_consignee['address'] = $order_consignee['address'].$value;
+				}
+			}
+		}
+		
+		return $order_consignee;
 	}
 	
 	/**

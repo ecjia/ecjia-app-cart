@@ -27,6 +27,21 @@ class OrderShippingPart
 	public function check_shipping_id()
 	{
 		//TODO 待处理
+		
+// 		$get_cart_goods = Ecjia\App\Cart\CartFunction::cart_list($options['flow_type'], $options['user_id'], $options['cart_id']);
+		
+// 		if (count($get_cart_goods) == 0) {
+// 			return new ecjia_error('not_found_cart_goods', __('购物车中没有您选择的商品', 'cart'));
+// 		}
+		
+// 		/* 判断是不是实体商品*/
+// 		foreach ($get_cart_goods as $val) {
+// 			/* 统计实体商品的个数 */
+// 			if ($val['is_real']) {
+// 				$is_real_good = 1;
+// 			}
+// 		}
+		
 // 		if ($is_real_good) {
 // 			//配送方式不可为空判断
 // 			if (empty($order['shipping_id'])) {

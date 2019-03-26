@@ -9,7 +9,7 @@
 namespace Ecjia\App\Cart\CreateOrders\OrderParts;
 
 
-class OrderCartPart
+class OrderCardPart
 {
 
     protected $card_id;
@@ -26,6 +26,16 @@ class OrderCartPart
     {
     	$card_info = [];
     	return $card_info;
+    }
+    
+    /**
+     * 贺卡费用
+     * @return number
+     */
+    public function total_card_fee()
+    {
+    	$card_fee = 0;
+    	return $card_fee;
     }
 
 }

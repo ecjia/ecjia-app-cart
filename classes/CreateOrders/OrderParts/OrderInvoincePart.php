@@ -12,6 +12,8 @@ namespace Ecjia\App\Cart\CreateOrders\OrderParts;
 class OrderInvoincePart
 {
 
+	protected $need_inv;
+	
     protected $inv_title_type;
     
     protected $inv_payee;
@@ -22,8 +24,9 @@ class OrderInvoincePart
     
     protected $inv_content;
 
-    public function __construct($inv_title_type = '', $inv_payee = '', $inv_tax_no = '', $inv_type ='', $inv_content ='')
+    public function __construct($need_inv = 0, $inv_title_type = '', $inv_payee = '', $inv_tax_no = '', $inv_type ='', $inv_content ='')
     {
+    	$this->need_inv 		= $need_inv;
     	
     	$this->inv_title_type 	= $inv_title_type;
     	
@@ -59,6 +62,47 @@ class OrderInvoincePart
     	return $invoinceInfo;
     }
     
+    /**
+     * 发票总费用
+     */
+    public function total_tax_fee()
+    {
+    	/* 税额 */ //TODO 商品总金额获取
+//     	if (!empty($order['need_inv']) && $order['inv_type'] != '') {
+//     		$total['tax'] = self::get_tax_fee($order['inv_type'], $total['goods_price']);
+//     	}
+    }
+    
+    
+    /**
+     * 税费计算
+     * @param string $inv_type
+     * @param float $goods_price
+     * @return float
+     */
+    public  function get_tax_fee($inv_type, $goods_price) {
+    	$rate = 0;
+    	$tax_fee = 0;
+    
+    	$invoice_type = \ecjia::config('invoice_type');
+    	if ($invoice_type) {
+    		$invoice_type = unserialize($invoice_type);
+    		foreach ($invoice_type['type'] as $key => $type) {
+    			if ($type == $inv_type) {
+    				$rate_str = $invoice_type['rate'];
+    				$rate = floatval($rate_str[$key]) / 100;
+    				break;
+    			}
+    		}
+    	}
+    
+    	if ($rate > 0) {
+    		$tax_fee = $rate * $goods_price;
+    		$tax_fee = round($tax_fee, 2);
+    	}
+    
+    	return $tax_fee;
+    }
     
     /**
      * 发票抬头处理
@@ -86,5 +130,5 @@ class OrderInvoincePart
     	return $inv_payee_last;
     }
     
-
+	
 }
