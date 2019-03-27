@@ -17,6 +17,8 @@ class OrderBonusPart extends OrderPartAbstract
     protected $part_key = 'bonus';
 
     protected $bonus_id;
+    
+    protected $user_id;
 
     protected $data;
 
@@ -25,6 +27,8 @@ class OrderBonusPart extends OrderPartAbstract
         $this->bonus_id = $bonus_id;
         
         $this->user_id 	= $user_id;
+        
+        $this->data 	= $this->getBonusInfo();
     }
 
 	/**
@@ -39,7 +43,7 @@ class OrderBonusPart extends OrderPartAbstract
     /**
      * 检验红包是否可用
      */
-    public function check_bonus($user_id)
+    public function check_bonus()
     {
     	if ($this->bonus_id > 0) {
     		$bonus = $this->getBonusInfo($this->bonus_id);
@@ -47,7 +51,7 @@ class OrderBonusPart extends OrderPartAbstract
     		$this->data = $bonus;
 
     		return $bonus;
-    		
+    		//TODO 待处理
 //     		if (empty($bonus) || $bonus['user_id'] != $this->user_id || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart::cart_amount(true, $options['flow_type'])) {
 //     			$order['bonus_id'] = 0;
 //     		}
@@ -72,6 +76,7 @@ class OrderBonusPart extends OrderPartAbstract
      */
     public function order_bonus()
     {
+    	//TODO 待处理
     	/* 红包金额 */
 //     	if (!empty($order['bonus_id'])) {
 //     		$bonus = \Ecjia\App\Bonus\UserAvaliableBonus::bonusInfo($order['bonus_id']);

@@ -18,7 +18,7 @@ class OrderAddressPart extends OrderPartAbstract
 {
 
     protected $part_key = 'address';
-
+    
     protected $address_id;
     
     protected $user_id;
@@ -28,6 +28,7 @@ class OrderAddressPart extends OrderPartAbstract
         $this->address_id 		= $address_id;
         $this->user_id 			= $user_id;
         $this->flow_type 		= $flow_type;
+        $this->data 			= $this->order_consignee();
     }
 	
     /**
@@ -46,6 +47,9 @@ class OrderAddressPart extends OrderPartAbstract
 			$consignee = UserAddressModel::where('address_id', $this->address_id)
 			->where('user_id', $this->user_id)
 			->first();
+			if ($consignee) {
+				$consignee = $consignee->toArray();
+			}
 		}
 		
 		/*检查收货人地址*/
@@ -66,9 +70,7 @@ class OrderAddressPart extends OrderPartAbstract
 		$order_consignee_fields = ['consignee', 'country', 'province', 'city', 'district', 'street', 'address'];
 		$order_consignee = [];
 		$consignee = $this->consigneeInfo();
-		
 		if (!is_ecjia_error($consignee) && !empty($consignee)) {
-			$consignee = $consignee->toArray();
 			foreach ($consignee as $key => $value) {
 				if (in_array($key, $order_consignee_fields)) {
 					$order_consignee[$key] = addslashes($value);

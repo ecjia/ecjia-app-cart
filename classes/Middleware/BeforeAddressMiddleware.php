@@ -9,13 +9,13 @@
 namespace Ecjia\App\Cart\Middleware;
 
 use Closure;
-use Ecjia\App\Cart\CreateOrders\OrderParts\OrderBonusPart;
+use Ecjia\App\Cart\CreateOrders\OrderParts\OrderAddressPart;
 
 /**
  * Class BeforeBonusMiddleware
  * @package Ecjia\App\Cart\Middleware
  */
-class BeforeBonusMiddleware
+class BeforeAddressMiddleware
 {
 
     /**
@@ -25,15 +25,15 @@ class BeforeBonusMiddleware
      */
     public function handle($request, Closure $next)
     {
-    	
-    	
-        if ($request['bonus']) {
-        	
-        }
 
-//        if ($request->getOrder()->getBonusPart()) {
+//         if ($request['address']) {
+//            dd($request);
+//            dd($request['bonus']);
+//         }
 
+//        if ($request['address']) {
 
+		   
 //            $cart = $request->getCart()->getGoodsCollection();
 
 //            $bonus = $request->getOrder()->getBonusPart()->check_bonus($cart['user_id']);
@@ -44,6 +44,8 @@ class BeforeBonusMiddleware
 //            $bonus_part = new OrderBonusPart($cart['user_id']);
 
 //            return new \ecjia_error('xx', 'xx', $request);
+
+//        		$request->getOrder()->getBonusPart();
 
 //        }
 

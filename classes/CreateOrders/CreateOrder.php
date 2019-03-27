@@ -26,7 +26,13 @@ class CreateOrder
 
     protected $middlewares = [
         'Ecjia\App\Cart\Middleware\BeforeUserMiddleware',
+        'Ecjia\App\Cart\Middleware\BeforeAddressMiddleware',
+        'Ecjia\App\Cart\Middleware\BeforePaymentMiddleware',
+        'Ecjia\App\Cart\Middleware\BeforeShippingMiddleware',
         'Ecjia\App\Cart\Middleware\BeforeBonusMiddleware',
+        'Ecjia\App\Cart\Middleware\BeforeIntegralMiddleware',
+        'Ecjia\App\Cart\Middleware\BeforeInvoinceMiddleware',
+        
 //        'Ecjia\App\Cart\Middleware\AfterMiddleware',
     ];
 
