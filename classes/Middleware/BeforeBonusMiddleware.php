@@ -26,14 +26,18 @@ class BeforeBonusMiddleware
     public function handle($request, Closure $next)
     {
 
-//        dd($request);
 
-        if ($request->getOrder()->getBonusPart()) {
+        if ($request['bonus']) {
+//            dd($request);
+//            dd($request['bonus']);
+        }
+
+//        if ($request->getOrder()->getBonusPart()) {
 
 
-            $cart = $request->getCart()->getGoodsCollection();
+//            $cart = $request->getCart()->getGoodsCollection();
 
-            $bonus = $request->getOrder()->getBonusPart()->check_bonus($cart['user_id']);
+//            $bonus = $request->getOrder()->getBonusPart()->check_bonus($cart['user_id']);
 
 //            dd();
 
@@ -42,7 +46,7 @@ class BeforeBonusMiddleware
 
 //            return new \ecjia_error('xx', 'xx', $request);
 
-        }
+//        }
 
 
 

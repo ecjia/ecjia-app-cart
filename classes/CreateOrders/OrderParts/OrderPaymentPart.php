@@ -9,8 +9,12 @@
 namespace Ecjia\App\Cart\CreateOrders\OrderParts;
 
 
-class OrderPaymentPart
+use Ecjia\App\Cart\CreateOrders\OrderPartAbstract;
+
+class OrderPaymentPart extends OrderPartAbstract
 {
+
+    protected $part_key = 'payment';
 
     protected $pay_id;
 

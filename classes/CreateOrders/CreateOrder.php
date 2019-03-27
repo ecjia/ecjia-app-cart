@@ -19,13 +19,6 @@ use Royalcms\Component\Pipeline\Pipeline;
 class CreateOrder
 {
 
-
-
-    /**
-     * @var Cart
-     */
-    protected $cart;
-
     /**
      * @var GeneralOrder
      */
@@ -37,19 +30,17 @@ class CreateOrder
 //        'Ecjia\App\Cart\Middleware\AfterMiddleware',
     ];
 
-    public function __construct(Cart $cart, GeneralOrder $order)
+    public function __construct(GeneralOrder $order)
     {
-        $this->cart = $cart;
         $this->order = $order;
     }
-
 
 
     public function pipeline()
     {
 //        dd($this);
         $create_order = (new Pipeline(royalcms()))
-            ->send($this)
+            ->send($this->order)
             ->through($this->middlewares)
             ->then(function ($poster) {
             return $poster;
@@ -61,18 +52,11 @@ class CreateOrder
 
         } else {
 
-            dd($create_order->getOrder());
+            dd($this->order);
+            return $this->order;
 
         }
 
-    }
-
-    /**
-     * @return \Ecjia\App\Cart\CartFlow\Cart
-     */
-    public function getCart()
-    {
-        return $this->cart;
     }
 
     /**

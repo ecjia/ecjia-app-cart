@@ -9,8 +9,12 @@
 namespace Ecjia\App\Cart\CreateOrders\OrderParts;
 
 
-class OrderBonusPart
+use Ecjia\App\Cart\CreateOrders\OrderPartAbstract;
+
+class OrderBonusPart extends OrderPartAbstract
 {
+
+    protected $part_key = 'bonus';
 
     protected $bonus_id;
 

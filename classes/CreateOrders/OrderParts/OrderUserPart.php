@@ -9,12 +9,15 @@
 namespace Ecjia\App\Cart\CreateOrders\OrderParts;
 
 
-class OrderUserPart
+use Ecjia\App\Cart\CreateOrders\OrderPartAbstract;
+
+class OrderUserPart extends OrderPartAbstract
 {
+
+    protected $part_key = 'user';
 
     protected $user_id;
 
-    protected $data;
 
     public function __construct($user_id)
     {

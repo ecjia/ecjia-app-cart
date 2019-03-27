@@ -9,8 +9,12 @@
 namespace Ecjia\App\Cart\CreateOrders\OrderParts;
 
 
-class OrderIntegralPart
+use Ecjia\App\Cart\CreateOrders\OrderPartAbstract;
+
+class OrderIntegralPart extends OrderPartAbstract
 {
+
+    protected $part_key = 'integral';
 
     protected $integral;
     

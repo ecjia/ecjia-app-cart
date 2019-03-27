@@ -9,8 +9,12 @@
 namespace Ecjia\App\Cart\CreateOrders\OrderParts;
 
 
-class OrderStorePart
+use Ecjia\App\Cart\CreateOrders\OrderPartAbstract;
+
+class OrderStorePart extends OrderPartAbstract
 {
+
+    protected $part_key = 'store';
 
     protected $store_id;
 

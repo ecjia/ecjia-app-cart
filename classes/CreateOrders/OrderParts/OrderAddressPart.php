@@ -9,12 +9,15 @@
 namespace Ecjia\App\Cart\CreateOrders\OrderParts;
 
 
+use Ecjia\App\Cart\CreateOrders\OrderPartAbstract;
 use \Ecjia\App\Cart\Models\CartModel;
 use \Ecjia\App\User\Models\UserAddressModel;
 
 
-class OrderAddressPart
+class OrderAddressPart extends OrderPartAbstract
 {
+
+    protected $part_key = 'address';
 
     protected $address_id;
     

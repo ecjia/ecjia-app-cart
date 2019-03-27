@@ -9,8 +9,12 @@
 namespace Ecjia\App\Cart\CreateOrders\OrderParts;
 
 
-class OrderInvoincePart
+use Ecjia\App\Cart\CreateOrders\OrderPartAbstract;
+
+class OrderInvoincePart extends OrderPartAbstract
 {
+
+    protected $part_key = 'invoince';
 
 	protected $need_inv;
 	
