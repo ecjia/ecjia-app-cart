@@ -52,8 +52,8 @@ class cart_admin_hooks {
     {
         $setting = ecjia_admin_setting::singleton();
 
-        $menus[] = ecjia_admin::make_admin_menu('nav-header', __('购物车', 'cart'), '', 40)->add_purview(array('shop_config'));
-        $menus[] = ecjia_admin::make_admin_menu('shopping_flow', __('购物流程', 'cart'), RC_Uri::url('setting/shop_config/init', array('code' => 'shopping_flow')), 41)->add_purview('shop_config')->add_icon('fontello-icon-gift');
+        $menus[] = ecjia_admin::make_admin_menu('nav-header', __('购物车', 'cart'), '', 40)->add_purview(array('cart_setting'));
+        $menus[] = ecjia_admin::make_admin_menu('shopping_flow', __('购物流程', 'cart'), RC_Uri::url('setting/shop_config/init', array('code' => 'shopping_flow')), 41)->add_purview('cart_setting')->add_icon('fontello-icon-gift');
 
         return $menus;
     }
