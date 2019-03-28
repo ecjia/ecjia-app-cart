@@ -75,6 +75,23 @@ class flow_hooks {
 	        RC_Cache::app_cache_set('clean_cart_session', 'clean_cart_session', 'cart', 1440);
 	    }
 	}
+
+    public static function append_admin_setting_group($menus)
+    {
+        $setting = ecjia_admin_setting::singleton();
+
+        $menus[] = ecjia_admin::make_admin_menu('nav-header', __('购物车', 'cart'), '', 26)->add_purview(array('shop_config'));
+        $menus[] = ecjia_admin::make_admin_menu('shopping_flow', __('购物流程', 'cart'), RC_Uri::url('setting/shop_config/init', array('code' => 'shopping_flow')), 40)->add_purview('shop_config')->add_icon('fontello-icon-gift');
+
+        return $menus;
+    }
+
+    public static function add_admin_setting_command($factories)
+    {
+        $factories['article'] = 'Ecjia\App\Article\SettingComponents\ArticleSetting';
+
+        return $factories;
+    }
 }
 
 // RC_Hook::add_action( 'ecjia_admin_finish_launching', array('flow_hooks', 'clear_cart') );
