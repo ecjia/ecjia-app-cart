@@ -46,7 +46,7 @@
 //
 defined('IN_ECJIA') or exit('No permission resources.');
 
-class flow_hooks {
+class cart_admin_hooks {
 	/**
 	 * 清除购物车中过期的数据
 	 * @deprecated 1.12.0 已经废弃了
@@ -80,20 +80,22 @@ class flow_hooks {
     {
         $setting = ecjia_admin_setting::singleton();
 
-        $menus[] = ecjia_admin::make_admin_menu('nav-header', __('购物车', 'cart'), '', 26)->add_purview(array('shop_config'));
-        $menus[] = ecjia_admin::make_admin_menu('shopping_flow', __('购物流程', 'cart'), RC_Uri::url('setting/shop_config/init', array('code' => 'shopping_flow')), 40)->add_purview('shop_config')->add_icon('fontello-icon-gift');
+        $menus[] = ecjia_admin::make_admin_menu('nav-header', __('购物车', 'cart'), '', 40)->add_purview(array('shop_config'));
+        $menus[] = ecjia_admin::make_admin_menu('shopping_flow', __('购物流程', 'cart'), RC_Uri::url('setting/shop_config/init', array('code' => 'shopping_flow')), 41)->add_purview('shop_config')->add_icon('fontello-icon-gift');
 
         return $menus;
     }
 
     public static function add_admin_setting_command($factories)
     {
-        $factories['article'] = 'Ecjia\App\Article\SettingComponents\ArticleSetting';
+        $factories['cart'] = 'Ecjia\App\Article\SettingComponents\ArticleSetting';
 
         return $factories;
     }
 }
 
+RC_Hook::add_action( 'append_admin_setting_group', array('cart_admin_hooks', 'append_admin_setting_group') );
+RC_Hook::add_action('ecjia_setting_component_filter', array('cart_admin_hooks', 'add_admin_setting_command'));
 // RC_Hook::add_action( 'ecjia_admin_finish_launching', array('flow_hooks', 'clear_cart') );
 
 // end
