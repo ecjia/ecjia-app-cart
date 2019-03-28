@@ -60,7 +60,7 @@ class cart_admin_hooks {
 
     public static function add_admin_setting_command($factories)
     {
-        $factories['cart'] = 'Ecjia\App\Article\SettingComponents\ArticleSetting';
+        $factories['shopping_flow'] = 'Ecjia\App\Cart\SettingComponents\ShoppingFlowSetting';
 
         return $factories;
     }

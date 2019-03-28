@@ -18,7 +18,7 @@ class ShoppingFlowSetting extends ComponentAbstract
      * 代号标识
      * @var string
      */
-    protected $code = 'goods';
+    protected $code = 'shopping_flow';
 
     /**
      * 名称
