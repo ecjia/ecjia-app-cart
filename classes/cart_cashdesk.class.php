@@ -1482,23 +1482,26 @@ class cart_cashdesk {
 	 * @param   int	 $type   类型：默认普通商品
 	 */
 	public static function clear_cart($type = CART_GENERAL_GOODS, $cart_id = array(), $pendorder_id= 0) {
-		$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
-		$cart_w = array('rec_type' => $type);
-		if (!empty($cart_id)) {
-			$cart_w = array_merge($cart_w, array('rec_id' => $cart_id));
+		$db_cart = RC_DB::table('cart');
+		
+		$db_cart->where('rec_type', $type);
+		if (!empty($cart_id) && is_array($cart_id)) {
+			$db_cart->whereIn('rec_id', $cart_id);
 		}
 		if (!empty($pendorder_id)) {
-			$cart_w = array_merge($cart_w, array('pendorder_id' => $pendorder_id));
+			$db_cart->where('pendorder_id', $pendorder_id);
 		} else {
-			$cart_w = array_merge($cart_w, array('pendorder_id' => 0));
+			$db_cart->where('pendorder_id', 0);
 		}
 		if ($_SESSION['user_id']) {
-			$cart_w = array_merge($cart_w, array('user_id' => $_SESSION['user_id']));
-			$db_cart->where($cart_w)->delete();
+			$db_cart->where('user_id', $_SESSION['user_id']);
 		} else {
-			$cart_w = array_merge($cart_w, array('session_id' => SESS_ID));
-			$db_cart->where($cart_w)->delete();
+			$db_cart->where('user_id', 0);
 		}
+		if ($_SESSION['device_id']) {
+			$db_cart->where('session_id', $_SESSION['device_id']);
+		}
+		$db_cart->delete();
 	}
 	
 	
