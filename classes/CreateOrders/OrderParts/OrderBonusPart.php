@@ -43,18 +43,18 @@ class OrderBonusPart extends OrderPartAbstract
     /**
      * 检验红包是否可用
      */
-    public function check_bonus()
+    public function check_bonus($bonus, $cart)
     {
-    	if ($this->bonus_id > 0) {
-    		$bonus = $this->getBonusInfo($this->bonus_id);
-
-    		$this->data = $bonus;
-
-    		return $bonus;
-    		//TODO 待处理
-//     		if (empty($bonus) || $bonus['user_id'] != $this->user_id || $bonus['order_id'] > 0 || $bonus['min_goods_amount'] > cart::cart_amount(true, $options['flow_type'])) {
-//     			$order['bonus_id'] = 0;
-//     		}
+    	
+    	if ($bonus) {
+    		//购物车商品总金额
+    		$data = $cart->data;
+    		$goods_amount = $data['total']['goods_amount'];
+    		
+    		if (empty($bonus) || $bonus->user_id != $this->user_id || $bonus->order_id > 0 || $bonus->min_goods_amount > $goods_amount) {
+    			$this->data = [];
+    		}
+    		
     		//根据红包所属的店铺，判断店铺购物车金额是否满足使用红包
 //     		if ($order['bonus_id'] > 0) {
 //     			foreach ($cart_goods_list['cart_list'] as $v) {
