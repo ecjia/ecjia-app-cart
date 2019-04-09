@@ -818,7 +818,7 @@ class cart_cashdesk {
 	 * 计算折扣：根据购物车和优惠活动
 	 * @return  float   折扣
 	 */
-	public static function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $user_type = 0, $rec_type = CART_GENERAL_GOODS, $store_id = 0, $pendorder_id = 0) {
+	public static function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $user_type = 0, $rec_type = CART_CASHDESK_GOODS, $store_id = 0, $pendorder_id = 0) {
 		$db_cartview	= RC_DB::table('cart as c')->leftJoin('goods as g', RC_DB::raw('c.goods_id'), '=', RC_DB::raw('g.goods_id'));
 		$db				= RC_DB::table('favourable_activity');
 		
