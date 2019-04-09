@@ -818,7 +818,7 @@ class cart_cashdesk {
 	 * 计算折扣：根据购物车和优惠活动
 	 * @return  float   折扣
 	 */
-	public static function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $user_type = 0, $rec_type = CART_GENERAL_GOODS, $store_id = 0) {
+	public static function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $user_type = 0, $rec_type = CART_GENERAL_GOODS, $store_id = 0, $pendorder_id = 0) {
 		$db_cartview	= RC_DB::table('cart as c')->leftJoin('goods as g', RC_DB::raw('c.goods_id'), '=', RC_DB::raw('g.goods_id'));
 		$db				= RC_DB::table('favourable_activity');
 		
@@ -826,7 +826,7 @@ class cart_cashdesk {
 		$now = RC_Time::gmtime();
 		$user_rank = ',' . $_SESSION['user_rank'] . ',';
 	
-		$favourable_list   = $db->where('start_time', '<=', $now)->where('end_time', '>=', $now)->whereRaw("CONCAT(',', user_rank, ',') LIKE '%" . $user_rank . "%'")->whereIn('act_type', array(FAT_DISCOUNT, FAT_PRICE))->get();
+		$favourable_list   = $db->where('store_id', $store_id)->where('start_time', '<=', $now)->where('end_time', '>=', $now)->whereRaw("CONCAT(',', user_rank, ',') LIKE '%" . $user_rank . "%'")->whereIn('act_type', array(FAT_DISCOUNT, FAT_PRICE))->get();
 		
 		if (!$favourable_list) {
 			return 0;
@@ -846,6 +846,17 @@ class cart_cashdesk {
 			if ($store_id > 0) {
 				$db_cartview->where(RC_DB::raw('c.store_id'), $_SESSION['store_id']);
 			}
+			
+			if (!empty($pendorder_id)) {
+				$db->where(RC_DB::raw('c.pendorder_id'), $pendorder_id);
+			} else{
+				$db->where(RC_DB::raw('c.pendorder_id'), 0);
+			}
+			
+			if ($_SESSION['device_id']) {
+				$db->where(RC_DB::raw('c.session_id'), $_SESSION['device_id']);
+			}
+			
 			$db_cartview->where(RC_DB::raw('c.parent_id'), 0)->where(RC_DB::raw('c.is_gift'), 0)->where(RC_DB::raw('c.rec_type'), $rec_type);
 			$goods_list = $db_cartview->select(RC_DB::raw($field))->get();
 			
@@ -1052,7 +1063,7 @@ class cart_cashdesk {
 		/* 折扣 */
 		
 		if ($order['extension_code'] != 'group_buy') {
-			$discount = self::compute_discount(0, array(), $cart_id, 0, $rec_type, $store_id);
+			$discount = self::compute_discount(0, array(), $cart_id, 0, $rec_type, $store_id, $pendorder_id);
 			$total['discount'] = round($discount['discount'], 2);
 			if ($total['discount'] > $total['goods_price']) {
 				$total['discount'] = $total['goods_price'];
