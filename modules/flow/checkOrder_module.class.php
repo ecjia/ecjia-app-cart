@@ -419,9 +419,15 @@ class flow_checkOrder_module extends api_front implements api_interface {
 			// 取得用户可用红包
 			$pra = array(
 				'user_id' 			=> $_SESSION['user_id'],
-				'store_id' 			=> array($order['store_id'], 0),
+				//'store_id' 			=> array($order['store_id'], 0),
 				'min_goods_amount'	=> $total['goods_price']
 			);
+			//商家小程序只能使用商家红包
+			if ($this->device['code'] == '6016') {
+				$pra['store_id'] = [$order['store_id']];
+			} else {
+				$pra['store_id'] = [$order['store_id'], 0];
+			}
 			$user_bonus = Ecjia\App\Bonus\UserAvaliableBonus::GetUserBonus($pra);
 			$user_bonus_list = array();
 			if (!empty($user_bonus)) {
