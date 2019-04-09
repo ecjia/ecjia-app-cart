@@ -1091,18 +1091,6 @@ class cart_cashdesk {
 			}
 		}
 		$total['tax_formated'] = price_format($total['tax'], false);
-		//	TODO：暂时注释
-		/* 包装费用 */
-		//     if (!empty($order['pack_id'])) {
-		//         $total['pack_fee']      = pack_fee($order['pack_id'], $total['goods_price']);
-		//     }
-		//     $total['pack_fee_formated'] = price_format($total['pack_fee'], false);
-	
-		//	TODO：暂时注释
-		//    /* 贺卡费用 */
-		//    if (!empty($order['card_id'])) {
-		//        $total['card_fee']      = card_fee($order['card_id'], $total['goods_price']);
-		//    }
 		$total['card_fee_formated'] = price_format($total['card_fee'], false);
 	
 		RC_Loader::load_app_func('admin_bonus','bonus');
@@ -1127,11 +1115,9 @@ class cart_cashdesk {
 		$total['shipping_fee_formated']    = price_format($total['shipping_fee'], false);
 		$total['shipping_insure_formated'] = price_format($total['shipping_insure'], false);
 	
-		// 活动优惠总金额
-		$discount_amount = self::compute_discount_amount($cart_id, $rec_type, $store_id);
 		// 红包和积分最多能支付的金额为商品总额
 		//$max_amount 还需支付商品金额=商品金额-红包-优惠-积分
-		$max_amount = $total['goods_price'] == 0 ? $total['goods_price'] : $total['goods_price'] - $discount_amount;
+		$max_amount = $total['goods_price'] == 0 ? $total['goods_price'] : $total['goods_price'] - $total['discount'];
 	
 	
 		/* 计算订单总额 */
