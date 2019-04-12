@@ -93,6 +93,11 @@ class cart_create_module extends api_front implements api_interface {
     		return new ecjia_error('not_found_goods', __('请选择您所需要购买的商品！', 'cart'));
     	}
     	
+    	if ($product_id > 0) {
+    		$goods_attr = RC_DB::table('products')->where('product_id', $product_id)->pluck('goods_attr');
+    		$goods_spec = explode('|', $goods_attr);
+    	}
+    	
     	//该商品对应店铺是否被锁定
 		$store_id 		= Ecjia\App\Cart\StoreStatus::GetStoreId($goods_id);
 		$store_status 	= Ecjia\App\Cart\StoreStatus::GetStoreStatus($store_id);
