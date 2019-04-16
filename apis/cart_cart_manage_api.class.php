@@ -146,6 +146,7 @@ class cart_cart_manage_api extends Component_Event_Api {
         //商品存在规格 是货品 检查该货品库存
         if (goods_info::is_spec($spec) && $prod > 0) {
             $product_info = goods_info::get_products_info($goods_id, $spec);
+//             $product_id = $product_info['product_id'];
             $spec = explode('|', $product_info['goods_attr']);
             $is_spec = true;
         } else {
