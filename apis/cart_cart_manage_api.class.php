@@ -175,8 +175,8 @@ class cart_cart_manage_api extends Component_Event_Api {
             $goods_attr             = goods_info::get_goods_attr_info($spec, 'no');
             $goods_attr_id          = join(',', $spec);
             if (!empty($product_id)) {
-            	//商品SKU价格模式：商品价格 + 属性货品价格
-            	if (ecjia::config('sku_price_mode') == 'goods_sku') {
+            	//商品SKU价格模式：商品价格 + 属性货品价格；货品未设置自定义价格
+            	if ($product_info['product_shop_price'] <= 0) {
             		$goods['market_price'] += $spec_price;
             	}
             }
@@ -365,7 +365,6 @@ class cart_cart_manage_api extends Component_Event_Api {
                 $parent['goods_price']  = empty($goods_price) ? 0.00 : max($goods_price, 0);
                 $parent['goods_number'] = $num;
                 $parent['parent_id']    = 0;
-
                 $cart_id = RC_DB::table('cart')->insertGetId($parent);
             }
         }
