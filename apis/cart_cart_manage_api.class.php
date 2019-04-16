@@ -152,13 +152,6 @@ class cart_cart_manage_api extends Component_Event_Api {
         	$is_spec = false;
         }
         
-        //货品id存在，兼容货品表有数据；但商品规格没有问题
-//         if ($product_id > 0) {
-//         	if (!empty($product_info)) {
-//         		$is_spec = true;
-//         	}
-//         }
-        
         if (!isset($product_info) || empty($product_info)) {
             $product_info = array('product_number' => 0, 'product_id' => 0 , 'goods_attr'=>'');
         }
