@@ -83,6 +83,11 @@ class cart_cart_manage_api extends Component_Event_Api {
     private function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $store_group = array(), $product_id = 0) {
         RC_Loader::load_app_class('goods_info', 'goods', false);
         
+        if ($product_id > 0) {
+        	$product_info = RC_DB::table('products')->where('product_id', $product_id)->first();
+        	$spec = explode('|', $product_info['goods_attr']);
+        }
+        
         $_parent_id     = $parent;
         if (is_array($spec)) {
             sort($spec);
@@ -147,6 +152,13 @@ class cart_cart_manage_api extends Component_Event_Api {
         	$is_spec = false;
         }
         
+        //货品id存在，兼容货品表有数据；但商品规格没有问题
+//         if ($product_id > 0) {
+//         	if (!empty($product_info)) {
+//         		$is_spec = true;
+//         	}
+//         }
+        
         if (!isset($product_info) || empty($product_info)) {
             $product_info = array('product_number' => 0, 'product_id' => 0 , 'goods_attr'=>'');
         }
@@ -201,13 +213,15 @@ class cart_cart_manage_api extends Component_Event_Api {
 	        'store_id'      => $goods['store_id'],
 	        'add_time'      => RC_Time::gmtime(),
         );
+        //货品自定义名称
+        if (!empty($product_info['product_name'])) {
+        	$parent['goods_name'] = addslashes($product_info['product_name']);
+        }
 
         if (defined('SESS_ID')) {
             $parent['session_id'] = SESS_ID;
         }
 
-        
-        
         /* 如果该配件在添加为基本件的配件时，所设置的“配件价格”比原价低，即此配件在价格上提供了优惠， */
         /* 则按照该配件的优惠价格卖，但是每一个基本件只能购买一个优惠价格的“该配件”，多买的“该配件”不享受此优惠 */
         $basic_list = array();
