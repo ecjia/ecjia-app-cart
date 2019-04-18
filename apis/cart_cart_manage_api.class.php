@@ -145,8 +145,9 @@ class cart_cart_manage_api extends Component_Event_Api {
 
         //商品存在规格 是货品 检查该货品库存
         if (goods_info::is_spec($spec) && $prod > 0) {
-            $product_info = goods_info::get_products_info($goods_id, $spec);
-            if (!isset($product_info) || empty($product_info)) {
+            //$product_info = goods_info::get_products_info($goods_id, $spec);
+        	$product_info = RC_DB::table('products')->where('goods_id', $goods_id)->where('goods_attr', implode ( '|', $spec));
+            if (empty($product_info)) {
             	return new ecjia_error('low_stocks', __('暂无此货品！', 'cart'));
             }
             $spec = explode('|', $product_info['goods_attr']);

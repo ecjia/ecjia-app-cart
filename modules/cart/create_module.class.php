@@ -82,6 +82,13 @@ class cart_create_module extends api_front implements api_interface {
 	    
 	    $rec_type		= trim($this->requestData('rec_type', 'GENERAL_GOODS')); 
 	    $object_id 		= $this->requestData('goods_activity_id', 0);
+	    
+	    
+	    RC_Logger::getLogger('error')->info('test111');
+	    RC_Logger::getLogger('error')->info($product_id);
+	    RC_Logger::getLogger('error')->info($goods_spec);
+	    RC_Logger::getLogger('error')->info('test222');
+	    
 
 	    RC_Loader::load_app_func('cart', 'cart');
 
