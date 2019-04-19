@@ -144,7 +144,7 @@ class cart_cart_manage_api extends Component_Event_Api {
         $prod = RC_DB::table('products')->where('goods_id', $goods_id)->count();
 
         //商品存在规格 是货品 检查该货品库存
-        if (goods_info::is_spec($spec) && $prod > 0) {
+        if (goods_info::is_spec($spec)) {
             //$product_info = goods_info::get_products_info($goods_id, $spec);
         	$goods_attr = implode ( '|', $spec);
         	$product_info = RC_DB::table('products')->where('goods_id', $goods_id)->where('goods_attr', $goods_attr)->first();
