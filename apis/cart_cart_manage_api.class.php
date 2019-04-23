@@ -151,6 +151,7 @@ class cart_cart_manage_api extends Component_Event_Api {
             if (empty($product_info)) {
             	return new ecjia_error('low_stocks', __('暂无此货品！', 'cart'));
             }
+            $product_id = $product_info['product_id'];
             $spec = explode('|', $product_info['goods_attr']);
             $is_spec = true;
         } else {

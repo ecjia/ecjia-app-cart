@@ -296,7 +296,12 @@ class cart_cashdesk {
 		/* 如果商品有规格则取规格商品信息 配件除外 */
 		$prod = RC_DB::table('products')->where('goods_id', $goods_id)->count();
 		if (is_spec($spec) && $prod > 0) {
-			$product_info = get_products_info($goods_id, $spec);
+			//$product_info = get_products_info($goods_id, $spec);
+			$goods_attr = implode ( '|', $spec);
+			$product_info = RC_DB::table('products')->where('goods_id', $goods_id)->where('goods_attr', $goods_attr)->first();
+			if (empty($product_info)) {
+				return new ecjia_error('low_stocks', __('暂无此货品！', 'cart'));
+			}
 		}
 		if (empty($product_info)) {
 			$product_info = array('product_number' => 0, 'product_id' => 0 , 'goods_attr'=>'');
@@ -313,7 +318,7 @@ class cart_cashdesk {
 				if (!empty($spec)) {
 					/* 取规格的货品库存 */
 					if ($num > $product_info['product_number']) {
-						return new ecjia_error('low_stocks', __('库存不足', 'cart'));
+						return new ecjia_error('low_stocks', __('货品库存不足', 'cart'));
 					}
 				}
 			}
