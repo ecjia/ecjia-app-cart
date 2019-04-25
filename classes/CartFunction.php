@@ -45,7 +45,7 @@ class CartFunction
                 $join->where(RC_DB::raw('mp.goods_id'), '=', RC_DB::raw('g.goods_id'))
                     ->where(RC_DB::raw('mp.user_rank'), '=', $user_rank);
             })
-            ->select(RC_DB::raw("c.rec_id, c.goods_id, c.goods_attr_id, g.promote_price, g.promote_start_date, c.goods_number,g.promote_end_date, IFNULL(mp.user_price, g.shop_price * $discount) AS member_price"));
+            ->select(RC_DB::raw("c.rec_id, c.goods_id, c.product_id, c.goods_attr_id, g.promote_price, g.promote_start_date, c.goods_number,g.promote_end_date, IFNULL(mp.user_price, g.shop_price * $discount) AS member_price"));
 
         /* 取得有可能改变价格的商品：除配件和赠品之外的商品 */
         // @update 180719 选择性更新内容mark_changed=1
@@ -90,7 +90,7 @@ class CartFunction
             RC_Loader::load_app_func('global', 'goods');
             foreach ($res as $row) {
                 $attr_id = empty($row['goods_attr_id']) ? array() : explode(',', $row['goods_attr_id']);
-                $goods_price = GoodsFunction::get_final_price($row['goods_id'], $row['goods_number'], true, $attr_id);
+                $goods_price = GoodsFunction::get_final_price($row['goods_id'], $row['goods_number'], true, $attr_id, $row['product_id']);
                 $data = array(
                     'goods_price' => $goods_price > 0 ? $goods_price : 0.00,
                     'mark_changed' => 0
