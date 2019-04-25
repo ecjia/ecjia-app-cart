@@ -194,7 +194,7 @@ class storepickup_flow_checkOrder_module extends api_front implements api_interf
 							'formatted_end_date' 		=> RC_Time::local_date(ecjia::config('date_format'), $val['use_end_date']),
 							'request_amount' 			=> $val['min_goods_amount'],
 							'formatted_request_amount' 	=> $val['min_goods_amount'],
-							'label_min_amount' 			=> printf(__('满%s可使用', 'cart', $val['min_goods_amount']))
+							'label_min_amount' 			=> sprintf(__('满%s可使用', 'cart'), $val['min_goods_amount'])
 					);
 				}
 			}
