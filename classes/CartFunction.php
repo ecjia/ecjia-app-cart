@@ -7,7 +7,6 @@
  */
 namespace Ecjia\App\Cart;
 
-use Ecjia\App\Goods\GoodsFunction;
 use RC_Loader;
 use RC_DB;
 use cart;
@@ -25,6 +24,8 @@ class CartFunction
      */
     public static function recalculate_price($device = array())
     {
+    	\RC_Logger::getLogger('error')->info('testaaa');
+    	
         $db_cart = RC_Loader::load_app_model('cart_model', 'cart');
         $dbview = RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
         $codes = config('app-cashier::cashier_device_code');
@@ -84,13 +85,18 @@ class CartFunction
                 ->where(RC_DB::raw('c.rec_type'), $rec_type)
                 ->get();
         }
+        
+       
+        \RC_Logger::getLogger('error')->info($res);
+        \RC_Logger::getLogger('error')->info('testbbb');
+        
 
 
         if (! empty($res)) {
             RC_Loader::load_app_func('global', 'goods');
             foreach ($res as $row) {
                 $attr_id = empty($row['goods_attr_id']) ? array() : explode(',', $row['goods_attr_id']);
-                $goods_price = GoodsFunction::get_final_price($row['goods_id'], $row['goods_number'], true, $attr_id, $row['product_id']);
+                $goods_price = \Ecjia\App\Goods\GoodsFunction::get_final_price($row['goods_id'], $row['goods_number'], true, $attr_id, $row['product_id']);
                 $data = array(
                     'goods_price' => $goods_price > 0 ? $goods_price : 0.00,
                     'mark_changed' => 0
