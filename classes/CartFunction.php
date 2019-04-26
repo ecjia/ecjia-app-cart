@@ -24,8 +24,6 @@ class CartFunction
      */
     public static function recalculate_price($device = array())
     {
-    	\RC_Logger::getLogger('error')->info('testaaa');
-    	
         $db_cart = RC_Loader::load_app_model('cart_model', 'cart');
         $dbview = RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
         $codes = config('app-cashier::cashier_device_code');
@@ -85,12 +83,6 @@ class CartFunction
                 ->where(RC_DB::raw('c.rec_type'), $rec_type)
                 ->get();
         }
-        
-       
-        \RC_Logger::getLogger('error')->info($res);
-        \RC_Logger::getLogger('error')->info('testbbb');
-        
-
 
         if (! empty($res)) {
             RC_Loader::load_app_func('global', 'goods');
