@@ -41,7 +41,7 @@ class CartFunction
         $db = RC_DB::table('cart as c')
             ->leftJoin('goods as g', RC_DB::raw('c.goods_id'), '=', RC_DB::raw('g.goods_id'))
             ->leftJoin('member_price as mp', function($join) use ($user_rank) {
-                $join->where(RC_DB::raw('mp.goods_id'), '=', RC_DB::raw('g.goods_id'))
+                $join->on(RC_DB::raw('mp.goods_id'), '=', RC_DB::raw('g.goods_id'))
                     ->where(RC_DB::raw('mp.user_rank'), '=', $user_rank);
             })
             ->select(RC_DB::raw("c.rec_id, c.goods_id, c.product_id, c.goods_attr_id, g.promote_price, g.promote_start_date, c.goods_number,g.promote_end_date, IFNULL(mp.user_price, g.shop_price * $discount) AS member_price"));
