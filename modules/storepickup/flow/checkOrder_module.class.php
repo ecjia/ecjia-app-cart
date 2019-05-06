@@ -80,7 +80,7 @@ class storepickup_flow_checkOrder_module extends api_front implements api_interf
 		//$flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
 
 		/* 对商品信息赋值 */
-		$cart_goods = cart_goods($flow_type, $cart_id); // 取得商品列表，计算合计
+		$cart_goods = Ecjia\App\Cart\CartFunction::cart_goods($flow_type, $cart_id); // 取得商品列表，计算合计
 		
 		if (empty($cart_goods)) {
 			return new ecjia_error('not_found_cart_goods', __('购物车中还没有商品', 'cart'));

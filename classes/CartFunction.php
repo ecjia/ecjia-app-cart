@@ -410,7 +410,157 @@ class CartFunction
     	return $expect_pickup_date;
     }
     
+    /**
+     * 取得购物车商品
+     * @param   int     $type   类型：默认普通商品
+     * @return  array   购物车商品数组
+     */
+    function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
     
+    	// 	$db = RC_Loader::load_app_model('cart_model', 'cart');
+    	$db = RC_Loader::load_app_model('cart_goods_viewmodel', 'cart');
+    
+    	$cart_where = array('rec_type' => $type, 'is_delete' => 0);
+    	if (!empty($cart_id)) {
+    		if(!is_array($cart_id)) {
+    			$cart_id = explode(',', $cart_id);
+    		}
+    		$cart_where = array_merge($cart_where,  array('rec_id' => $cart_id));
+    	}
+    	if (!empty($_SESSION['store_id'])) {
+    		$cart_where = array_merge($cart_where, array('c.store_id' => $_SESSION['store_id']));
+    	}
+    	$field = 'g.store_id, goods_img, g.goods_number|g_goods_number , original_img, goods_thumb, c.rec_id, c.user_id, c.goods_id, c.goods_name, c.goods_sn, c.product_id, c.goods_number, c.market_price, c.goods_price, c.goods_attr, c.is_real, c.is_checked, c.extension_code, c.parent_id, c.is_gift, c.is_shipping, c.goods_price * c.goods_number|subtotal, goods_weight as goodsWeight, c.goods_attr_id';
+    	if ($_SESSION['user_id']) {
+    		$cart_where = array_merge($cart_where, array('c.user_id' => $_SESSION['user_id']));
+    		$arr        = $db->field($field)->where($cart_where)->select();
+    	} else {
+    		$cart_where = array_merge($cart_where, array('session_id' => SESS_ID));
+    		$arr        = $db->field($field)->where($cart_where)->select();
+    	}
+    
+    	$db_goods_attr = RC_Loader::load_app_model('goods_attr_model', 'goods');
+    	$db_goods = RC_Loader::load_app_model('goods_model', 'goods');
+//     	$order_info_viewdb = RC_Loader::load_app_model('order_info_viewmodel', 'orders');
+//     	$order_info_viewdb->view = array(
+//     			'order_goods' => array(
+//     					'type'	  => Component_Model_View::TYPE_LEFT_JOIN,
+//     					'alias'   => 'g',
+//     					'on'	  => 'oi.order_id = g.order_id '
+//     			)
+//     	);
+    	/* 格式化价格及礼包商品 */
+    	foreach ($arr as $key => $value) {
+    		// 		$goods = $db_goods->field(array('is_xiangou', 'xiangou_start_date', 'xiangou_end_date', 'xiangou_num'))->find(array('goods_id' => $value['goods_id']));
+    		// 		/* 限购判断*/
+    		// 		if ($goods['is_xiangou'] > 0) {
+    		// 			$xiangou = array(
+    		// 				'oi.add_time >=' . $goods['xiangou_start_date'] . ' and oi.add_time <=' .$goods['xiangou_end_date'],
+    		// 				'g.goods_id'	=> $value['goods_id'],
+    		// 				'oi.user_id'	=> $_SESSION['user_id'],
+    		// 			);
+    		// 			$xiangou_info = $order_info_viewdb->join(array('order_goods'))->field(array('sum(goods_number) as number'))->where($xiangou)->find();
+    
+    		// 			if ($xiangou_info['number'] + $value['goods_number'] > $goods['xiangou_num']) {
+    		// 				return new ecjia_error('xiangou_error', __('该商品已限购'));
+    		// 			}
+    		// 		}
+    
+    		$arr[$key]['formated_market_price'] = price_format($value['market_price'], false);
+    		$arr[$key]['formated_goods_price']  = $value['goods_price'] > 0 ? price_format($value['goods_price'], false) : __('免费', 'cart');
+    		$arr[$key]['formated_subtotal']     = price_format($value['subtotal'], false);
+    
+    		/* 查询规格 */
+    		// 		if (trim($value['goods_attr']) != '' && $value['group_id'] == '') {//兼容官网套餐问题增加条件group_id
+    		// 			$value['goods_attr_id'] = empty($value['goods_attr_id']) ? '' : explode(',', $value['goods_attr_id']);
+    		// 			$attr_list = $db_goods_attr->field('attr_value')->in(array('goods_attr_id' => $value['goods_attr_id']))->select();
+    		// 			foreach ($attr_list AS $attr) {
+    		// 				$arr[$key]['goods_name'] .= ' [' . $attr['attr_value'] . '] ';
+    		// 			}
+    		// 		}
+    
+    		// 		$arr[$key]['goods_attr'] = array();
+    		// 		if (!empty($value['goods_attr'])) {
+    		// 			$goods_attr = explode("\n", $value['goods_attr']);
+    		// 			$goods_attr = array_filter($goods_attr);
+    			
+    		// 			foreach ($goods_attr as  $v) {
+    		// 				$a = explode(':',$v);
+    		// 				if (!empty($a[0]) && !empty($a[1])) {
+    		// 					$arr[$key]['goods_attr'][] = array('name'=>$a[0], 'value'=>$a[1]);
+    		// 				}
+    		// 			}
+    		// 		}
+    		$store_group[] = $value['store_id'];
+    		$goods_attr_gourp = array();
+    		if (!empty($value['goods_attr'])) {
+    			$goods_attr = explode("\n", $value['goods_attr']);
+    			$goods_attr = array_filter($goods_attr);
+    			foreach ($goods_attr as  $v) {
+    				$a = explode(':',$v);
+    				if (!empty($a[0]) && !empty($a[1])) {
+    					$goods_attr_gourp[] = array('name' => $a[0], 'value' => $a[1]);
+    				}
+    			}
+    		}
+    		$arr[$key]['attr'] =  $value['goods_attr'];
+    		$arr[$key]['goods_attr'] =  $goods_attr_gourp;
+    
+    		if ($value['product_id'] > 0) {
+    			$product_info = RC_DB::table('products')
+    			->where('goods_id', $value['goods_id'])
+    			->where('product_id', $value['product_id'])
+    			->first();
+    		} else {
+    			$product_info = [];
+    		}
+    		//库存 181023 add
+    		$arr[$key]['attr_number'] = 1;//有货
+    		if (ecjia::config('use_storage') == 1) {
+    			if($value['product_id']) {
+    				//product_id变动TODO
+    				$arr[$key]['product_id'] = $value['product_id'];
+    				if ($product_info && $value['goods_number'] > $product_info['product_number']) {
+    					$arr[$key]['attr_number'] = 0;
+    				}
+    			} else {
+    				if($value['goods_number'] > $value['g_goods_number']) {
+    					$arr[$key]['attr_number'] = 0;
+    				}
+    			}
+    		}
+    		//库存 181023 end
+    
+    		RC_Loader::load_app_func('global', 'goods');
+    		$arr[$key]['img'] = array(
+    				'thumb'	=> get_image_path($value['goods_id'], $value['goods_thumb'], true),
+    				'url'	=> get_image_path($value['goods_id'], $value['original_img'], true),
+    				'small' => get_image_path($value['goods_id'], $value['goods_img'], true),
+    		);
+    		unset($arr[$key]['goods_thumb']);
+    		unset($arr[$key]['goods_img']);
+    		unset($arr[$key]['original_img']);
+    		
+    		//货品图片兼容处理
+    		if (!empty($product_info['product_thumb'])) {
+    			$arr[$key]['img']['thumb'] = \RC_Upload::upload_url($product_info['product_thumb']);
+    		}
+    		if (!empty($product_info['product_original_img'])) {
+    			$arr[$key]['img']['url'] = \RC_Upload::upload_url($product_info['product_original_img']);
+    		}
+    		if (!empty($product_info['product_img'])) {
+    			$arr[$key]['img']['small'] = \RC_Upload::upload_url($product_info['product_img']);
+    		}
+    		
+    		if ($value['extension_code'] == 'package_buy') {
+    			$arr[$key]['package_goods_list'] = get_package_goods($value['goods_id']);
+    		}
+    		$store_info = RC_DB::table('store_franchisee')->where('store_id', $value['store_id'])->first();
+    		$arr[$key]['store_name'] = $store_info['merchants_name'];
+    		$arr[$key]['manage_mode'] = $store_info['manage_mode'];
+    	}
+    	return $arr;
+    }
     
     
 }
