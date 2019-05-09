@@ -417,7 +417,6 @@ class CartFunction
      */
     function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
     
-    	// 	$db = RC_Loader::load_app_model('cart_model', 'cart');
     	$db = RC_Loader::load_app_model('cart_goods_viewmodel', 'cart');
     
     	$cart_where = array('rec_type' => $type, 'is_delete' => 0);
@@ -441,56 +440,11 @@ class CartFunction
     
     	$db_goods_attr = RC_Loader::load_app_model('goods_attr_model', 'goods');
     	$db_goods = RC_Loader::load_app_model('goods_model', 'goods');
-//     	$order_info_viewdb = RC_Loader::load_app_model('order_info_viewmodel', 'orders');
-//     	$order_info_viewdb->view = array(
-//     			'order_goods' => array(
-//     					'type'	  => Component_Model_View::TYPE_LEFT_JOIN,
-//     					'alias'   => 'g',
-//     					'on'	  => 'oi.order_id = g.order_id '
-//     			)
-//     	);
     	/* 格式化价格及礼包商品 */
     	foreach ($arr as $key => $value) {
-    		// 		$goods = $db_goods->field(array('is_xiangou', 'xiangou_start_date', 'xiangou_end_date', 'xiangou_num'))->find(array('goods_id' => $value['goods_id']));
-    		// 		/* 限购判断*/
-    		// 		if ($goods['is_xiangou'] > 0) {
-    		// 			$xiangou = array(
-    		// 				'oi.add_time >=' . $goods['xiangou_start_date'] . ' and oi.add_time <=' .$goods['xiangou_end_date'],
-    		// 				'g.goods_id'	=> $value['goods_id'],
-    		// 				'oi.user_id'	=> $_SESSION['user_id'],
-    		// 			);
-    		// 			$xiangou_info = $order_info_viewdb->join(array('order_goods'))->field(array('sum(goods_number) as number'))->where($xiangou)->find();
-    
-    		// 			if ($xiangou_info['number'] + $value['goods_number'] > $goods['xiangou_num']) {
-    		// 				return new ecjia_error('xiangou_error', __('该商品已限购'));
-    		// 			}
-    		// 		}
-    
     		$arr[$key]['formated_market_price'] = price_format($value['market_price'], false);
     		$arr[$key]['formated_goods_price']  = $value['goods_price'] > 0 ? price_format($value['goods_price'], false) : __('免费', 'cart');
     		$arr[$key]['formated_subtotal']     = price_format($value['subtotal'], false);
-    
-    		/* 查询规格 */
-    		// 		if (trim($value['goods_attr']) != '' && $value['group_id'] == '') {//兼容官网套餐问题增加条件group_id
-    		// 			$value['goods_attr_id'] = empty($value['goods_attr_id']) ? '' : explode(',', $value['goods_attr_id']);
-    		// 			$attr_list = $db_goods_attr->field('attr_value')->in(array('goods_attr_id' => $value['goods_attr_id']))->select();
-    		// 			foreach ($attr_list AS $attr) {
-    		// 				$arr[$key]['goods_name'] .= ' [' . $attr['attr_value'] . '] ';
-    		// 			}
-    		// 		}
-    
-    		// 		$arr[$key]['goods_attr'] = array();
-    		// 		if (!empty($value['goods_attr'])) {
-    		// 			$goods_attr = explode("\n", $value['goods_attr']);
-    		// 			$goods_attr = array_filter($goods_attr);
-    			
-    		// 			foreach ($goods_attr as  $v) {
-    		// 				$a = explode(':',$v);
-    		// 				if (!empty($a[0]) && !empty($a[1])) {
-    		// 					$arr[$key]['goods_attr'][] = array('name'=>$a[0], 'value'=>$a[1]);
-    		// 				}
-    		// 			}
-    		// 		}
     		$store_group[] = $value['store_id'];
     		$goods_attr_gourp = array();
     		if (!empty($value['goods_attr'])) {
