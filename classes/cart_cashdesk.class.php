@@ -591,7 +591,7 @@ class cart_cashdesk {
 				}
 			} else {
 				//购物车没有此物品，则插入
-				$product_id = empty($product_info['product_id']) ? $product_info['product_id'] : 0;
+				$product_id = !empty($product_info['product_id']) ? $product_info['product_id'] : 0;
 				$goods_price = get_final_price($goods_id, $num, true, $spec, $product_id);
 				$parent['goods_price']  = max($goods_price, 0);
 				$parent['goods_number'] = $num;
