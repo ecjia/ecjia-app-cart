@@ -112,6 +112,23 @@ class cart_cashdesk {
 				$arr[$key]['goods_buy_weight'] 	= $value['goods_buy_weight'] > 0 ? $value['goods_buy_weight'] : '';
 			
 				RC_Loader::load_app_func('global', 'goods');
+				//货品图片兼容处理
+				if($value['product_id'] > 0) {
+					$product_info = RC_DB::table('products')
+					->where('goods_id', $value['goods_id'])
+					->where('product_id', $value['product_id'])
+					->first();
+				
+					if (!empty($product_info['product_thumb'])) {
+						$value['goods_thumb'] = $product_info['product_thumb'];
+					}
+					if (!empty($product_info['product_img'])) {
+						$value['goods_img'] = $product_info['product_img'];
+					}
+					if (!empty($product_info['product_original_img'])) {
+						$value['original_img'] = $product_info['product_original_img'];
+					}
+				} 
 				$arr[$key]['img'] = array(
 						'thumb'	=> get_image_path($value['goods_id'], $value['goods_img'], true),
 						'url'	=> get_image_path($value['goods_id'], $value['original_img'], true),
@@ -353,7 +370,11 @@ class cart_cashdesk {
 				'add_time'      => RC_Time::gmtime()
 		);
 	
-	
+		//货品自定义名称
+		if (!empty($product_info['product_name'])) {
+			$parent['goods_name'] = addslashes($product_info['product_name']);
+		}
+		
 		/* 如果该配件在添加为基本件的配件时，所设置的“配件价格”比原价低，即此配件在价格上提供了优惠， */
 		/* 则按照该配件的优惠价格卖，但是每一个基本件只能购买一个优惠价格的“该配件”，多买的“该配件”不享受此优惠 */
 		$basic_list = array();
