@@ -157,6 +157,7 @@ class cart {
 						$promotion = new \Ecjia\App\Goods\GoodsActivity\GoodsPromotion($goods['goods_id'], $goods['product_id'], $_SESSION['user_id']);
 						$is_promote = $promotion->isPromote();
 						if ($is_promote) {
+							RC_Logger::getLogger('error')->info('test444');
 							$left_num = $promotion->getLimitOverCount($val); //用户可购买的限购剩余数
 							if ($left_num >= 0) {
 								//购买数量大于限购可购买数量或者限购可购买数量等于0
