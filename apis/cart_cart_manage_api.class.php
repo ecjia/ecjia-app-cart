@@ -348,7 +348,6 @@ class cart_cart_manage_api extends Component_Event_Api {
           
             if($row) {
                 //如果购物车已经有此物品，则更新
-            	RC_Logger::getLogger('error')->info('test222');
                 $num += $row['goods_number'];
                 if(goods_info::is_spec($spec) && !empty($prod) ) {
                     $goods_storage = $product_info['product_number'];
@@ -376,7 +375,6 @@ class cart_cart_manage_api extends Component_Event_Api {
                 }
                 $cart_id = $row['rec_id'];
             } else {
-            	RC_Logger::getLogger('error')->info('test111');
                 //购物车没有此物品，则插入
                 $goods_price = goods_info::get_final_price($goods_id, $num, true, $spec, $product_id);
                 $parent['goods_price']  = empty($goods_price) ? 0.00 : max($goods_price, 0);
@@ -395,11 +393,14 @@ class cart_cart_manage_api extends Component_Event_Api {
         	$promotion = new \Ecjia\App\Goods\GoodsActivity\GoodsPromotion($goods_id, $product_id, $_SESSION['user_id']);
         	$is_promote = $promotion->isPromote();
         	if ($is_promote) {
-        		RC_Logger::getLogger('error')->info('test333');
         		$left_num = $promotion->getLimitOverCount($num); //用户可购买的限购剩余数
+        		RC_Logger::getLogger('error')->info('test333');
+        		RC_Logger::getLogger('error')->info($left_num);
         		if ($left_num >= 0) {
         			//购买数量大于限购可购买数量或者限购可购买数量等于0
+        			RC_Logger::getLogger('error')->info('test444');
         			if ($num > $left_num || $left_num == 0) {
+        				RC_Logger::getLogger('error')->info('test555');
         				$promotion->updateCartGoodsPrice($cart_id, $goods_id, $num, true, $spec, $product_id);
         			}
         		}
