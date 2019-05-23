@@ -394,13 +394,10 @@ class cart_cart_manage_api extends Component_Event_Api {
         	$is_promote = $promotion->isPromote();
         	if ($is_promote) {
         		$left_num = $promotion->getLimitOverCount($num); //用户可购买的限购剩余数
-        		RC_Logger::getLogger('error')->info('test333');
         		RC_Logger::getLogger('error')->info($left_num);
         		if ($left_num >= 0) {
         			//购买数量大于限购可购买数量或者限购可购买数量等于0
-        			RC_Logger::getLogger('error')->info('test444');
         			if ($num > $left_num || $left_num == 0) {
-        				RC_Logger::getLogger('error')->info('test555');
         				$promotion->updateCartGoodsPrice($cart_id, $goods_id, $num, true, $spec, $product_id);
         			}
         		}
