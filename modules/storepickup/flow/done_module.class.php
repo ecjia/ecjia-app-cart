@@ -276,9 +276,9 @@ class storepickup_flow_done_module extends api_front implements api_interface
         $order['bonus_id'] = empty($order['bonus_id']) ? 0 : intval($order['bonus_id']);
         
         /* 检查商品总额是否达到最低限购金额 */
-        if ($flow_type == CART_GENERAL_GOODS && cart_amount(true, CART_GENERAL_GOODS, $cart_id) < ecjia::config('min_goods_amount')) {
-        	return new ecjia_error('insufficient_balance', __('您的余额不足以支付整个订单，请选择其他支付方式。', 'cart'));
-        }
+        //if ($flow_type == CART_GENERAL_GOODS && cart_amount(true, CART_GENERAL_GOODS, $cart_id) < ecjia::config('min_goods_amount')) {
+        //	return new ecjia_error('insufficient_balance', __('您的余额不足以支付整个订单，请选择其他支付方式。', 'cart'));
+        //}
         
         /* 收货人信息 */
         foreach ($consignee as $key => $value) {
