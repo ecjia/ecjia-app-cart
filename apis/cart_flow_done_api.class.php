@@ -458,6 +458,13 @@ class cart_flow_done_api extends Component_Event_Api {
 					ecjia_front::$controller->assign('send_date', date(ecjia::config('time_format')));
 					
 					$content = ecjia_front::$controller->fetch_string($tpl['template_content']);
+					
+					RC_Logger::getlogger('info')->info([
+					'file' => __FILE__,
+					'line' => __LINE__,
+					'content' => 'test222',
+					]);
+					
 					RC_Mail::send_mail(ecjia::config('shop_name'), ecjia::config('service_email'), $tpl['template_subject'], $content, $tpl['is_html']);
 				}
 			} catch (PDOException $e) {
@@ -468,7 +475,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		RC_Logger::getlogger('info')->info([
 			'file' => __FILE__,
 			'line' => __LINE__,
-			'content' => 'test222',
+			'content' => 'test333',
 		]);
 		
 		
