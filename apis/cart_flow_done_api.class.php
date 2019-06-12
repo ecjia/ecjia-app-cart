@@ -436,26 +436,40 @@ class cart_flow_done_api extends Component_Event_Api {
 		if ($order['bonus_id'] > 0 && $temp_amout > 0) {
 			RC_Api::api('bonus', 'use_bonus', array('bonus_id' => $order['bonus_id'], 'order_id' => $new_order_id, 'order_sn' => $order['order_sn']));
 		}
+		
+		RC_Logger::getlogger('info')->info([
+			'file' => __FILE__,
+			'line' => __LINE__,
+			'content' => 'test111',
+		]);
 
 		/* 给商家发邮件 */
 		/* 增加是否给客服发送邮件选项 */
-// 		$service_email = ecjia::config('service_email');
-// 		if (ecjia::config('send_service_email') && !empty($service_email)) {
-// 			try {
-// 				$tpl_name = 'remind_of_new_order';
-// 				$tpl   = RC_Api::api('mail', 'mail_template', $tpl_name);
+		$service_email = ecjia::config('service_email');
+		if (ecjia::config('send_service_email') && !empty($service_email)) {
+			try {
+				$tpl_name = 'remind_of_new_order';
+				$tpl   = RC_Api::api('mail', 'mail_template', $tpl_name);
 	
-// 				ecjia_front::$controller->assign('order', $order);
-// 				ecjia_front::$controller->assign('goods_list', $cart_goods);
-// 				ecjia_front::$controller->assign('shop_name', ecjia::config('shop_name'));
-// 				ecjia_front::$controller->assign('send_date', date(ecjia::config('time_format')));
+				ecjia_front::$controller->assign('order', $order);
+				ecjia_front::$controller->assign('goods_list', $cart_goods);
+				ecjia_front::$controller->assign('shop_name', ecjia::config('shop_name'));
+				ecjia_front::$controller->assign('send_date', date(ecjia::config('time_format')));
 	
-// 				$content = ecjia_front::$controller->fetch_string($tpl['template_content']);
-// 				RC_Mail::send_mail(ecjia::config('shop_name'), ecjia::config('service_email'), $tpl['template_subject'], $content, $tpl['is_html']);
-// 			} catch (PDOException $e) {
-// 				RC_Logger::getLogger('info')->error($e);
-// 			}
-// 		}
+				$content = ecjia_front::$controller->fetch_string($tpl['template_content']);
+				RC_Mail::send_mail(ecjia::config('shop_name'), ecjia::config('service_email'), $tpl['template_subject'], $content, $tpl['is_html']);
+			} catch (PDOException $e) {
+				RC_Logger::getLogger('info')->error($e);
+			}
+		}
+		
+		RC_Logger::getlogger('info')->info([
+			'file' => __FILE__,
+			'line' => __LINE__,
+			'content' => 'test222',
+		]);
+		
+		
 
 		/*如果订单金额为0，并且配送方式为上门取货时发送提货码*/
 		if (($order['order_amount'] + $order['surplus']) == '0.00' && (!empty($shipping_code) && ($shipping_code == 'ship_cac'))) {
