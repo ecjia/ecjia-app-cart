@@ -436,12 +436,6 @@ class cart_flow_done_api extends Component_Event_Api {
 		if ($order['bonus_id'] > 0 && $temp_amout > 0) {
 			RC_Api::api('bonus', 'use_bonus', array('bonus_id' => $order['bonus_id'], 'order_id' => $new_order_id, 'order_sn' => $order['order_sn']));
 		}
-		
-		RC_Logger::getlogger('info')->info([
-			'file' => __FILE__,
-			'line' => __LINE__,
-			'content' => 'test111',
-		]);
 
 		/* 给商家发邮件 */
 		/* 增加是否给客服发送邮件选项 */
@@ -459,26 +453,12 @@ class cart_flow_done_api extends Component_Event_Api {
 					
 					$content = ecjia_front::$controller->fetch_string($tpl['template_content']);
 					
-					RC_Logger::getlogger('info')->info([
-					'file' => __FILE__,
-					'line' => __LINE__,
-					'content' => 'test222',
-					]);
-					
 					RC_Mail::send_mail(ecjia::config('shop_name'), ecjia::config('service_email'), $tpl['template_subject'], $content, $tpl['is_html']);
 				}
 			} catch (PDOException $e) {
 				RC_Logger::getLogger('info')->error($e);
 			}
 		}
-		
-		RC_Logger::getlogger('info')->info([
-			'file' => __FILE__,
-			'line' => __LINE__,
-			'content' => 'test333',
-		]);
-		
-		
 
 		/*如果订单金额为0，并且配送方式为上门取货时发送提货码*/
 		if (($order['order_amount'] + $order['surplus']) == '0.00' && (!empty($shipping_code) && ($shipping_code == 'ship_cac'))) {
