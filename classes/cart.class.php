@@ -799,7 +799,7 @@ class cart {
 		$se_flow_type = isset($_SESSION['flow_type']) ? $_SESSION['flow_type'] : '';
 
 		/* 支付费用 */
-		if (!empty($order['pay_id']) && ($total['real_goods_count'] > 0 || $se_flow_type != CART_EXCHANGE_GOODS)) {
+		if (!empty($order['pay_id']) && ($total['real_goods_count'] > 0 || $se_flow_type != \Ecjia\App\Cart\Enums\CartEnum::CART_EXCHANGE_GOODS)) {
 			$total['pay_fee']      	= self::pay_fee($order['pay_id'], $total['amount'], $shipping_cod_fee);
 		}
 		$total['pay_fee_formated'] 	= price_format($total['pay_fee'], false);
