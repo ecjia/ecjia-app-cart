@@ -32,7 +32,7 @@ class CartFunction
                 $rec_type = CART_CASHDESK_GOODS;
             }
         } else {
-            $rec_type = CART_GENERAL_GOODS;
+            $rec_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
         }
 
         $discount = $_SESSION['discount'];

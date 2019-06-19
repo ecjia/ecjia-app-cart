@@ -90,9 +90,9 @@ class bbc_flow_done_module extends api_front implements api_interface {
     	} else {
     		$rec_type = $rec_type['0'];
     		if ($rec_type == 1) {
-    			$flow_type = CART_GROUP_BUY_GOODS;
+    			$flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS;
     		} else {
-    			$flow_type = CART_GENERAL_GOODS;
+    			$flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
     		}
     	}
     	

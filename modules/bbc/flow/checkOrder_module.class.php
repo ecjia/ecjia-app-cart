@@ -79,9 +79,9 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 		} else {
 			$rec_type = $rec_type['0'];
 			if ($rec_type == 1) {
-				$flow_type = CART_GROUP_BUY_GOODS;
+				$flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS;
 			} else {
-				$flow_type = CART_GENERAL_GOODS;
+				$flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
 			}
 		}
 		/* 团购标志 */
@@ -119,7 +119,7 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 		$format_cart_list = $cart_multi->getGoodsCollection();
 		
 		/* 对是否允许修改购物车赋值 */
-		if ($flow_type != CART_GENERAL_GOODS || ecjia::config('one_step_buy') == '1') {
+		if ($flow_type != \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS || ecjia::config('one_step_buy') == '1') {
 		    $allow_edit_cart = 0 ;
 		} else {
 		    $allow_edit_cart = 1 ;

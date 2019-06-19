@@ -84,7 +84,7 @@ class storepickup_flow_done_module extends api_front implements api_interface
 		$cart_id = empty($rec_id) ? '' : explode(',', $rec_id);
 		
         /* 取得购物类型 */
-		$flow_type = CART_GENERAL_GOODS;
+		$flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
         
         /* 检查购物车中是否有商品 */
 		$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
@@ -276,7 +276,7 @@ class storepickup_flow_done_module extends api_front implements api_interface
         $order['bonus_id'] = empty($order['bonus_id']) ? 0 : intval($order['bonus_id']);
         
         /* 检查商品总额是否达到最低限购金额 */
-        if ($flow_type == CART_GENERAL_GOODS && cart_amount(true, CART_GENERAL_GOODS, $cart_id) < ecjia::config('min_goods_amount')) {
+        if ($flow_type == \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS && cart_amount(true, \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS, $cart_id) < ecjia::config('min_goods_amount')) {
         	return new ecjia_error('min_goods_amount_error', __('订单金额未达到最小购物金额【'.ecjia::config('min_goods_amount').'】。', 'cart'));
         }
         

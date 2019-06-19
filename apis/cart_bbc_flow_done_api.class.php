@@ -321,7 +321,7 @@ class cart_bbc_flow_done_api extends Component_Event_Api {
 	 */
 	private function _get_extension_info($flow_type, $cart_goods)
 	{
-		if (isset($flow_type) && intval($flow_type) != CART_GENERAL_GOODS) {
+		if (isset($flow_type) && intval($flow_type) != \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS) {
 			if ($flow_type == CART_GROUP_BUY_GOODS) {
 				$extension_code = 'group_buy';
 				if (!empty($cart_goods)) {

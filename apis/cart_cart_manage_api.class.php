@@ -210,7 +210,7 @@ class cart_cart_manage_api extends Component_Event_Api {
 	        'extension_code'=> $goods['extension_code'],
 	        'is_gift'       => 0,
 	        'is_shipping'   => $goods['is_shipping'],
-	        'rec_type'      => CART_GENERAL_GOODS,
+	        'rec_type'      => \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS,
 	        'store_id'      => $goods['store_id'],
 	        'add_time'      => RC_Time::gmtime(),
         );
@@ -333,7 +333,7 @@ class cart_cart_manage_api extends Component_Event_Api {
         $user_id = $_SESSION['user_id'];
         if ($num > 0) {
             /* 检查该商品是否已经存在在购物车中 */
-        	$rec_type = CART_GENERAL_GOODS;
+        	$rec_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
             // 重新赋值查询
             $db_cart_model = RC_DB::table('cart');
             $row = $db_cart_model

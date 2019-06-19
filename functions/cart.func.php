@@ -68,7 +68,7 @@ function EM_get_cart_goods() {
         $data = RC_DB::table('cart')
             ->select(RC_DB::raw('*, IF(parent_id, parent_id, goods_id) AS pid'))
             ->where('user_id', $_SESSION['user_id'])
-            ->where('rec_type', CART_GENERAL_GOODS)
+            ->where('rec_type', \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS)
             ->orderBy('pid', 'asc')
             ->orderBy('parent_id', 'asc')
             ->get();
@@ -76,7 +76,7 @@ function EM_get_cart_goods() {
         $data = RC_DB::table('cart')
             ->select(RC_DB::raw('*, IF(parent_id, parent_id, goods_id) AS pid'))
             ->where('session_id', SESS_ID)
-            ->where('rec_type', CART_GENERAL_GOODS)
+            ->where('rec_type', \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS)
             ->orderBy('pid', 'asc')
             ->orderBy('parent_id', 'asc')
             ->get();
@@ -587,7 +587,7 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
     }
     
     /*收银台商品购物车类型*/
-    $rec_type = !empty($flow_type) ? intval($flow_type) : CART_GENERAL_GOODS;
+    $rec_type = !empty($flow_type) ? intval($flow_type) : \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
 	
     /* 初始化要插入购物车的基本件数据 */
     $parent = array(
@@ -865,7 +865,7 @@ function recalculate_price($device = array()) {
 			$rec_type = CART_CASHDESK_GOODS;
 		}
 	} else {
-		$rec_type = CART_GENERAL_GOODS;
+		$rec_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
 	}
 	
 	$discount = $_SESSION['discount'];
@@ -1369,7 +1369,7 @@ function flow_order_info() {
 	}
 
 	/* 扩展信息 */
-	if (isset($_SESSION['flow_type']) && intval($_SESSION['flow_type']) != CART_GENERAL_GOODS) {
+	if (isset($_SESSION['flow_type']) && intval($_SESSION['flow_type']) != \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS) {
 		$order['extension_code'] 	= $_SESSION['extension_code'];
 		$order['extension_id'] 		= $_SESSION['extension_id'];
 	}
@@ -1406,9 +1406,9 @@ function compute_discount($type = 0, $newInfo = array(), $cart_id = array(), $us
 		);
 		$where = empty($cart_id) ? '' : array('rec_id' => $cart_id);
 		if ($_SESSION['user_id']) {
-			$goods_list = $db_cartview->where(array_merge($where, array('c.user_id' => $_SESSION['user_id'] , 'c.parent_id' => 0 , 'c.is_gift' => 0 , 'rec_type' => CART_GENERAL_GOODS)))->select();
+			$goods_list = $db_cartview->where(array_merge($where, array('c.user_id' => $_SESSION['user_id'] , 'c.parent_id' => 0 , 'c.is_gift' => 0 , 'rec_type' => \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS)))->select();
 		} else {
-			$goods_list = $db_cartview->where(array_merge($where, array('c.session_id' => SESS_ID , 'c.parent_id' => 0 , 'c.is_gift' => 0 , 'rec_type' => CART_GENERAL_GOODS)))->select();
+			$goods_list = $db_cartview->where(array_merge($where, array('c.session_id' => SESS_ID , 'c.parent_id' => 0 , 'c.is_gift' => 0 , 'rec_type' => \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS)))->select();
 		}
 	} elseif ($type == 2) {
 		$db_goods = RC_Loader::load_app_model('goods_model', 'goods');
@@ -1560,7 +1560,7 @@ function compute_discount_amount($cart_id = array()) {
 			'on'    => 'c.goods_id = g.goods_id'
 		)
 	);
-	$cart_where = array('c.parent_id' => 0 , 'c.is_gift' => 0 , 'rec_type' => CART_GENERAL_GOODS);
+	$cart_where = array('c.parent_id' => 0 , 'c.is_gift' => 0 , 'rec_type' => \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS);
 	if (!empty($cart_id)) {
 		$cart_where = array_merge($cart_where, array('c.rec_id' => $cart_id));
 	}

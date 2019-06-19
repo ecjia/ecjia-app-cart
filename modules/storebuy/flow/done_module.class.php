@@ -205,7 +205,7 @@ class storebuy_flow_done_module extends api_front implements api_interface
         }
 
         /* 扩展信息 */
-        if ($flow_type != CART_GENERAL_GOODS) {
+        if ($flow_type != \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS) {
             $order['extension_code']	= 'storebuy';
             $order['extension_id']		= $_SESSION['extension_id'];
         } else {
@@ -252,7 +252,7 @@ class storebuy_flow_done_module extends api_front implements api_interface
 
 
         /* 检查商品总额是否达到最低限购金额 */
-        if ($flow_type == CART_GENERAL_GOODS && cart_amount(true, CART_GENERAL_GOODS, $cart_id) < ecjia::config('min_goods_amount')) {
+        if ($flow_type == \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS && cart_amount(true, \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS, $cart_id) < ecjia::config('min_goods_amount')) {
         	return new ecjia_error('min_goods_amount_error', __('订单金额未达到最小购物金额【'.ecjia::config('min_goods_amount').'】。', 'cart'));
         }
 

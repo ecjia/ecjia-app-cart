@@ -668,7 +668,7 @@ class cart {
 				if ($order['extension_code'] == 'group_buy') {
 					$weight_price = self::cart_weight_price(CART_GROUP_BUY_GOODS);
 				} else {
-					$weight_price = self::cart_weight_price(CART_GENERAL_GOODS, $cart_id);
+					$weight_price = self::cart_weight_price(\Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS, $cart_id);
 				}
 				if (!empty($cart_id)) {
 					$shipping_count_where = array('rec_id' => $cart_id);
@@ -1081,7 +1081,7 @@ class cart {
 			'c.user_id'		=> $_SESSION['user_id'],
 			'c.parent_id'	=> 0,
 			'c.is_gift'		=> 0,
-			'rec_type' 		=> CART_GENERAL_GOODS,
+			'rec_type' 		=> \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS,
 	        'c.is_checked'  => 1, // 增加选中状态条件
 		);
 
@@ -1219,7 +1219,7 @@ class cart {
 	        'c.user_id'		=> $_SESSION['user_id'],
 	        'c.parent_id'	=> 0,
 	        'c.is_gift'		=> 0,
-	        'rec_type' 		=> CART_GENERAL_GOODS,
+	        'rec_type' 		=> \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS,
 	        'c.is_checked'  => 1, // 增加选中状态条件
 	        'c.store_id'    => $store_id,
 	    );
@@ -1351,7 +1351,7 @@ class cart {
 				'on'    => 'c.goods_id = g.goods_id'
 			)
 		);
-		$cart_where = array('c.parent_id' => 0 , 'c.is_gift' => 0 , 'rec_type' => CART_GENERAL_GOODS);
+		$cart_where = array('c.parent_id' => 0 , 'c.is_gift' => 0 , 'rec_type' => \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS);
 		if (!empty($cart_id)) {
 			$cart_where = array_merge($cart_where, array('c.rec_id' => $cart_id));
 		}
@@ -1842,7 +1842,7 @@ class cart {
 		}
 
 		/* 扩展信息 */
-		if (isset($_SESSION['flow_type']) && intval($_SESSION['flow_type']) != CART_GENERAL_GOODS) {
+		if (isset($_SESSION['flow_type']) && intval($_SESSION['flow_type']) != \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS) {
 			$order['extension_code'] 	= $_SESSION['extension_code'];
 			$order['extension_id'] 		= $_SESSION['extension_id'];
 		}

@@ -75,7 +75,7 @@ class storepickup_flow_checkOrder_module extends api_front implements api_interf
 		RC_Loader::load_app_func('admin_bonus','bonus');
 
 		/* 取得购物类型 */
-		$flow_type = CART_GENERAL_GOODS;
+		$flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
 		/* 取得购物类型 */
 		//$flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
 

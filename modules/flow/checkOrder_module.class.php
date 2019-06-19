@@ -79,16 +79,16 @@ class flow_checkOrder_module extends api_front implements api_interface {
 		} else {
 			$rec_type = $rec_type['0'];
 			if ($rec_type == 1) {
-				$flow_type = CART_GROUP_BUY_GOODS;
+				$flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS;
 			} else {
-				$flow_type = CART_GENERAL_GOODS;
+				$flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
 			}
 		}
 		/* 团购标志 */
-		if ($flow_type == CART_GROUP_BUY_GOODS) {
+		if ($flow_type == \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS) {
 			$is_group_buy = 1;
 			$order_activity_type = 'group_buy';
-		} elseif ($flow_type == CART_EXCHANGE_GOODS) {
+		} elseif ($flow_type == \Ecjia\App\Cart\Enums\CartEnum::CART_EXCHANGE_GOODS) {
 			/* 积分兑换商品 */
 			$is_exchange_goods = 1;
 		} else {
@@ -112,7 +112,7 @@ class flow_checkOrder_module extends api_front implements api_interface {
 		}
 		
 		/* 对是否允许修改购物车赋值 */
-		if ($flow_type != CART_GENERAL_GOODS || ecjia::config('one_step_buy') == '1') {
+		if ($flow_type != \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS || ecjia::config('one_step_buy') == '1') {
 		    $allow_edit_cart = 0 ;
 		} else {
 		    $allow_edit_cart = 1 ;
@@ -202,9 +202,9 @@ class flow_checkOrder_module extends api_front implements api_interface {
 		    $shipping_list     = ecjia_shipping::availableUserShippings($region, $order['store_id']);
 
 		    if ($flow_type == CART_GROUP_BUY_GOODS) {
-                $cart_weight_price = cart::cart_weight_price(CART_GROUP_BUY_GOODS);
+                $cart_weight_price = cart::cart_weight_price(\Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS);
             } else {
-                $cart_weight_price = cart::cart_weight_price(CART_GENERAL_GOODS, $cart_id);
+                $cart_weight_price = cart::cart_weight_price(\Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS, $cart_id);
             }
 
 		    $insure_disabled   = true;

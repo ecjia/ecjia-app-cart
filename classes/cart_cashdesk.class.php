@@ -168,7 +168,7 @@ class cart_cashdesk {
 				$rec_type = CART_CASHDESK_GOODS;
 			}
 		} else {
-			$rec_type = CART_GENERAL_GOODS;
+			$rec_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
 		}
 	
 		$discount = $_SESSION['discount'];
@@ -348,7 +348,7 @@ class cart_cashdesk {
 		$goods_attr_id          = join(',', $spec);
 	
 		/*收银台商品购物车类型*/
-		$rec_type = !empty($flow_type) ? intval($flow_type) : CART_GENERAL_GOODS;
+		$rec_type = !empty($flow_type) ? intval($flow_type) : \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
 	
 		/* 初始化要插入购物车的基本件数据 */
 		$parent = array(
@@ -1340,7 +1340,7 @@ class cart_cashdesk {
 		}
 	
 		/* 扩展信息 */
-		if (isset($_SESSION['flow_type']) && intval($_SESSION['flow_type']) != CART_GENERAL_GOODS) {
+		if (isset($_SESSION['flow_type']) && intval($_SESSION['flow_type']) != \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS) {
 			$order['extension_code'] 	= $_SESSION['extension_code'];
 			$order['extension_id'] 		= $_SESSION['extension_id'];
 		}
