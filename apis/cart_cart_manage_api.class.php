@@ -55,7 +55,7 @@ class cart_cart_manage_api extends Component_Event_Api {
     /**
      * @param
      *
-     * @return array
+     * @return array|ecjia_error
      */
     public function call(&$options) {
 
@@ -78,7 +78,7 @@ class cart_cart_manage_api extends Component_Event_Api {
      * @param   integer $num        商品数量
      * @param   array   $spec       规格值对应的id数组
      * @param   integer $parent     基本件
-     * @return  boolean
+     * @return  array|bool|ecjia_error
      */
     private function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $store_group = array(), $product_id = 0) {
         RC_Loader::load_app_class('goods_info', 'goods', false);
