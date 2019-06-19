@@ -64,12 +64,12 @@ class cart_bbc_flow_done_api extends Component_Event_Api {
      * @param array $device  device信息      必传
      * @param int $address_id   收货地址id
      *
-     * @return array
+     * @return array|ecjia_error
      */
 	public function call(&$options) {
 
 		if (empty($options['user_id']) || empty($options['cart_id']) || empty($options['order']) || empty($options['store_ids']) || !isset($options['flow_type']) || !isset($options['is_separate_order'])) {
-			return new ecjia_error('invalid_parameter', __('请求cart_bbc_flow_done_api文件参数无效！', 'cart'));
+			return new ecjia_error('invalid_parameter', sprintf(__('请求接口%s参数无效', 'cart'), __CLASS__));
 		}
 		
 		RC_Loader::load_app_class('cart', 'cart', false);
