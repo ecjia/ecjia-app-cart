@@ -1729,7 +1729,7 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 	$goods_attr_id          = join(',', $spec);
 	/* 更新：清空购物车中所有团购商品 */
 	
-	clear_cart(CART_GROUP_BUY_GOODS);
+	clear_cart(\Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS);
 
 	
 	/* 更新：加入购物车 */
@@ -1754,13 +1754,13 @@ function addto_cart_groupbuy($act_id, $number = 1, $spec = array(), $parent = 0,
 		'is_real'        => $goods['is_real'],
 		'extension_code' => addslashes($goods['extension_code']),
 		'parent_id'      => 0,
-		'rec_type'       => CART_GROUP_BUY_GOODS,
+		'rec_type'       => \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS,
 		'is_gift'        => 0
 	);
 	$db_cart->insert($cart);
 	
 	/* 更新：记录购物流程类型：团购 */
-	$_SESSION['flow_type'] = CART_GROUP_BUY_GOODS;
+	$_SESSION['flow_type'] = \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS;
 	$_SESSION['extension_code'] = 'group_buy';
 	$_SESSION['extension_id'] = $act_id;
 }

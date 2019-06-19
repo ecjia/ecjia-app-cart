@@ -446,7 +446,7 @@ class storebuy_flow_done_module extends api_front implements api_interface
                 );
             }
 
-            if ($virtual_goods and $flow_type != CART_GROUP_BUY_GOODS) {
+            if ($virtual_goods and $flow_type != \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS) {
                 /* 虚拟卡发货 */
                 if (virtual_goods_ship($virtual_goods, $msg, $order['order_sn'], true)) {
                     /* 如果没有实体商品，修改发货状态，送积分和红包 */

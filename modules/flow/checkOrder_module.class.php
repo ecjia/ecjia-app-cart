@@ -201,7 +201,7 @@ class flow_checkOrder_module extends api_front implements api_interface {
 		    $region            = array($consignee['country'], $consignee['province'], $consignee['city'], $consignee['district'], $consignee['street']);
 		    $shipping_list     = ecjia_shipping::availableUserShippings($region, $order['store_id']);
 
-		    if ($flow_type == CART_GROUP_BUY_GOODS) {
+		    if ($flow_type == \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS) {
                 $cart_weight_price = cart::cart_weight_price(\Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS);
             } else {
                 $cart_weight_price = cart::cart_weight_price(\Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS, $cart_id);
@@ -314,7 +314,7 @@ class flow_checkOrder_module extends api_front implements api_interface {
 		        $cod      = $shipping['support_cod'];
 		        if ($cod){
 		            /* 如果是团购，且保证金大于0，不能使用货到付款 */
-		            if ($flow_type == CART_GROUP_BUY_GOODS) {
+		            if ($flow_type == \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS) {
 		                $group_buy_id = $_SESSION['extension_id'];
 		                if ($group_buy_id <= 0) {
 		                    return new ecjia_error('groupbuy_not_support_cod', __('如果是团购，且保证金大于0，不能使用货到付款', 'cart'));
@@ -399,7 +399,7 @@ class flow_checkOrder_module extends api_front implements api_interface {
 		if ((ecjia_config::has('use_integral') || ecjia::config('use_integral') == '1')
 				&& $_SESSION['user_id'] > 0
 				&& $user_info['pay_points'] > 0
-				&& ($flow_type != CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS))
+				&& ($flow_type != \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS))
 		{
 			// 能使用积分
 			$allow_use_integral = 1;
@@ -414,7 +414,7 @@ class flow_checkOrder_module extends api_front implements api_interface {
 		$out['order_max_integral'] = $order_max_integral;//订单最大可使用积分
 			/* 如果使用红包，取得用户可以使用的红包及用户选择的红包 */
 		if ((ecjia_config::has('use_bonus') || ecjia::config('use_bonus') == '1')
-				&& ($flow_type != CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS))
+				&& ($flow_type != \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS))
 		{
 			// 取得用户可用红包
 			$pra = array(

@@ -85,7 +85,7 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 			}
 		}
 		/* 团购标志 */
-		if ($flow_type == CART_GROUP_BUY_GOODS) {
+		if ($flow_type == \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS) {
 			$is_group_buy = 1;
 			$order_activity_type = 'group_buy';
 		} elseif ($flow_type == CART_EXCHANGE_GOODS) {
@@ -147,7 +147,7 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 		$cod_fee = 0;
 		$payment_list = RC_Api::api('payment', 'available_payments', array('cod_fee' => $cod_fee));
 		
-		if ($flow_type == CART_GROUP_BUY_GOODS) {
+		if ($flow_type == \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS) {
 			//团购不支持货到付款支付，过滤
 			$collection = collect($payment_list);
 			$payment_list = $collection->filter(function ($value, $key) {
@@ -169,7 +169,7 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 		$out['payment_list']	= $payment_list;//支付信息
 
 		/* 如果使用积分，取得用户可用积分及本订单最多可以使用的积分 */
-		if ((ecjia_config::has('use_integral') || ecjia::config('use_integral') == '1') && $_SESSION['user_id'] > 0 && $user_info['pay_points'] > 0 && ($flow_type != CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS)) {
+		if ((ecjia_config::has('use_integral') || ecjia::config('use_integral') == '1') && $_SESSION['user_id'] > 0 && $user_info['pay_points'] > 0 && ($flow_type != \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS)) {
 			// 能使用积分
 			$allow_use_integral = 1;
 			$order_max_integral = cart::flow_available_points($cart_id);
@@ -183,7 +183,7 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 		$out['order_max_integral'] = $order_max_integral;//订单最大可使用积分
 		
 		/* 如果使用红包，取得用户可以使用的红包及用户选择的红包 */
-		if ((ecjia_config::has('use_bonus') || ecjia::config('use_bonus') == '1') && ($flow_type != CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS)){
+		if ((ecjia_config::has('use_bonus') || ecjia::config('use_bonus') == '1') && ($flow_type != \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS && $flow_type != CART_EXCHANGE_GOODS)){
 			// 取得用户可用红包
 			$pra = array(
 					'user_id' 			=> $_SESSION['user_id'],
@@ -210,7 +210,7 @@ class bbc_flow_checkOrder_module extends api_front implements api_interface {
 		$out['your_integral']		= $user_info['pay_points'] > 0 ? $user_info['pay_points'] : 0;//用户可用积分
 		
 		//团购结算不可使用优惠活动
-		if ($flow_type != CART_GROUP_BUY_GOODS) {
+		if ($flow_type != \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS) {
 			$out['discount']			= number_format($format_cart_list['total']['discount'], 2, '.', '');//用户享受折扣数
 			$out['discount_formated']	= $format_cart_list['total']['formatted_discount'];
 		} else {

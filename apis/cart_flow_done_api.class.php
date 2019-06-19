@@ -549,7 +549,7 @@ class cart_flow_done_api extends Component_Event_Api {
 				);
 			}
 
-			if ($virtual_goods and $options['flow_type'] != CART_GROUP_BUY_GOODS) {
+			if ($virtual_goods and $options['flow_type'] != \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS) {
 				/* 如果没有实体商品，修改发货状态，送积分和红包 */
 				$count = $db_order_goods
 					->where('order_id', $order['order_id'])

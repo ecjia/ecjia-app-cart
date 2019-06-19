@@ -677,7 +677,7 @@ class cart {
 			
 			if (!empty($shipping_info)) {
 				if ($order['extension_code'] == 'group_buy') {
-					$weight_price = self::cart_weight_price(CART_GROUP_BUY_GOODS);
+					$weight_price = self::cart_weight_price(\Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS);
 				} else {
 					$weight_price = self::cart_weight_price(\Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS, $cart_id);
 				}
