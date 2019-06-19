@@ -480,7 +480,11 @@ function flow_clear_cart_alone() {
  * @param   integer $parent     基本件
  * @return  boolean
  */
-function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehouse_id = 0, $area_id = 0, $price = 0, $weight = 0, $flow_type = CART_GENERAL_GOODS, $product_id = 0) {
+function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehouse_id = 0, $area_id = 0, $price = 0, $weight = 0, $flow_type = null, $product_id = 0) {
+    if (is_null($flow_type)) {
+        $flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
+    }
+
 	$product_id = empty($product_id) ? 0 : $product_id;
 	$dbview 		= RC_Loader::load_app_model('sys_goods_member_viewmodel', 'goods');
 	$db_cart 		= RC_Loader::load_app_model('cart_model', 'cart');
@@ -781,7 +785,11 @@ function addto_cart($goods_id, $num = 1, $spec = array(), $parent = 0, $warehous
  * @access  private
  * @return  integral
  */
-function flow_available_points($cart_id = array(), $rec_type = CART_GENERAL_GOODS) {
+function flow_available_points($cart_id = array(), $rec_type = null) {
+    if (is_null($rec_type)) {
+        $rec_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
+    }
+
 	$db_view = RC_Loader::load_app_model('cart_goods_viewmodel', 'cart');
 	$cart_where = array('c.user_id' => $_SESSION['user_id'], 'c.is_gift' => 0 , 'g.integral' => array('gt' => '0') , 'c.rec_type' => $rec_type);
 	if (!empty($cart_id)) {
@@ -949,7 +957,11 @@ function recalculate_price($device = array()) {
  * @param   int	 $type   类型：默认普通商品
  * @return  array
  */
-function cart_weight_price($type = CART_GENERAL_GOODS, $cart_id = array()) {
+function cart_weight_price($type = null, $cart_id = array()) {
+    if (is_null($type)) {
+        $type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
+    }
+
 	$db 			= RC_Loader::load_app_model('cart_model', 'cart');
 	$dbview 		= RC_Loader::load_app_model('package_goods_viewmodel','orders');
 	$db_cartview 	= RC_Loader::load_app_model('cart_good_member_viewmodel', 'cart');
@@ -1033,7 +1045,10 @@ function cart_weight_price($type = CART_GENERAL_GOODS, $cart_id = array()) {
  * @param   int     $type   类型：默认普通商品
  * @return  array   购物车商品数组
  */
-function cart_goods($type = CART_GENERAL_GOODS, $cart_id = array()) {
+function cart_goods($type = null, $cart_id = array()) {
+    if (is_null($type)) {
+        $type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
+    }
 
 // 	$db = RC_Loader::load_app_model('cart_model', 'cart');
 	$db = RC_Loader::load_app_model('cart_goods_viewmodel', 'cart');
@@ -1191,7 +1206,11 @@ function get_cart_check_goods($cart_goods, $rec_id = '', $type = 0){
  * @param   int     $type           类型：默认普通商品
  * @return  float   购物车总金额
  */
-function cart_amount($include_gift = true, $type = CART_GENERAL_GOODS, $cart_id = array()) {
+function cart_amount($include_gift = true, $type = null, $cart_id = array()) {
+    if (is_null($type)) {
+        $type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
+    }
+
 	$db = RC_Loader::load_app_model('cart_model', 'cart');
 
 	if ($_SESSION['user_id']) {
@@ -1217,7 +1236,11 @@ function cart_amount($include_gift = true, $type = CART_GENERAL_GOODS, $cart_id 
  * 清空购物车
  * @param   int	 $type   类型：默认普通商品
  */
-function clear_cart($type = CART_GENERAL_GOODS, $cart_id = array()) {
+function clear_cart($type = null, $cart_id = array()) {
+    if (is_null($type)) {
+        $type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
+    }
+
 	$db_cart = RC_Loader::load_app_model('cart_model', 'cart');
 	$cart_w = array('rec_type' => $type);
 	if (!empty($cart_id)) {
@@ -1237,7 +1260,11 @@ function clear_cart($type = CART_GENERAL_GOODS, $cart_id = array()) {
  * @access  public
  * @return  array
  */
-function get_cart_goods($cart_id = array(), $flow_type = CART_GENERAL_GOODS) {
+function get_cart_goods($cart_id = array(), $flow_type = null) {
+    if (is_null($flow_type)) {
+        $flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
+    }
+
 	RC_Loader::load_app_func('global', 'goods');
 	$db_cart 		= RC_Loader::load_app_model('cart_model', 'cart');
 	$db_goods_attr 	= RC_Loader::load_app_model('goods_attr_model','goods');
@@ -1947,8 +1974,12 @@ function formated_favourable($favourable_result, $goods_list) {
  * @param   int     $type   类型：默认普通商品
  * @return  array   购物车商品数组
  */
-function cart_goods_dsc($type = CART_GENERAL_GOODS, $cart_value = '', $ru_type = 0, $warehouse_id = 0, $area_id = 0, $area_city = 0, $consignee = array(), $store_id = 0)
+function cart_goods_dsc($type = null, $cart_value = '', $ru_type = 0, $warehouse_id = 0, $area_id = 0, $area_city = 0, $consignee = array(), $store_id = 0)
 {
+    if (is_null($type)) {
+        $type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
+    }
+
     $rec_txt = array(
         __('普通', 'cart'),
         __('团购', 'cart'),

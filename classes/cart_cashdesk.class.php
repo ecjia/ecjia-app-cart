@@ -44,6 +44,8 @@
 //
 //  ---------------------------------------------------------------------------------
 //
+use Ecjia\App\Cart\Enums\CartEnum;
+
 defined('IN_ECJIA') or exit('No permission resources.');
 
 /**
@@ -248,7 +250,11 @@ class cart_cashdesk {
 	 * @param   integer $parent     基本件
 	 * @return  boolean
 	 */
-	public static function addto_cart($goods_id, $num =1, $spec = array(), $parent = 0, $price = 0, $weight = 0, $flow_type = CART_GENERAL_GOODS, $pendorder_id = 0) {
+	public static function addto_cart($goods_id, $num =1, $spec = array(), $parent = 0, $price = 0, $weight = 0, $flow_type = null, $pendorder_id = 0) {
+        if (is_null($flow_type)) {
+            $flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
+        }
+
 		$_parent_id 	= $parent;
 		$num			= empty($num) ? 1 : $num;
 		RC_Loader::load_app_func('admin_order', 'orders');
@@ -1448,7 +1454,11 @@ class cart_cashdesk {
 	 * 计算购物车中的商品能享受红包支付的总额
 	 * @return  float   享受红包支付的总额
 	 */
-	public static function compute_discount_amount($cart_id = array(), $rec_type = CART_GENERAL_GOODS, $store_id = 0) {
+	public static function compute_discount_amount($cart_id = array(), $rec_type = null, $store_id = 0) {
+        if (is_null($rec_type)) {
+            $rec_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
+        }
+
 		$db				= RC_DB::table('favourable_activity');
 		/* 查询优惠活动 */
 		$now = RC_Time::gmtime();
@@ -1547,7 +1557,10 @@ class cart_cashdesk {
 	 * 取得购物车该赠送的积分数
 	 * @return  int	 积分数
 	 */
-	public static function get_give_integral( $cart_id = array(), $rec_type = CART_GENERAL_GOODS) {
+	public static function get_give_integral( $cart_id = array(), $rec_type = null) {
+        if (is_null($rec_type)) {
+            $rec_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
+        }
 		
 		$field = "c.rec_id, c.goods_id, c.goods_attr_id, g.promote_price, g.promote_start_date, c.goods_number,g.promote_end_date, IFNULL(mp.user_price, g.shop_price * '$_SESSION[discount]') AS member_price";
 		
@@ -1571,7 +1584,11 @@ class cart_cashdesk {
 	 * 清空购物车
 	 * @param   int	 $type   类型：默认普通商品
 	 */
-	public static function clear_cart($type = CART_GENERAL_GOODS, $cart_id = array(), $pendorder_id= 0) {
+	public static function clear_cart($type = null, $cart_id = array(), $pendorder_id= 0) {
+        if (is_null($type)) {
+            $type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
+        }
+
 		$db_cart = RC_DB::table('cart');
 		
 		$db_cart->where('rec_type', $type);
@@ -1601,7 +1618,11 @@ class cart_cashdesk {
 	 * @param   int     $type           类型：默认普通商品
 	 * @return  float   购物车总金额
 	 */
-	public static function cart_amount($include_gift = true, $type = CART_GENERAL_GOODS, $cart_id = array()) {
+	public static function cart_amount($include_gift = true, $type = null, $cart_id = array()) {
+        if (is_null($type)) {
+            $type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
+        }
+
 		$db = RC_Loader::load_app_model('cart_model', 'cart');
 	
 		if ($_SESSION['user_id']) {
