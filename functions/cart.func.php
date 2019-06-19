@@ -870,7 +870,7 @@ function recalculate_price($device = array()) {
 	$codes = config('app-cashier::cashier_device_code');
 	if (!empty($device)) {
 		if (in_array($device['code'], $codes)) {
-			$rec_type = CART_CASHDESK_GOODS;
+			$rec_type = \Ecjia\App\Cart\Enums\CartEnum::CART_CASHDESK_GOODS;
 		}
 	} else {
 		$rec_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;

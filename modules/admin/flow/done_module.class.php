@@ -91,7 +91,7 @@ class admin_flow_done_module extends api_admin implements api_interface
         $flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
         $codes = config('app-cashier::cashier_device_code');
         if (!empty($device) && in_array($device['code'], $codes)) {
-        	$flow_type = CART_CASHDESK_GOODS;
+        	$flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_CASHDESK_GOODS;
         }
         
         /* 检查购物车中是否有商品 */
@@ -283,7 +283,7 @@ class admin_flow_done_module extends api_admin implements api_interface
 
         /* 订单中的总额 *///$order['bonus_id']
         //$total = cashdesk_order_fee($order, $cart_goods, $consignee);
-        $total = cart_cashdesk::cashdesk_order_fee($order, $cart_goods, $consignee, array(), CART_CASHDESK_GOODS);
+        $total = cart_cashdesk::cashdesk_order_fee($order, $cart_goods, $consignee, array(), \Ecjia\App\Cart\Enums\CartEnum::CART_CASHDESK_GOODS);
        
         $order['bonus']			= $total['bonus'];
         $order['goods_amount']	= $total['goods_price'];

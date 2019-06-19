@@ -141,7 +141,7 @@ class admin_flow_checkOrder_module extends api_admin implements api_interface {
 	    /*收银台商品购物车类型*/
 		$codes = config('app-cashier::cashier_device_code');
 	    if (!empty($device) && in_array($device['code'], $codes)) {
-	    	$flow_type = CART_CASHDESK_GOODS;
+	    	$flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_CASHDESK_GOODS;
 	    }
 		
 		if (!empty($addgoods)) {
@@ -195,7 +195,7 @@ class admin_flow_checkOrder_module extends api_admin implements api_interface {
 		$order = flow_order_info();
 		/* 计算订单的费用 */
 		//$total = cashdesk_order_fee($order, $cart_goods);
-		$total = cart_cashdesk::cashdesk_order_fee($order, $cart_goods, array(), array(), CART_CASHDESK_GOODS);
+		$total = cart_cashdesk::cashdesk_order_fee($order, $cart_goods, array(), array(), \Ecjia\App\Cart\Enums\CartEnum::CART_CASHDESK_GOODS);
 	
 // 		/* 取得支付列表 */
 // 		$cod_fee    = 0;
