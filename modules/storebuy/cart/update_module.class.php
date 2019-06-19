@@ -80,7 +80,7 @@ class storebuy_cart_update_module extends api_front implements api_interface {
 		
 	    $store_id = RC_DB::table('cart')->where('rec_id', $rec_id)->pluck('store_id');
 		$store_id_group = array($store_id);
-        $cart_result = RC_Api::api('cart', 'cart_list', array('store_group' => $store_id_group, 'flow_type' => CART_STOREBUY_GOODS));
+        $cart_result = RC_Api::api('cart', 'cart_list', array('store_group' => $store_id_group, 'flow_type' => \Ecjia\App\Cart\Enums\CartEnum::CART_STOREBUY_GOODS));
         
         return formated_cart_list($cart_result, $store_id_group);
 	}

@@ -83,7 +83,7 @@ class storebuy_flow_done_module extends api_front implements api_interface
 		$cart_id = empty($rec_id) ? '' : explode(',', $rec_id);
 
         /* 取得购物类型 */
-		$flow_type = CART_STOREBUY_GOODS;
+		$flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_STOREBUY_GOODS;
 
         /* 检查购物车中是否有商品 */
 		$db_cart = RC_Loader::load_app_model('cart_model', 'cart');

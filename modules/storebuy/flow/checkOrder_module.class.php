@@ -75,7 +75,7 @@ class storebuy_flow_checkOrder_module extends api_front implements api_interface
 		RC_Loader::load_app_func('admin_bonus','bonus');
 
 		/* 取得购物类型 */
-		$flow_type = CART_STOREBUY_GOODS;
+		$flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_STOREBUY_GOODS;
 
 		/* 对商品信息赋值 */
 		$cart_goods = Ecjia\App\Cart\CartFunction::cart_goods($flow_type, $cart_id); // 取得商品列表，计算合计
