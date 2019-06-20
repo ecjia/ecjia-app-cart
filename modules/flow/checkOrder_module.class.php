@@ -63,7 +63,7 @@ class flow_checkOrder_module extends api_front implements api_interface {
 		$location 	= $this->requestData('location', array());
 		
 		if (empty($rec_id)) {
-            return new ecjia_error('invalid_parameter', __('参数错误', 'cart'));
+            return new ecjia_error('invalid_parameter', sprintf(__('请求接口%s参数无效', 'cart'), __CLASS__));
 		}
 		$cart_id = array();
 		if (!empty($rec_id)) {

@@ -72,7 +72,7 @@ class storebuy_cart_create_module extends api_front implements api_interface {
 	    $goods_number	= $this->requestData('number', 1);
 	    $store_id		= $this->requestData('store_id', 0);
 	    if (!$goods_sn) {
-            return new ecjia_error('invalid_parameter', __('参数错误', 'cart'));
+            return new ecjia_error('invalid_parameter', sprintf(__('请求接口%s参数无效', 'cart'), __CLASS__));
 	    }
 	    
 	    $rec_type		= $this->requestData('rec_type', \Ecjia\App\Cart\Enums\CartEnum::CART_STOREBUY_GOODS); //暂没用到

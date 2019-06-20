@@ -75,7 +75,7 @@ class storebuy_cart_list_module extends api_front implements api_interface {
 		$city_id	= $this->requestData('city_id', '');
 
 		if($store_id <= 0) {
-            return new ecjia_error('invalid_parameter', __('参数错误', 'cart'));
+            return new ecjia_error('invalid_parameter', sprintf(__('请求接口%s参数无效', 'cart'), __CLASS__));
 		}
 		
 	    $store_id_group = array($store_id);
