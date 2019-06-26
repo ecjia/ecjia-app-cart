@@ -118,7 +118,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		if (is_ecjia_error($get_cart_goods)) {
 		    return $get_cart_goods;
 		}
-		if (count($get_cart_goods['goods_list']) == 0) {
+		if (count($get_cart_goods['goods_list']) <= 0) {
 			return new ecjia_error('not_found_cart_goods', __('购物车中没有您选择的商品', 'cart'));
 		}
 
@@ -163,7 +163,7 @@ class cart_flow_done_api extends Component_Event_Api {
 		}
 
 		/* 扩展信息 */
-		if (isset($flow_type) && intval($flow_type) != CART_GENERAL_GOODS) {
+		if (isset($flow_type) && intval($flow_type) != \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS) {
 			if ($flow_type == '1') {
 				$order['extension_code'] = 'group_buy';
 				if (!empty($cart_goods)) {
@@ -222,11 +222,11 @@ class cart_flow_done_api extends Component_Event_Api {
 		/* 检查商品总额是否达到最低限购金额 */
 		//获取店铺最小购物金额设置
 		$min_goods_amount = RC_DB::table('merchants_config')->where('store_id', $order['store_id'])->where('code', 'min_goods_amount')->pluck('value');
-		$cart_amount = cart::cart_amount(true, CART_GENERAL_GOODS, $options['cart_id']);
+		$cart_amount = cart::cart_amount(true, \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS, $options['cart_id']);
 		$be_short_amount = $cart_amount - $min_goods_amount;
 		$be_short_amount = price_format($be_short_amount);
 		
-		if ($options['flow_type'] == CART_GENERAL_GOODS && $cart_amount < $min_goods_amount) {
+		if ($options['flow_type'] == \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS && $cart_amount < $min_goods_amount) {
 			return new ecjia_error('bug_error', __('您的商品金额未达到最低限购金额，还差', 'cart').'【'.$be_short_amount.'】');
 		}
 
@@ -442,16 +442,19 @@ class cart_flow_done_api extends Component_Event_Api {
 		$service_email = ecjia::config('service_email');
 		if (ecjia::config('send_service_email') && !empty($service_email)) {
 			try {
-				$tpl_name = 'remind_of_new_order';
-				$tpl   = RC_Api::api('mail', 'mail_template', $tpl_name);
-	
-				ecjia_front::$controller->assign('order', $order);
-				ecjia_front::$controller->assign('goods_list', $cart_goods);
-				ecjia_front::$controller->assign('shop_name', ecjia::config('shop_name'));
-				ecjia_front::$controller->assign('send_date', date(ecjia::config('time_format')));
-	
-				$content = ecjia_front::$controller->fetch_string($tpl['template_content']);
-				RC_Mail::send_mail(ecjia::config('shop_name'), ecjia::config('service_email'), $tpl['template_subject'], $content, $tpl['is_html']);
+				if (!is_null(ecjia_front::$controller)) {
+					$tpl_name = 'remind_of_new_order';
+					$tpl   = RC_Api::api('mail', 'mail_template', $tpl_name);
+					
+					ecjia_front::$controller->assign('order', $order);
+					ecjia_front::$controller->assign('goods_list', $cart_goods);
+					ecjia_front::$controller->assign('shop_name', ecjia::config('shop_name'));
+					ecjia_front::$controller->assign('send_date', date(ecjia::config('time_format')));
+					
+					$content = ecjia_front::$controller->fetch_string($tpl['template_content']);
+					
+					RC_Mail::send_mail(ecjia::config('shop_name'), ecjia::config('service_email'), $tpl['template_subject'], $content, $tpl['is_html']);
+				}
 			} catch (PDOException $e) {
 				RC_Logger::getLogger('info')->error($e);
 			}
@@ -546,7 +549,7 @@ class cart_flow_done_api extends Component_Event_Api {
 				);
 			}
 
-			if ($virtual_goods and $options['flow_type'] != CART_GROUP_BUY_GOODS) {
+			if ($virtual_goods and $options['flow_type'] != \Ecjia\App\Cart\Enums\CartEnum::CART_GROUP_BUY_GOODS) {
 				/* 如果没有实体商品，修改发货状态，送积分和红包 */
 				$count = $db_order_goods
 					->where('order_id', $order['order_id'])
