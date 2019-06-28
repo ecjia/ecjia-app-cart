@@ -120,6 +120,10 @@ class tangchi_storebuy_flow_done_module extends api_front implements api_interfa
         $inv_payee			 	= $this->requestData('inv_payee', '');
         $inv_content 			= $this->requestData('inv_content', '');
         $postscript			 	= $this->requestData('postscript', '');
+        
+        if (empty($postscript)) {
+        	return new ecjia_error('no_goods_in_cart', __('请填写桌号', 'cart'));
+        }
 //        $how_oosLang 			= RC_Lang::lang("oos/$how_oos");
 
         /* 订单中的商品 */
