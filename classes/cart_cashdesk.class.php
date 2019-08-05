@@ -490,8 +490,8 @@ class cart_cashdesk {
 					->where('rec_type', $rec_type)
 					->where('pendorder_id', $pendorder_id);
 			
-			if (!empty($goods_attr)) {
-				$db_cart->where('goods_attr', $goods_attr);
+			if ($product_info['product_id'] > 0) {
+				$db_cart->where('product_id', $product_info['product_id']);
 			}
 			
 			if ($_SESSION['user_id'] > 0) {
