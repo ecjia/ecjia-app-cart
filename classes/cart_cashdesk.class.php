@@ -322,8 +322,7 @@ class cart_cashdesk {
 		}
 		/* 如果商品有规格则取规格商品信息 配件除外 */
 		$prod = RC_DB::table('products')->where('goods_id', $goods_id)->count();
-		if (is_spec($spec) && $prod > 0) {
-			//$product_info = get_products_info($goods_id, $spec);
+		if ($prod > 0 && !empty($spec)) {
 			$goods_attr = implode ( '|', $spec);
 			$product_info = RC_DB::table('products')->where('goods_id', $goods_id)->where('goods_attr', $goods_attr)->first();
 			if (empty($product_info)) {
