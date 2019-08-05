@@ -322,9 +322,23 @@ class cart_cashdesk {
 		}
 		/* 如果商品有规格则取规格商品信息 配件除外 */
 		$prod = RC_DB::table('products')->where('goods_id', $goods_id)->count();
+		
+		RC_Logger::getLogger('error')->info('test333');
+		RC_Logger::getLogger('error')->info($spec);
+		RC_Logger::getLogger('error')->info('test444');
+		
 		if ($prod > 0 && !empty($spec)) {
 			$goods_attr = implode ( '|', $spec);
+			
+			RC_Logger::getLogger('error')->info('test555');
+			RC_Logger::getLogger('error')->info($goods_attr);
+			
+			
 			$product_info = RC_DB::table('products')->where('goods_id', $goods_id)->where('goods_attr', $goods_attr)->first();
+			RC_Logger::getLogger('error')->info($product_info);
+			
+			RC_Logger::getLogger('error')->info('test666');
+			
 			if (empty($product_info)) {
 				return new ecjia_error('low_stocks', __('暂无此货品！', 'cart'));
 			}
