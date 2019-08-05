@@ -172,12 +172,12 @@ class cart_cashdesk {
 		$codes = config('app-cashier::cashier_device_code');
 		if (!empty($device)) {
 			if (in_array($device['code'], $codes)) {
-				$rec_type = \Ecjia\App\Cart\Enums\CartEnum::CART_CASHDESK_GOODS;
+				$rec_type = Ecjia\App\Cart\Enums\CartEnum::CART_CASHDESK_GOODS;
 			}
 		} else {
-			$rec_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
+			$rec_type = Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
 		}
-	
+		
 		$discount = $_SESSION['discount'];
 		$user_rank = $_SESSION['user_rank'];
 		$field = "c.rec_id, c.extension_code, c.goods_id, c.goods_attr_id, g.promote_price, g.promote_start_date, c.goods_number,g.promote_end_date, IFNULL(mp.user_price, g.shop_price * $discount) AS member_price";
@@ -198,7 +198,7 @@ class cart_cashdesk {
 		// @update 180719 选择性更新内容mark_changed=1
 		if ($user_id > 0) {
 			$res = $db
-			->where(RC_DB::raw('c.mark_changed'), 1)
+// 			->where(RC_DB::raw('c.mark_changed'), 1)
 			->where(RC_DB::raw('c.user_id'), $user_id)
 			->where(RC_DB::raw('c.parent_id'), 0)
 			->where(RC_DB::raw('c.is_gift'), 0)
@@ -217,13 +217,12 @@ class cart_cashdesk {
 			->get();
 		}
 	
-	
 		if (! empty($res)) {
 			RC_Loader::load_app_func('global', 'goods');
 			foreach ($res as $row) {
 				if ($row['extension_code'] != 'bulk') {
 					$attr_id = empty($row['goods_attr_id']) ? array() : explode(',', $row['goods_attr_id']);
-					$goods_price = get_final_price($row['goods_id'], $row['goods_number'], true, $attr_id);
+					$goods_price = get_final_price($row['goods_id'], $row['goods_number'], true, $attr_id, $row['product_id']);
 					$data = array(
 							'goods_price' => $goods_price,
 							'mark_changed' => 0
@@ -259,7 +258,7 @@ class cart_cashdesk {
         if (is_null($flow_type)) {
             $flow_type = \Ecjia\App\Cart\Enums\CartEnum::CART_GENERAL_GOODS;
         }
-
+        
 		$_parent_id 	= $parent;
 		$num			= empty($num) ? 1 : $num;
 		RC_Loader::load_app_func('admin_order', 'orders');
@@ -363,7 +362,7 @@ class cart_cashdesk {
 	
 		/* 初始化要插入购物车的基本件数据 */
 		$parent = array(
-				'user_id'       => $_SESSION['user_id'],
+				'user_id'       => empty($_SESSION['user_id']) ? 0 : $_SESSION['user_id'],
 				'session_id'	=> $_SESSION['device_id'],  //收银台购物车，此字段存储的值为设备收银设备id
 				'goods_id'      => $goods_id,
 				'goods_sn'      => $product_info['product_id'] > 0 ? addslashes($product_info['product_sn']) : addslashes($goods['goods_sn']),
