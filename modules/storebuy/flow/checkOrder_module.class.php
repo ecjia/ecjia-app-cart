@@ -88,7 +88,7 @@ class storebuy_flow_checkOrder_module extends api_front implements api_interface
 			$favour_name = empty($discount['name']) ? '' : join(',', $discount['name']);
 		}
 		/* 计算订单的费用 */
-		$total = cashdesk_order_fee($order, $cart_goods, array(), $cart_id);
+		$total = cashdesk_order_fee($order, $cart_goods);
 	
 // 		/* 取得支付列表 */
 // 		$cod_fee    = 0;
@@ -181,7 +181,7 @@ class storebuy_flow_checkOrder_module extends api_front implements api_interface
 		$out['bonus'] 			= $bonus_list;//红包
 		$out['your_integral']	= $user_info['pay_points'] > 0 ? $user_info['pay_points'] : 0;//用户可用积分
 		
-		$out['discount']		= number_format($total['discount'], 2, '.', '');//用户享受折扣数
+		$out['discount']		= number_format($discount['discount'], 2, '.', '');//用户享受折扣数
 		$out['discount_formated'] = $total['discount_formated'];
 
 		$payment_list = RC_Api::api('payment', 'available_payments', array('store_id' => $store_id, 'cod_fee' => 0));
