@@ -263,7 +263,7 @@ function cashdesk_order_fee($order, $goods, $consignee = array(), $cart_id = arr
 
     /* 支付费用 */
     if (!empty($order['pay_id']) && ($total['real_goods_count'] > 0 || $se_flow_type != \Ecjia\App\Cart\Enums\CartEnum::CART_EXCHANGE_GOODS)) {
-        $total['pay_fee']      	= pay_fee($order['pay_id'], $total['amount'], $shipping_cod_fee);
+        $total['pay_fee']      	= pay_fee($order['pay_id'], $total['amount'], $total['shipping_fee']);
     }
     $total['pay_fee_formated'] 	= price_format($total['pay_fee'], false);
     $total['amount']           += $total['pay_fee']; // 订单总额累加上支付费用
