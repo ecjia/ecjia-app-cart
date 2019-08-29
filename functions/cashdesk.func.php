@@ -201,7 +201,7 @@ function cashdesk_order_fee($order, $goods, $consignee = array(), $cart_id = arr
     $total['shipping_insure_formated'] = price_format($total['shipping_insure'], false);
 
     // 活动优惠总金额
-    $discount_amount = compute_discount_amount();
+    $discount_amount = cart::compute_discount_amount();
     // 红包和积分最多能支付的金额为商品总额
     //$max_amount 还需支付商品金额=商品金额-红包-优惠-积分
     $max_amount = $total['goods_price'] == 0 ? $total['goods_price'] : $total['goods_price'] - $discount_amount;
