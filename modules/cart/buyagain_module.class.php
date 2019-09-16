@@ -102,10 +102,10 @@ class cart_buyagain_module extends api_front implements api_interface {
     	        $goods_spec = !empty($goods_spec) ? $goods_spec : array();
     	        $result = RC_Api::api('cart', 'cart_manage', array('goods_id' => $goods['goods_id'], 'goods_number' => $goods['goods_number'], 'goods_spec' => $goods_spec, 'rec_type' => $rec_type, 'store_group' => $store_id_group));
     	        
-    	        // 更新：添加到购物车
-    	        if (is_ecjia_error($result)){
-    	            return $result;
-    	        } 
+    	        // 更新：添加到购物车 （错误忽略 -190916）
+//    	        if (is_ecjia_error($result)){
+//    	            return $result;
+//    	        }
     	    }
     	}
     	
