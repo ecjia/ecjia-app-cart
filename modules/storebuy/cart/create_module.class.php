@@ -97,7 +97,7 @@ class storebuy_cart_create_module extends api_front implements api_interface {
 			$goods_db->where('goods_id', $products_goods['goods_id']);
 			$product_id = $products_goods['product_id'];
 		} else {
-			$goods_db->where('goods_sn', $goods_sn)->where('goods_barcode', $goods_sn);
+			$goods_db->where('goods_sn', $goods_sn)->orWhere('goods_barcode', $goods_sn);
 		}
 		$goods = $goods_db->first();
 		if (empty($goods)) {
