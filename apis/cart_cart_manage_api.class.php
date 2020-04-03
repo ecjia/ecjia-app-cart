@@ -166,19 +166,22 @@ class cart_cart_manage_api extends Component_Event_Api {
         
         /* 检查：库存 */
         if (ecjia::config('use_storage') == 1) {
-            //检查：商品购买数量是否大于总库存
-            if ($num > $goods['goods_number']) {
-                return new ecjia_error('low_stocks', __('库存不足', 'cart'));
-            }
-            //商品存在规格 是货品 检查该货品库存
-			if ($is_spec) {
-                if (!empty($spec)) {
-                    /* 取规格的货品库存 */
-                    if ($num > $product_info['product_number']) {
-                        return new ecjia_error('low_stocks', __('货品库存不足', 'cart'));
-                    }
-                }
-            }
+			if ($product_info['product_id'] > 0) {
+				//商品存在规格 是货品 检查该货品库存
+				if ($is_spec) {
+					if (!empty($spec)) {
+						/* 取规格的货品库存 */
+						if ($num > $product_info['product_number']) {
+							return new ecjia_error('low_stocks', __('货品库存不足', 'cart'));
+						}
+					}
+				}
+			} else {
+				//检查：商品购买数量是否大于总库存
+				if ($num > $goods['goods_number']) {
+					return new ecjia_error('low_stocks', __('库存不足', 'cart'));
+				}
+			}
         }
         /* 计算商品的促销价格 */
         $goods_attr_id = 0;

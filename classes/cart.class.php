@@ -103,14 +103,15 @@ class cart {
 			if (($val > $row['goods_number'] && $val > $row['c_goods_number'])) { //新修改的数量大于之前购物车已添加的数量，且新修改的数量大于商品现有的库存时检查库存
 				//查询：系统启用了库存，检查输入的商品数量是否有效
 				if (intval(ecjia::config('use_storage')) > 0 && $goods['extension_code'] != 'package_buy') {
-					if ($row['goods_number'] < $val) {
-						return new ecjia_error('low_stocks', __('库存不足', 'cart'));
-					}
 					/* 是货品 */
 					$goods['product_id'] = trim($goods['product_id']);
 					if (!empty($goods['product_id'])) {
 						$product_number = $db_products->where(array('goods_id' => $goods['goods_id'] , 'product_id' => $goods['product_id']))->get_field('product_number');
 						if ($product_number < $val) {
+							return new ecjia_error('low_stocks', __('库存不足', 'cart'));
+						}
+					} else {
+						if ($row['goods_number'] < $val) {
 							return new ecjia_error('low_stocks', __('库存不足', 'cart'));
 						}
 					}
