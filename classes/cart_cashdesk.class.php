@@ -198,7 +198,6 @@ class cart_cashdesk {
 		// @update 180719 选择性更新内容mark_changed=1
 		if ($user_id > 0) {
 			$res = $db
-			->where(RC_DB::raw('c.mark_changed'), 1)
 			->where(RC_DB::raw('c.user_id'), $user_id)
 			->where(RC_DB::raw('c.parent_id'), 0)
 			->where(RC_DB::raw('c.is_gift'), 0)
@@ -208,7 +207,6 @@ class cart_cashdesk {
 	
 		} else {
 			$res = $db
-			->where(RC_DB::raw('c.mark_changed'), 1)
 			->where(RC_DB::raw('c.user_id'), 0)
 			->where(RC_DB::raw('c.parent_id'), 0)
 			->where(RC_DB::raw('c.is_gift'), 0)
